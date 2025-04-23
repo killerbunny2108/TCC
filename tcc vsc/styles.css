@@ -43,96 +43,143 @@ body {
     min-height: 100vh; /* Garante que o corpo ocupe toda a altura da tela */
 }
 
-/* Estilos para a parte superior (cabeçalho e hero) */
 header {
-    background-color: var(--primary-color); /* Cabeçalho roxo */
-    color: white;
-    padding: 10px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--primary-color); /* Cabeçalho roxo */
+  color: white;
+  padding: 10px 0;
+  z-index: 1000;
+
 }
 
 header nav ul {
-    list-style: none;
-    display: flex;
-    justify-content: center;
-    margin: 0;
-    padding: 0;
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
 }
 
 header nav ul li {
-    margin: 0 20px;
+  margin: 0 20px;
 }
 
 header nav ul li a {
-    text-decoration: none;
-    color: var(--button-hover);
-    font-size: 18px;
+  text-decoration: none;
+  color: var(--button-hover);
+  font-size: 18px;
 }
-
 
 /* Estilos para a seção hero */
 .hero{
-    position: relative;
-    height: 100vh;
-    z-index: 1;
-    padding:0 45px;
-    background-color: var(--background-color); /* Cor roxa para a seção hero */
-    color: white;
-    display: flex;
-    justify-content:left;
-    align-items:center;
-    text-align: left;
-    overflow: hidden; /* importante pra esconder o que passar da section */
+  position: relative;
+  height: 100vh;
+  z-index: 1;
+  padding:0 45px;
+  margin: 2;
+  background-color: var(--background-color); /* Cor roxa para a seção hero */
+  color: white;
+  display: flex;
+  justify-content:left;
+  align-items:center;
+  text-align: left;
+  overflow: hidden; /* importante pra esconder o que passar da section */
 }
 
 .imagem-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url(imagens/);
-    background-size: cover;/*faz a imagem preencher tudo*/
-    background-position: center;
-    background-repeat: no-repeat;/*impede repetição*/
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(imagens/);
+  background-size: cover;/*faz a imagem preencher tudo*/
+  background-position: center;
+  background-repeat: no-repeat;/*impede repetição*/
 }
 
 .hero-content{
-    position: relative;
-    z-index: 1; /* conteúdo por cima da imagem */
+  position: relative;
+  z-index: 1; /* conteúdo por cima da imagem */
 }
 
 .hero-content h1 {
-    font-family: "Tan Pearl", Arial, sans-serif;
-    font-size: 2.5em; /* Tamanho da fonte ajustado */
-    text-align: left;
-    color: rgb(149, 100, 241);
-    margin: 0;
-    padding: 0;
-    line-height: 1.1; /* Ajuste o espaçamento entre as linhas */
-    position: relative;
-    top: -10px; /* Ajuste do posicionamento vertical */
+  font-family: "Tan Pearl", Arial, sans-serif;
+  font-size: 2.5em; /* Tamanho da fonte ajustado */
+  text-align: left;
+  color: rgb(149, 100, 241);
+  margin: 0;
+  padding: 0;
+  line-height: 1.1; /* Ajuste o espaçamento entre as linhas */
+  position: relative;
+  top: -10px; /* Ajuste do posicionamento vertical */
 }
 
 .hero-content p{
-    color: #333;
-    padding: 0; /* Remover padding para o título */
-    margin: 3;
+  color: #333;
+  padding: 0; /* Remover padding para o título */
+  margin: 3;
+}
+
+.sobre{
+position: relative;
+margin: 5;
+height: 100vh;
+z-index: 1;
+padding:45px;
+background-color: var(--primary-color); /* Cor roxa para a seção sobre */
+color: white;
+display: flex;
+justify-content:left;
+align-items:center;
+text-align: left;
+overflow: hidden; /* importante pra esconder o que passar da section */
+}
+
+.faixa-topo-sobre {
+background-color: var(--background-color);
+border: 2px solid #c9a9e4;
+border-radius: 12px;
+padding: 15px;
+text-align: center;
+font-size: 1.4rem;
+font-family: 'DM Serif Display', serif;
+color: #4b3b5a;
+margin-bottom: 20px; /* espaço entre a faixa e o conteúdo */
+}
+
+.terapias{
+position: relative;
+height: 100vh;
+z-index: 1;
+padding:0 45px;
+background-color: var(--button-hover); /* Cor roxa para a seção hero */
+color: white;
+display: flex;
+justify-content:left;
+align-items:center;
+text-align: left;
+overflow: hidden; /* importante pra esconder o que passar da section */
 }
 
 /* Responsividade para a seção hero*/
 @media (max-width: 768px) {
-    .hero {
-        height: 50vh; /* Ajusta a altura da seção hero em telas menores */
-    }
+  .hero {
+      height: 50vh; /* Ajusta a altura da seção hero em telas menores */
+  }
 }
 
 /* Estilos para o rodapé */
 footer {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
 }
+
 
 /* Estilo específico para centralizar a página de login/cadastro */
 .login-wrapper {
