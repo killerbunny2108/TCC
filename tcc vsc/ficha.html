@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="ficha-page">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha de Anamnese</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <div class="ficha-header">
+    <a href="#" class="back-button">Voltar</a>
+    <h1>Ficha de Anamnese</h1>
+  </div>
+
+  <div class="container">
+    <form id="formFicha">
+      <h2>Preencha as Informações do Paciente</h2>
+
+      <!-- Informações básicas -->
+      <div class="form-section">
+        <h3 class="form-section-title">Informações Básicas</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="id_paciente">Paciente:</label>
+            <select id="id_paciente" name="id_paciente" required>
+              <option value="">Selecione um paciente</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tipo_atendimento">Tipo de Atendimento:</label>
+            <input type="text" name="tipo_atendimento" id="tipo_atendimento">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="data_atendimento">Data do Atendimento:</label>
+            <input type="date" name="data_atendimento" id="data_atendimento">
+          </div>
+        </div>
+      </div>
+
+      <!-- Motivo e contexto -->
+      <div class="form-section">
+        <h3 class="form-section-title">Motivo e Contexto</h3>
+        <div class="form-group">
+          <label for="motivo_consulta">Motivo da Consulta:</label>
+          <textarea name="motivo_consulta" id="motivo_consulta"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="relacao_pais">Relação com os Pais:</label>
+            <textarea name="relacao_pais" id="relacao_pais"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="fato_marcante">Fato Marcante:</label>
+            <textarea name="fato_marcante" id="fato_marcante"></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="incomodo_atual">Incômodo Atual:</label>
+          <textarea name="incomodo_atual" id="incomodo_atual"></textarea>
+        </div>
+      </div>
+
+      <!-- Informações pessoais -->
+      <div class="form-section">
+        <h3 class="form-section-title">Informações Pessoais</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="estado_civil">Estado Civil:</label>
+            <input type="text" name="estado_civil" id="estado_civil">
+          </div>
+
+          <div class="form-group">
+            <label for="filhos">Número de Filhos:</label>
+            <input type="number" name="filhos" id="filhos">
+          </div>
+
+          <div class="form-group">
+            <label for="profissao">Profissão:</label>
+            <input type="text" name="profissao" id="profissao">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="checkbox-container">
+              <input type="checkbox" name="fumante" id="fumante">
+              <label for="fumante">Fumante</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox-container">
+              <input type="checkbox" name="consome_alcool" id="consome_alcool">
+              <label for="consome_alcool">Consome Álcool</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informações médicas -->
+      <div class="form-section">
+        <h3 class="form-section-title">Informações Médicas</h3>
+        <div class="form-group">
+          <label for="acompanhamento_medico">Acompanhamento Médico:</label>
+          <textarea name="acompanhamento_medico" id="acompanhamento_medico"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="doencas">Doenças:</label>
+            <textarea name="doencas" id="doencas"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="medicacoes">Medicações:</label>
+            <textarea name="medicacoes" id="medicacoes"></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cirurgias">Cirurgias:</label>
+          <textarea name="cirurgias" id="cirurgias"></textarea>
+        </div>
+      </div>
+
+      <!-- Observações adicionais -->
+      <div class="form-section">
+        <h3 class="form-section-title">Observações Adicionais</h3>
+        <div class="form-group">
+          <label for="observacoes">Observações:</label>
+          <textarea name="observacoes" id="observacoes"></textarea>
+        </div>
+      </div>
+
+      <button type="submit">Salvar Ficha</button>
+    </form>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    // Preencher a combo box com os pacientes
+   // ficha.html
+fetch('/api/pacientes')
+  .then(response => response.json())
+  .then(pacientes => {
+      const pacienteSelect = document.getElementById('id_paciente');
+      pacientes.forEach(paciente => {
+          const option = document.createElement('option');
+          option.value = paciente.id_usuario;
+          option.textContent = paciente.nome;
+          pacienteSelect.appendChild(option);
+      });
+  })
+  .catch(error => console.error('Erro ao carregar pacientes:', error));
+
+    // Manipulação do envio do formulário
+    document.getElementById('formFicha').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+      if (!usuarioLogado || !usuarioLogado.id_usuario) {
+        alert("Você precisa estar logado para preencher a ficha.");
+        return;
+      }
+
+      const ficha = {
+        id_administrador: usuarioLogado.id_usuario,  // Pega o ID do administrador logado
+        id_paciente: parseInt(document.getElementById('id_paciente').value),
+        tipo_atendimento: document.getElementById('tipo_atendimento').value,
+        data_atendimento: document.getElementById('data_atendimento').value,
+        motivo_consulta: document.getElementById('motivo_consulta').value,
+        relacao_pais: document.getElementById('relacao_pais').value,
+        fato_marcante: document.getElementById('fato_marcante').value,
+        incomodo_atual: document.getElementById('incomodo_atual').value,
+        estado_civil: document.getElementById('estado_civil').value,
+        filhos: parseInt(document.getElementById('filhos').value) || 0,
+        profissao: document.getElementById('profissao').value,
+        fumante: document.getElementById('fumante').checked,
+        consome_alcool: document.getElementById('consome_alcool').checked,
+        acompanhamento_medico: document.getElementById('acompanhamento_medico').value,
+        doencas: document.getElementById('doencas').value,
+        medicacoes: document.getElementById('medicacoes').value,
+        cirurgias: document.getElementById('cirurgias').value,
+        observacoes: document.getElementById('observacoes').value
+      };
+
+      fetch('http://localhost:3000/api/ficha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(ficha)
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert('Ficha salva com sucesso!');
+          document.getElementById('formFicha').reset();
+        })
+        .catch(error => {
+          console.error('Erro ao salvar a ficha:', error);
+          alert('Erro ao salvar a ficha. Verifique se o servidor está rodando.');
+        });
+    });
+  </script>
+</body>
+
+</html>

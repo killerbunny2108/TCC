@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Cliente</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Calendly link widget begin -->
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+    <!-- Calendly link widget end -->
+</head>
+<body>
+    <header>
+        <h1>Bem-vindo, Cliente!</h1>
+        <a href="inicio.html">Sair</a>
+    </header>
+
+    <main>
+        <section class="boas-vindas">
+            <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
+        </section>
+
+        <section class="dicas">
+            <h2>Dicas Personalizadas</h2>
+            <div class="dica">Mantenha uma rotina organizada para melhor produtividade.</div>
+            <div class="dica">Separe um tempo do dia para relaxar e cuidar da saúde mental.</div>
+            <div class="dica">Estabeleça metas claras e acompanhe seu progresso.</div>
+        </section>
+
+        <section class="agendamento">
+            <button id="agendar">Agendar Consulta</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        document.getElementById("agendar").addEventListener("click", function () {
+            Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
+            return false;
+        });
+    </script>
+</body>
+</html>
