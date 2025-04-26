@@ -176,14 +176,10 @@ fetch('http://localhost:3000/api/pacientes')
     document.getElementById('formFicha').addEventListener('submit', function (e) {
       e.preventDefault();
 
-      const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-      if (!usuarioLogado || !usuarioLogado.id_usuario) {
-        alert("Você precisa estar logado para preencher a ficha.");
-        return;
-      }
+     
 
       const ficha = {
-        id_administrador: usuarioLogado.id_usuario,  // Pega o ID do administrador logado
+        
         id_paciente: parseInt(document.getElementById('id_paciente').value),
         tipo_atendimento: document.getElementById('tipo_atendimento').value,
         data_atendimento: document.getElementById('data_atendimento').value,

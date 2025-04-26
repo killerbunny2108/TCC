@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-
     const API_URL = "http://localhost:3000/api/usuario";
 
     // Botão de login
@@ -73,15 +72,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-
     // Botão voltar
     document.getElementById("voltarBtn")?.addEventListener("click", function () {
         window.history.back();
     });
 
-    // Submissão da ficha
+    // Botão criar ficha (SEM VERIFICAÇÃO)
+    document.getElementById("criarFichaBtn")?.addEventListener("click", function () {
+        window.location.href = "ficha.html";
+    });
+
+    // Submissão da ficha (sem verificação de usuário logado)
     document.getElementById("fichaForm")?.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        console.log("Formulário enviado");
 
         const formData = new FormData(e.target);
         const fichaData = {};
@@ -93,15 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fichaData.fumante = formData.get("fumante") === "on";
         fichaData.consome_alcool = formData.get("consome_alcool") === "on";
 
-        // Pegando o ID do administrador logado
-        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-
-        if (!usuarioLogado || !usuarioLogado.id_usuario) {
-            alert("Você precisa estar logado para preencher a ficha.");
-            return;
-        }
-
-        fichaData.id_administrador = usuarioLogado.id_usuario;
+        // A partir daqui, removi qualquer uso do "usuarioLogado"
 
         if (!fichaData.id_paciente) {
             alert("Informe o ID do paciente.");
@@ -109,6 +106,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
+            console.log("Dados da ficha:", fichaData);
+
             const response = await fetch("http://localhost:3000/api/ficha", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -119,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("Ficha salva com sucesso!");
                 e.target.reset();
             } else {
+                console.error("Erro ao salvar a ficha:", response);
                 alert("Erro ao salvar ficha.");
             }
         } catch (error) {
@@ -126,51 +126,36 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Erro de conexão com o servidor.");
         }
     });
-    document.getElementById("criarFichaBtn")?.addEventListener("click", function () {
-        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-    
-        if (!usuarioLogado || usuarioLogado.email !== "nunescleusa1974@gmail.com") {
-            alert("Acesso negado. Apenas o administrador pode criar fichas.");
-            return;
-        }
-    
-        window.location.href = "ficha.html";
-    });
-    
-    document.addEventListener("DOMContentLoaded", function () {
-        const API_URL = "http://localhost:3000/api/pacientes";
-    
-        // Função para carregar pacientes na combo box
-        function carregarPacientes() {
-            fetch(API_URL)
-                .then(response => response.json())
-                .then(pacientes => {
-                    const comboBox = document.getElementById('comboPacientes');
-                    // Limpa as opções existentes antes de adicionar as novas
-                    comboBox.innerHTML = '<option value="">Selecione um Paciente</option>';
-    
-                    if (pacientes.length === 0) {
+
+    // Carregar pacientes na combo box
+    const API_PACIENTES_URL = "http://localhost:3000/api/pacientes";
+
+    function carregarPacientes() {
+        fetch(API_PACIENTES_URL)
+            .then(response => response.json())
+            .then(pacientes => {
+                const comboBox = document.getElementById('comboPacientes');
+                comboBox.innerHTML = '<option value="">Selecione um Paciente</option>';
+
+                if (pacientes.length === 0) {
+                    const option = document.createElement('option');
+                    option.textContent = 'Nenhum paciente encontrado';
+                    comboBox.appendChild(option);
+                } else {
+                    pacientes.forEach(paciente => {
                         const option = document.createElement('option');
-                        option.textContent = 'Nenhum paciente encontrado';
+                        option.value = paciente.id_usuario;
+                        option.textContent = paciente.nome;
                         comboBox.appendChild(option);
-                    } else {
-                        // Preenche a combo box com os pacientes
-                        pacientes.forEach(paciente => {
-                            const option = document.createElement('option');
-                            option.value = paciente.id_usuario;  // id do paciente
-                            option.textContent = paciente.nome; // nome do paciente
-                            comboBox.appendChild(option);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar pacientes:', error);
-                    alert('Erro ao carregar a lista de pacientes');
-                });
-        }
-    
-        // Chama a função para preencher a combo box quando a página carregar
-        window.onload = carregarPacientes;
-    });
-    
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar pacientes:', error);
+                alert('Erro ao carregar a lista de pacientes');
+            });
+    }
+
+    window.onload = carregarPacientes;
+
 });
