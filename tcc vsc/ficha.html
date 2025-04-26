@@ -151,21 +151,27 @@
   </footer>
 
   <script>
-    // Preencher a combo box com os pacientes
-   // ficha.html
-fetch('/api/pacientes')
-  .then(response => response.json())
-  .then(pacientes => {
-      const pacienteSelect = document.getElementById('id_paciente');
-      pacientes.forEach(paciente => {
-          const option = document.createElement('option');
-          option.value = paciente.id_usuario;
-          option.textContent = paciente.nome;
-          pacienteSelect.appendChild(option);
-      });
-  })
-  .catch(error => console.error('Erro ao carregar pacientes:', error));
 
+// ficha.html
+fetch('http://localhost:3000/api/pacientes')
+  .then(response => {
+    console.log('Resposta recebida:', response.status);
+    return response.json();
+  })
+  .then(pacientes => {
+    console.log('Pacientes recebidos:', pacientes);
+    const pacienteSelect = document.getElementById('id_paciente');
+    pacientes.forEach(paciente => {
+        const option = document.createElement('option');
+        option.value = paciente.id_usuario;
+        option.textContent = paciente.nome;
+        pacienteSelect.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error('Erro ao carregar pacientes:', error);
+    alert('Não foi possível carregar a lista de pacientes. Verifique se o servidor está rodando.');
+  });
     // Manipulação do envio do formulário
     document.getElementById('formFicha').addEventListener('submit', function (e) {
       e.preventDefault();
