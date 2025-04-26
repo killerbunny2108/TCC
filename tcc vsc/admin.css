@@ -1,0 +1,159 @@
+/* Importando as fontes Tan Pearl e Lovelace */
+@font-face {
+    font-family: "Tan Pearl";
+    src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Lovelace";
+    src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Reset básico e altura cheia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Definição das cores */
+:root {
+    --primary-color: #ae89fa; /* Roxo */
+    --secondary-color: #ae89fa; /* Roxo mais escuro */
+    --background-color: #c9b2f1; /* Roxo claro */
+    --text-color: #333; /* Cor preta para contraste */
+    --button-hover: #512DA8; /* Roxo escuro para hover */
+}
+
+/* Estilo do corpo */
+body {
+    font-family: "Lovelace", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    padding: 20px;
+}
+
+/* Título principal */
+h1 {
+    font-family: "Tan Pearl", cursive;
+    color: var(--secondary-color);
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 36px;
+}
+
+/* Texto de boas-vindas */
+p {
+    font-family: "Lovelace", sans-serif;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Link para sair */
+a {
+    text-decoration: none;
+    color: var(--secondary-color);
+    font-size: 16px;
+    margin-left: 20px;
+    display: inline-block;
+}
+
+/* Botões padrão */
+button {
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: "Lovelace", sans-serif;
+    font-size: 16px;
+    margin: 10px auto;
+    display: block;
+}
+
+/* Hover nos botões */
+button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Botão "Criar Ficha" */
+.create-ficha-button {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn-criar-ficha {
+    display: inline-block;
+    background-color: var(--button-hover);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: "Lovelace", sans-serif;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover no botão "Criar Ficha" */
+.btn-criar-ficha:hover {
+    background-color: var(--background-color);
+}
+
+/* Seção de fichas */
+.fichas-lista {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.fichas-lista h2 {
+    font-family: "Tan Pearl", cursive;
+    color: var(--secondary-color);
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+.fichas-lista ul {
+    list-style: none;
+    padding: 0;
+}
+
+.fichas-lista ul li {
+    background-color: var(--background-color);
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fichas-lista ul li span {
+    font-family: "Lovelace", sans-serif;
+    font-size: 16px;
+}
+
+.fichas-lista ul li a {
+    color: var(--primary-color);
+    font-family: "Lovelace", sans-serif;
+    text-decoration: none;
+}
+
+.fichas-lista ul li a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,190 @@
+/* Importando as fontes Tan Pearl e Lovelace */
+@font-face {
+    font-family: "Tan Pearl";
+    src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Lovelace";
+    src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Reset básico e altura cheia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Definição das cores */
+:root {
+    --primary-color: #ae89fa; /* Roxo */
+    --secondary-color: #512DA8; /* Roxo escuro */
+    --background-color: #c9b2f1; /* Cinza claro */
+    --text-color:#512DA8; ; /* Cor preta */
+    --button-hover: #512DA8; /* Roxo ainda mais escuro */
+}
+
+/* Estilos gerais */
+body {
+    font-family: "Lovelace", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color); /* Fundo principal */
+    color: var(--text-color);
+    min-height: 100vh;
+}
+
+/* Estilo do header */
+header {
+    background-color: var(--background-color);
+    color: var(--button-hover);
+    padding: 20px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-family: "Tan Pearl", Arial, sans-serif;
+}
+
+header a {
+    color: white;
+    font-size: 1.2rem;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+/* Seção de Boas-vindas */
+.boas-vindas {
+    background-color: var(--background-color);
+    text-align: center;
+    padding: 40px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.boas-vindas p {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+
+/* Seção de Dicas */
+.dicas {
+    background-color:var(--background-color);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dicas h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: var(--button-hover);
+    font-family: "Tan Pearl", Arial, sans-serif;
+}
+
+.dica {
+    background-color: var(--primary-color);
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-size: 1.1rem;
+}
+
+.dica:hover {
+    background-color:var(--secondary-color);
+}
+
+/* Seção de Agendamento */
+.agendamento {
+    text-align: center;
+    margin-top: 30px;
+}
+
+#agendar {
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    font-family: "Lovelace", Arial, sans-serif;
+}
+
+#agendar:hover {
+    background-color: var(--button-hover);
+    transform: scale(1.05); /* Efeito de aumento ao passar o mouse */
+}
+
+/* Rodapé */
+footer {
+    background-color: var(--secondary-color);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    margin-top: 40px;
+}
+
+footer p {
+    font-size: 1rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .dicas, .boas-vindas {
+        padding: 15px;
+    }
+
+    #agendar {
+        width: 100%;
+        font-size: 1.2rem;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+}
+/* Botão Sair Estilizado */
+#sair {
+    background-color: var(--primary-color); /* Cor de fundo roxo */
+    color: white; /* Cor do texto */
+    font-size: 1.2rem; /* Tamanho da fonte */
+    padding: 12px 24px; /* Espaçamento interno */
+    border: none; /* Remover borda */
+    border-radius: 8px; /* Borda arredondada */
+    cursor: pointer; /* Apontador de mouse para indicar que é clicável */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Efeitos de transição */
+    font-family: "Lovelace", Arial, sans-serif; /* Fonte personalizada */
+    text-align: center; /* Centraliza o texto */
+    text-decoration: none; /* Remove o sublinhado */
+}
+
+#sair:hover {
+    background-color: var(--button-hover); /* Cor de fundo ao passar o mouse */
+    transform: scale(1.1); /* Aumenta um pouco o tamanho */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil ao passar o mouse */
+}
+
+/* Responsividade para o botão Sair */
+@media (max-width: 768px) {
+    #sair {
+        width: 100%; /* Ajusta a largura do botão em telas menores */
+        font-size: 1.1rem; /* Ajusta o tamanho da fonte */
+    }
+}
