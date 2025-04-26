@@ -1,0 +1,171 @@
+/* Importando as fontes Tan Pearl e Lovelace */
+@font-face {
+    font-family: "Tan Pearl";
+    src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Lovelace";
+    src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Reset básico e altura cheia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Definição das cores do site */
+:root {
+    --primary-color: #ae89fa; /* Roxo */
+    --secondary-color: #ae89fa; /* Roxo mais escuro */
+    --background-color: #c9b2f1; /* Cinza claro */
+    --text-color: #333; /* Cor preta para melhor contraste */
+    --button-hover: #512DA8; /* Roxo mais escuro */
+}
+
+/* Estilos gerais */
+body {
+    font-family: "Lovelace", Arial, sans-serif; /* Aplicando a fonte Lovelace para o corpo */
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color); /* Fundo principal em cinza claro */
+    color: var(--text-color);
+    min-height: 100vh; /* Garante que o corpo ocupe toda a altura da tela */
+}
+
+/* Centraliza o conteúdo do cadastro */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ocupa a tela toda */
+}
+
+/* Estilo do container de login e cadastro */
+.login-container {
+    background: rgb(216, 202, 255);
+    padding: 50px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Responsividade para o container de cadastro */
+@media (max-width: 768px) {
+    .login-container {
+        width: 90%; /* Ajusta a largura do container de cadastro em telas menores */
+    }
+}
+
+/* Título da página de cadastro */
+h2 {
+    margin-bottom: 10px;
+    font-size: 35px;
+    color: var(--primary-color);
+    font-family: "Tan Pearl", Arial, sans-serif; /* Aplicando a fonte Tan Pearl no título */
+}
+
+/* Estilização das labels */
+label {
+    display: block;
+    text-align: left;
+    margin: 10px 0 5px;
+    font-weight: bold;
+}
+
+/* Estilização dos campos de input */
+input {
+    width: 400px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #512DA8;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #f1e9ff;
+}
+
+/* Botões */
+button {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.3s ease, transform 0.3s ease;
+    font-family: "Lovelace", Arial, sans-serif; /* Aplicando a fonte Lovelace nos botões */
+}
+
+button:hover {
+    background: var(--button-hover);
+    transform: scale(1.05); /* Escala o botão ligeiramente ao passar o mouse */
+}
+
+/* Links de login */
+p a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
+}
+
+/* Botão de voltar fixo no canto inferior esquerdo */
+.back-button {
+    position: fixed;
+    left: 30px;
+    bottom: 30px;
+    width: auto;         /* Para não ocupar 100% da largura */
+    min-width: 100px;    /* Ajuste conforme necessário */
+    padding: 12px 24px;  /* Mais confortável para clique */
+    z-index: 1000;       /* Fica sobreposto ao conteúdo */
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: "Lovelace", Arial, sans-serif;
+    transition: background 0.3s, transform 0.3s;
+}
+
+.back-button:hover {
+    background: var(--button-hover);
+    transform: scale(1.05);
+}
+
+/* Responsividade para o botão de voltar */
+@media (max-width: 600px) {
+    .back-button {
+        left: 10px;
+        bottom: 10px;
+        min-width: 80px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+.login-link {
+    margin-top: 30px; /* Ajuste o valor conforme desejar */
+    font-size: 16px;
+}

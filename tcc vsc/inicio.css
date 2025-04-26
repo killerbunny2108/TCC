@@ -1,0 +1,224 @@
+/* Importando as fontes Tan Pearl e Lovelace */
+@font-face {
+    font-family: "Tan Pearl";
+    src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Lovelace";
+    src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+/* Reset básico e altura cheia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Definição das cores do PDF */
+:root {
+    --primary-color: #ae89fa; /* Roxo */
+    --secondary-color: #ae89fa; /* Roxo mais escuro */
+    --background-color: #c9b2f1; /* Cinza claro */
+    --text-color: #333; /* Cor preta para melhor contraste */
+    --button-hover: #512DA8; /* Roxo ainda mais escuro */
+}
+
+/* Estilos gerais */
+body {
+    font-family: "Lovelace", Arial, sans-serif; /* Aplicando a fonte Lovelace para o corpo */
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color); /* Fundo principal em cinza claro */
+    color: var(--text-color);
+    min-height: 100vh; /* Garante que o corpo ocupe toda a altura da tela */
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--primary-color); /* Cabeçalho roxo */
+  color: white;
+  padding: 10px 0;
+  z-index: 1000;
+
+}
+
+header nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+header nav ul li {
+    margin: 0 20px;
+  }
+  
+  header nav ul li a {
+    text-decoration: none;
+    color: var(--button-hover);
+    font-size: 18px;
+  }
+  
+  /* Estilos para a seção hero */
+  .hero{
+    position: relative;
+    height: 100vh;
+    z-index: 1;
+    padding:0 45px;
+    margin: 2;
+    background-color: var(--background-color); /* Cor roxa para a seção hero */
+    color: white;
+    display: flex;
+    justify-content:left;
+    align-items:center;
+    text-align: left;
+    overflow: hidden; /* importante pra esconder o que passar da section */
+  }
+  
+  .imagem-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(imagens/);
+    background-size: cover;/*faz a imagem preencher tudo*/
+    background-position: center;
+    background-repeat: no-repeat;/*impede repetição*/
+  }
+  
+  .hero-content{
+    position: relative;
+    z-index: 1; /* conteúdo por cima da imagem */
+  }
+  
+  .hero-content h1 {
+    font-family: "Tan Pearl", Arial, sans-serif;
+    font-size: 2.5em; /* Tamanho da fonte ajustado */
+    text-align: left;
+    color: rgb(149, 100, 241);
+    margin: 0;
+    padding: 0;
+    line-height: 1.1; /* Ajuste o espaçamento entre as linhas */
+    position: relative;
+    top: -10px; /* Ajuste do posicionamento vertical */
+  }
+  
+  .hero-content p{
+    color: #333;
+    padding: 0; /* Remover padding para o título */
+    margin: 3;
+  }
+  
+  .sobre{
+  position: relative;
+  margin: 5;
+  height: 100vh;
+  z-index: 1;
+  padding:45px;
+  background-color: var(--primary-color); /* Cor roxa para a seção sobre */
+  color: white;
+  display: flex;
+  justify-content:left;
+  align-items:center;
+  text-align: left;
+  overflow: hidden; /* importante pra esconder o que passar da section */
+  }
+  
+  .faixa-topo-sobre {
+  background-color: var(--background-color);
+  border: 2px solid #c9a9e4;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-family: 'DM Serif Display', serif;
+  color: #4b3b5a;
+  margin-bottom: 20px; /* espaço entre a faixa e o conteúdo */
+  }
+  
+  .terapias{
+  position: relative;
+  height: 100vh;
+  z-index: 1;
+  padding:0 45px;
+  background-color: var(--button-hover); /* Cor roxa para a seção hero */
+  color: white;
+  display: flex;
+  justify-content:left;
+  align-items:center;
+  text-align: left;
+  overflow: hidden; /* importante pra esconder o que passar da section */
+  }
+  
+  /* Responsividade para a seção hero*/
+  @media (max-width: 768px) {
+    .hero {
+        height: 50vh; /* Ajusta a altura da seção hero em telas menores */
+    }
+  }
+  
+  /* Estilos para o rodapé */
+  footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+  }
+  /* Aplicando fonte Tan Pearl para o título da página inicial */
+h1, .hero-content h1 {
+    font-family: "Tan Pearl", Arial, sans-serif;
+    font-size: 3em;
+}
+/* Botões */
+button {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: background 0.3s ease, transform 0.3s ease;
+    font-family: "Lovelace", Arial, sans-serif; /* Aplicando a fonte Lovelace nos botões */
+}
+button:hover {
+    background: var(--button-hover);
+    transform: scale(1.05); /* Escala o botão ligeiramente ao passar o mouse */
+}
+/* Estilo do ícone do WhatsApp */
+.whatsapp-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 75px; /* Tamanho maior para o círculo */
+    height: 75px; /* Tamanho maior para o círculo */
+    background-color: var(--primary-color); /* Cor do fundo do ícone */
+    border-radius: 50%; /* Tornar o ícone redondo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra para dar um destaque */
+    z-index: 1000; /* Garante que o ícone fique acima de outros elementos */
+}
+
+.whatsapp-icon img {
+    width: 50px; /* Aumenta o tamanho da imagem dentro do ícone */
+    height: 50px; /* Aumenta o tamanho da imagem dentro do ícone */
+}

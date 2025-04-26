@@ -137,24 +137,40 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "ficha.html";
     });
     
-   // Função para carregar pacientes na combo box
-function carregarPacientes() {
-    fetch('http://localhost:3000/api/pacientes')
-        .then(response => response.json())
-        .then(pacientes => {
-            const comboBox = document.getElementById('comboPacientes');
-            
-            pacientes.forEach(paciente => {
-                const option = document.createElement('option');
-                option.value = paciente.id_usuario;  // id do paciente
-                option.textContent = paciente.nome; // nome do paciente
-                comboBox.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar pacientes:', error));
-}
-
-// Chame a função para preencher a combo box quando a página carregar
-window.onload = carregarPacientes;
-
+    document.addEventListener("DOMContentLoaded", function () {
+        const API_URL = "http://localhost:3000/api/pacientes";
+    
+        // Função para carregar pacientes na combo box
+        function carregarPacientes() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(pacientes => {
+                    const comboBox = document.getElementById('comboPacientes');
+                    // Limpa as opções existentes antes de adicionar as novas
+                    comboBox.innerHTML = '<option value="">Selecione um Paciente</option>';
+    
+                    if (pacientes.length === 0) {
+                        const option = document.createElement('option');
+                        option.textContent = 'Nenhum paciente encontrado';
+                        comboBox.appendChild(option);
+                    } else {
+                        // Preenche a combo box com os pacientes
+                        pacientes.forEach(paciente => {
+                            const option = document.createElement('option');
+                            option.value = paciente.id_usuario;  // id do paciente
+                            option.textContent = paciente.nome; // nome do paciente
+                            comboBox.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar pacientes:', error);
+                    alert('Erro ao carregar a lista de pacientes');
+                });
+        }
+    
+        // Chama a função para preencher a combo box quando a página carregar
+        window.onload = carregarPacientes;
+    });
+    
 });
