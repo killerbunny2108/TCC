@@ -17,17 +17,19 @@ app.use('/api/usuario', usuarioRoutes);
 
 // ====================
 // Rota para listar pacientes (para o combo box)
+// Correção da rota de listar pacientes
 app.get('/api/pacientes', (req, res) => {
     connection.query(
-        `SELECT p.id_paciente, u.nome 
+        `SELECT p.id_paciente, u.id_usuario, u.nome 
          FROM Paciente p
-         JOIN Usuario u ON p.id_usuario = u.id_usuario
+         JOIN Usuario u ON p.id_paciente = u.id_usuario
          WHERE u.email != "nunescleusa1974@gmail.com"`, 
         (err, results) => {
             if (err) {
                 console.error("Erro ao buscar pacientes:", err);
                 return res.status(500).json({ mensagem: 'Erro ao buscar pacientes.' });
             }
+            console.log("Pacientes encontrados:", results);
             res.json(results);
         }
     );
@@ -155,4 +157,39 @@ app.post('/api/ficha', (req, res) => {
 // Iniciar o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
+
+// Rota para salvar uma dica geral
+app.post('/api/dicas', (req, res) => {
+    const { titulo, descricao } = req.body;
+
+    if (!titulo || !descricao) {
+        return res.status(400).json({ mensagem: 'Título e descrição são obrigatórios.' });
+    }
+
+    connection.query(
+        'INSERT INTO Dica (titulo, descricao) VALUES (?, ?)',
+        [titulo, descricao],
+        (err, result) => {
+            if (err) {
+                console.error('Erro ao salvar dica:', err);
+                return res.status(500).json({ mensagem: 'Erro ao salvar dica.' });
+            }
+            res.status(201).json({ mensagem: 'Dica salva com sucesso!' });
+        }
+    );
+});
+
+// Rota para buscar todas as dicas gerais
+app.get('/api/dicas', (req, res) => {
+    connection.query(
+        'SELECT titulo, descricao FROM Dica ORDER BY data_criacao DESC',
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar dicas:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar dicas.' });
+            }
+            res.json(results);
+        }
+    );
 });

@@ -40,42 +40,39 @@
       </div>
 
       <!--Dicas Personalizadas-->
-      
-      <div id="dicasContainer"></div>
+      <div class="container">
+        <h2>Dicas Gerais</h2>
+        <div id="dicasContainer" class="dicas-container"></div>
+      </div>
+
       <script>
-        let dicas = JSON.parse(localStorage.getItem('dicas')) || [];
-      
-        function carregarDicasPara(pacienteNome) {
-          return dicas.filter(dica =>
-            !dica.paciente || dica.paciente.toLowerCase() === pacienteNome.toLowerCase()
-          );
-        }
-      
+        document.addEventListener("DOMContentLoaded", mostrarDicas);
+        
         function mostrarDicas() {
-          const nome = document.getElementById('nomePaciente').value.trim();
           const container = document.getElementById('dicasContainer');
           container.innerHTML = '';
-      
-          if (!nome) {
-            alert("Digite seu nome.");
-            return;
-          }
-      
-          const dicasParaUsuario = carregarDicasPara(nome);
-      
-          if (dicasParaUsuario.length === 0) {
-            container.innerHTML = "<p>Nenhuma dica disponível para você.</p>";
-            return;
-          }
-      
-          dicasParaUsuario.forEach(dica => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `<h3>${dica.titulo}</h3><p>${dica.descricao}</p>`;
-            container.appendChild(card);
-          });
+        
+          fetch("http://localhost:3000/dicas")
+            .then(res => res.json())
+            .then(dicas => {
+              if (dicas.length === 0) {
+                container.innerHTML = "<p>Nenhuma dica disponível no momento.</p>";
+                return;
+              }
+        
+              dicas.forEach(dica => {
+                const card = document.createElement('div');
+                card.className = 'card dica';
+                card.innerHTML = `<h3>${dica.titulo}</h3><p>${dica.descricao}</p>`;
+                container.appendChild(card);
+              });
+            })
+            .catch(err => {
+              container.innerHTML = "<p>Erro ao carregar dicas.</p>";
+              console.error(err);
+            });
         }
-      </script>
+        </script>
 
     <footer>
         <p>© 2025 Todos os direitos reservados.</p>

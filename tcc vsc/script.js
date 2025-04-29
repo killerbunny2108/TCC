@@ -161,27 +161,63 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Dicas Personalizadas
-let dicas = JSON.parse(localStorage.getItem('dicas')) || [];
-
-function salvarDica(titulo, descricao, paciente) {
-  dicas.push({ titulo, descricao, paciente: paciente || null });
-  localStorage.setItem('dicas', JSON.stringify(dicas));
-}
 
 function criarDica() {
-  const titulo = document.getElementById('titulo').value;
-  const descricao = document.getElementById('descricao').value;
-  const paciente = document.getElementById('paciente').value;
-
-  if (!titulo || !descricao) {
-    alert("Preencha o título e a descrição.");
-    return;
+    const titulo = document.getElementById('titulo').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+  
+    if (!titulo || !descricao) {
+      alert("Preencha o título e a descrição.");
+      return;
+    }
+  
+    fetch("http://localhost:3000/dicas", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ titulo, descricao })
+    })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        document.getElementById('titulo').value = '';
+        document.getElementById('descricao').value = '';
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Erro ao salvar a dica.");
+      });
   }
 
-  salvarDica(titulo, descricao, paciente);
+  document.addEventListener("DOMContentLoaded", mostrarDicas);
 
-  document.getElementById('titulo').value = '';
-  document.getElementById('descricao').value = '';
-  document.getElementById('paciente').value = '';
-  alert("Dica criada com sucesso!");
+function mostrarDicas() {
+    const container = document.getElementById('dicasContainer');
+    container.innerHTML = ''; // Limpa o conteúdo atual
+
+    // Fazendo a requisição para pegar as dicas gerais
+    fetch("http://localhost:3000/api/dicas")
+        .then(res => res.json())
+        .then(dicas => {
+            if (dicas.length === 0) {
+                container.innerHTML = "<p>Nenhuma dica disponível no momento.</p>";
+                return;
+            }
+
+            // Cria um cartão para cada dica e adiciona ao contêiner
+            dicas.forEach(dica => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>${dica.titulo}</h3>
+                    <p>${dica.descricao}</p>
+                `;
+                container.appendChild(card);
+            });
+        })
+        .catch(err => {
+            container.innerHTML = "<p>Erro ao carregar dicas.</p>";
+            console.error(err);
+        });
 }

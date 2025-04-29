@@ -152,28 +152,37 @@
 
   <script>
 
-// ficha.html
+// Correção do script para carregar pacientes na combo box
 fetch('http://localhost:3000/api/pacientes')
   .then(response => {
     console.log('Resposta recebida:', response.status);
+    if (!response.ok) {
+      throw new Error('Erro ao buscar pacientes: ' + response.status);
+    }
     return response.json();
   })
   .then(pacientes => {
     console.log('Pacientes recebidos:', pacientes);
-    const pacienteSelect = document.getElementById('id_paciente');
-    pacientes.forEach(paciente => {
+    if (pacientes && pacientes.length > 0) {
+      const pacienteSelect = document.getElementById('id_paciente');
+      pacienteSelect.innerHTML = '<option value="">Selecione um paciente</option>';
+      
+      pacientes.forEach(paciente => {
         const option = document.createElement('option');
-        option.value = paciente.id_usuario;
+        // Importante: usar id_paciente, que é o que a API do backend espera
+        option.value = paciente.id_paciente;
         option.textContent = paciente.nome;
         pacienteSelect.appendChild(option);
-    });
+      });
+    } else {
+      console.log('Nenhum paciente encontrado');
+    }
   })
   .catch(error => {
     console.error('Erro ao carregar pacientes:', error);
     alert('Não foi possível carregar a lista de pacientes. Verifique se o servidor está rodando.');
   });
 
-// Verificar se o usuário administrador está logado
 document.getElementById('formFicha').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -219,8 +228,11 @@ document.getElementById('formFicha').addEventListener('submit', function (e) {
     body: JSON.stringify(ficha)
   })
     .then(response => {
+      console.log('Status da resposta:', response.status);
       if (!response.ok) {
-        throw new Error('Erro no servidor: ' + response.status);
+        return response.json().then(errorData => {
+          throw new Error('Erro no servidor: ' + response.status + ' - ' + (errorData.mensagem || 'Erro desconhecido'));
+        });
       }
       return response.json();
     })
@@ -233,7 +245,6 @@ document.getElementById('formFicha').addEventListener('submit', function (e) {
       alert('Erro ao salvar a ficha: ' + error.message);
     });
 });
-
   </script>
 </body>
 

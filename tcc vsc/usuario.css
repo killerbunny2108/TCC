@@ -188,3 +188,67 @@ footer p {
         font-size: 1.1rem; /* Ajusta o tamanho da fonte */
     }
 }
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container principal */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    color: #5a5a5a;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+}
+
+/* Contêiner das dicas */
+.dicas-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Cartão de dica */
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card h3 {
+    color: #4CAF50;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.card p {
+    color: #555;
+    font-size: 1rem;
+    line-height: 1.5;
+}

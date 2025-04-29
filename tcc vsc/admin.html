@@ -56,5 +56,35 @@
       
         <button onclick="criarDica()">Criar Dica</button>
       </div>
+
+      <script>
+        function criarDica() {
+          const titulo = document.getElementById('titulo').value.trim();
+          const descricao = document.getElementById('descricao').value.trim();
+        
+          if (!titulo || !descricao) {
+            alert("Preencha o título e a descrição.");
+            return;
+          }
+        
+          fetch("http://localhost:3000/dicas", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ titulo, descricao })
+          })
+            .then(res => res.text())
+            .then(msg => {
+              alert(msg);
+              document.getElementById('titulo').value = '';
+              document.getElementById('descricao').value = '';
+            })
+            .catch(err => {
+              console.error(err);
+              alert("Erro ao salvar a dica.");
+            });
+        }
+        </script>
 </body>
 </html>
