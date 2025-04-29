@@ -172,50 +172,68 @@ fetch('http://localhost:3000/api/pacientes')
     console.error('Erro ao carregar pacientes:', error);
     alert('Não foi possível carregar a lista de pacientes. Verifique se o servidor está rodando.');
   });
-    // Manipulação do envio do formulário
-    document.getElementById('formFicha').addEventListener('submit', function (e) {
-      e.preventDefault();
 
-     
+// Verificar se o usuário administrador está logado
+document.getElementById('formFicha').addEventListener('submit', function (e) {
+  e.preventDefault();
 
-      const ficha = {
-        
-        id_paciente: parseInt(document.getElementById('id_paciente').value),
-        tipo_atendimento: document.getElementById('tipo_atendimento').value,
-        data_atendimento: document.getElementById('data_atendimento').value,
-        motivo_consulta: document.getElementById('motivo_consulta').value,
-        relacao_pais: document.getElementById('relacao_pais').value,
-        fato_marcante: document.getElementById('fato_marcante').value,
-        incomodo_atual: document.getElementById('incomodo_atual').value,
-        estado_civil: document.getElementById('estado_civil').value,
-        filhos: parseInt(document.getElementById('filhos').value) || 0,
-        profissao: document.getElementById('profissao').value,
-        fumante: document.getElementById('fumante').checked,
-        consome_alcool: document.getElementById('consome_alcool').checked,
-        acompanhamento_medico: document.getElementById('acompanhamento_medico').value,
-        doencas: document.getElementById('doencas').value,
-        medicacoes: document.getElementById('medicacoes').value,
-        cirurgias: document.getElementById('cirurgias').value,
-        observacoes: document.getElementById('observacoes').value
-      };
+  // Buscar dados do usuário logado do localStorage
+  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+  
+  // Verificar se é o admin (e-mail específico da administradora)
+  if (!usuarioLogado || usuarioLogado.email !== 'nunescleusa1974@gmail.com') {
+    alert('Você precisa estar logado como administrador para criar fichas');
+    window.location.href = 'login.html';
+    return;
+  }
 
-      fetch('http://localhost:3000/api/ficha', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ficha)
-      })
-        .then(response => response.json())
-        .then(data => {
-          alert('Ficha salva com sucesso!');
-          document.getElementById('formFicha').reset();
-        })
-        .catch(error => {
-          console.error('Erro ao salvar a ficha:', error);
-          alert('Erro ao salvar a ficha. Verifique se o servidor está rodando.');
-        });
+  const ficha = {
+    id_administrador: usuarioLogado.id_usuario, // Adiciona o ID do administrador
+    id_paciente: parseInt(document.getElementById('id_paciente').value),
+    tipo_atendimento: document.getElementById('tipo_atendimento').value,
+    data_atendimento: document.getElementById('data_atendimento').value,
+    motivo_consulta: document.getElementById('motivo_consulta').value,
+    relacao_pais: document.getElementById('relacao_pais').value,
+    fato_marcante: document.getElementById('fato_marcante').value,
+    incomodo_atual: document.getElementById('incomodo_atual').value,
+    estado_civil: document.getElementById('estado_civil').value,
+    filhos: parseInt(document.getElementById('filhos').value) || 0,
+    profissao: document.getElementById('profissao').value,
+    fumante: document.getElementById('fumante').checked,
+    consome_alcool: document.getElementById('consome_alcool').checked,
+    acompanhamento_medico: document.getElementById('acompanhamento_medico').value,
+    doencas: document.getElementById('doencas').value,
+    medicacoes: document.getElementById('medicacoes').value,
+    cirurgias: document.getElementById('cirurgias').value,
+    observacoes: document.getElementById('observacoes').value
+  };
+
+  // Log para debugging
+  console.log('Dados da ficha a serem enviados:', ficha);
+
+  fetch('http://localhost:3000/api/ficha', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(ficha)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erro no servidor: ' + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert('Ficha salva com sucesso!');
+      document.getElementById('formFicha').reset();
+    })
+    .catch(error => {
+      console.error('Erro ao salvar a ficha:', error);
+      alert('Erro ao salvar a ficha: ' + error.message);
     });
+});
+
   </script>
 </body>
 

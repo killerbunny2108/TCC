@@ -159,3 +159,29 @@ document.addEventListener("DOMContentLoaded", function () {
     window.onload = carregarPacientes;
 
 });
+
+// Dicas Personalizadas
+let dicas = JSON.parse(localStorage.getItem('dicas')) || [];
+
+function salvarDica(titulo, descricao, paciente) {
+  dicas.push({ titulo, descricao, paciente: paciente || null });
+  localStorage.setItem('dicas', JSON.stringify(dicas));
+}
+
+function criarDica() {
+  const titulo = document.getElementById('titulo').value;
+  const descricao = document.getElementById('descricao').value;
+  const paciente = document.getElementById('paciente').value;
+
+  if (!titulo || !descricao) {
+    alert("Preencha o título e a descrição.");
+    return;
+  }
+
+  salvarDica(titulo, descricao, paciente);
+
+  document.getElementById('titulo').value = '';
+  document.getElementById('descricao').value = '';
+  document.getElementById('paciente').value = '';
+  alert("Dica criada com sucesso!");
+}
