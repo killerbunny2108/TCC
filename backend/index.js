@@ -193,3 +193,168 @@ app.get('/api/dicas', (req, res) => {
         }
     );
 });
+
+// Adicione estas novas rotas ao arquivo backend/index.js
+
+// Rota para listar todas as fichas dos pacientes
+app.get('/api/fichas', (req, res) => {
+    connection.query(
+        `SELECT f.id_ficha, u.nome AS nome_paciente, f.tipo_atendimento, f.data_atendimento, f.data_criacao
+         FROM FichaPaciente f
+         JOIN Paciente p ON f.id_paciente = p.id_paciente
+         JOIN Usuario u ON p.id_paciente = u.id_usuario
+         ORDER BY f.data_criacao DESC`,
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar fichas:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar fichas.' });
+            }
+            res.json(results);
+        }
+    );
+});
+
+// Rota para pesquisar fichas por nome do paciente
+app.get('/api/fichas/pesquisa', (req, res) => {
+    const termoPesquisa = req.query.termo || '';
+    
+    connection.query(
+        `SELECT f.id_ficha, u.nome AS nome_paciente, f.tipo_atendimento, f.data_atendimento, f.data_criacao
+         FROM FichaPaciente f
+         JOIN Paciente p ON f.id_paciente = p.id_paciente
+         JOIN Usuario u ON p.id_paciente = u.id_usuario
+         WHERE u.nome LIKE ?
+         ORDER BY f.data_criacao DESC`,
+        [`%${termoPesquisa}%`],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao pesquisar fichas:', err);
+                return res.status(500).json({ mensagem: 'Erro ao pesquisar fichas.' });
+            }
+            res.json(results);
+        }
+    );
+});
+
+// Rota para obter detalhes de uma ficha específica
+app.get('/api/fichas/:id', (req, res) => {
+    const fichaId = req.params.id;
+    
+    connection.query(
+        `SELECT f.*, u.nome AS nome_paciente
+         FROM FichaPaciente f
+         JOIN Paciente p ON f.id_paciente = p.id_paciente
+         JOIN Usuario u ON p.id_paciente = u.id_usuario
+         WHERE f.id_ficha = ?`,
+        [fichaId],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar detalhes da ficha:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar detalhes da ficha.' });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ mensagem: 'Ficha não encontrada.' });
+            }
+            
+            res.json(results[0]);
+        }
+    );
+});
+
+// Rota para atualizar uma ficha existente
+app.put('/api/fichas/:id', (req, res) => {
+    const fichaId = req.params.id;
+    const {
+        tipo_atendimento,
+        data_atendimento,
+        motivo_consulta,
+        relacao_pais,
+        fato_marcante,
+        incomodo_atual,
+        estado_civil,
+        filhos,
+        profissao,
+        fumante,
+        consome_alcool,
+        acompanhamento_medico,
+        doencas,
+        medicacoes,
+        cirurgias,
+        observacoes
+    } = req.body;
+
+    connection.query(
+        `UPDATE FichaPaciente SET
+            tipo_atendimento = ?,
+            data_atendimento = ?,
+            motivo_consulta = ?,
+            relacao_pais = ?,
+            fato_marcante = ?,
+            incomodo_atual = ?,
+            estado_civil = ?,
+            filhos = ?,
+            profissao = ?,
+            fumante = ?,
+            consome_alcool = ?,
+            acompanhamento_medico = ?,
+            doencas = ?,
+            medicacoes = ?,
+            cirurgias = ?,
+            observacoes = ?
+         WHERE id_ficha = ?`,
+        [
+            tipo_atendimento,
+            data_atendimento,
+            motivo_consulta,
+            relacao_pais,
+            fato_marcante,
+            incomodo_atual,
+            estado_civil,
+            filhos,
+            profissao,
+            fumante ? 1 : 0,
+            consome_alcool ? 1 : 0,
+            acompanhamento_medico,
+            doencas,
+            medicacoes,
+            cirurgias,
+            observacoes,
+            fichaId
+        ],
+        (err, result) => {
+            if (err) {
+                console.error('Erro ao atualizar ficha:', err);
+                return res.status(500).json({ mensagem: 'Erro ao atualizar ficha.' });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ mensagem: 'Ficha não encontrada.' });
+            }
+            
+            res.json({ mensagem: 'Ficha atualizada com sucesso!' });
+        }
+    );
+});
+
+// Rota para excluir uma ficha
+app.delete('/api/fichas/:id', (req, res) => {
+    const fichaId = req.params.id;
+    
+    connection.query(
+        'DELETE FROM FichaPaciente WHERE id_ficha = ?',
+        [fichaId],
+        (err, result) => {
+            if (err) {
+                console.error('Erro ao excluir ficha:', err);
+                return res.status(500).json({ mensagem: 'Erro ao excluir ficha.' });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ mensagem: 'Ficha não encontrada.' });
+            }
+            
+            res.json({ mensagem: 'Ficha excluída com sucesso!' });
+        }
+    );
+});

@@ -10,7 +10,6 @@
     <h1>Bem-vindo, Administrador!</h1>
     <p>Aqui você pode criar e gerenciar fichas de pacientes, além de enviar dicas personalizadas.</p>
     <a href="inicio.html">Sair</a>
-    <script src="admin.js"></script>
     
     <!-- Botão Gerenciar Horários -->
     <a href="https://calendly.com/event_types" target="_blank">
@@ -27,21 +26,174 @@
     <!-- Lista de Fichas Já Feitas -->
     <div class="fichas-lista">
         <h2>Fichas de Anamnese</h2>
-        <ul>
-            <li>
-                <span>Ficha 1 - Paciente A</span>
-                <a href="#">Ver</a>
-            </li>
-            <li>
-                <span>Ficha 2 - Paciente B</span>
-                <a href="#">Ver</a>
-            </li>
-            <li>
-                <span>Ficha 3 - Paciente C</span>
-                <a href="#">Ver</a>
-            </li>
-        </ul>
+        
+        <!-- Campo de pesquisa -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Pesquisar por nome do paciente...">
+            <button id="searchBtn">Buscar</button>
+            <button id="resetBtn">Limpar</button>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div id="loadingFichas" class="loading-indicator">Carregando fichas...</div>
+        
+        <!-- Tabela de fichas -->
+        <table id="fichasTable">
+            <thead>
+                <tr>
+                    <th>Nome do Paciente</th>
+                    <th>Tipo de Atendimento</th>
+                    <th>Data</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="fichasTableBody">
+                <!-- As fichas serão inseridas aqui dinamicamente -->
+            </tbody>
+        </table>
+        
+        <!-- Mensagem para quando não houver fichas -->
+        <p id="noFichasMessage" style="display: none">Nenhuma ficha encontrada.</p>
     </div>
+    
+    <!-- Modal para visualizar/editar ficha -->
+    <div id="fichaModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Detalhes da Ficha</h2>
+            
+            <form id="editFichaForm">
+                <input type="hidden" id="edit_id_ficha">
+                
+                <!-- Informações básicas -->
+                <div class="form-section">
+                    <h3>Informações Básicas</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_nome_paciente">Paciente:</label>
+                            <input type="text" id="edit_nome_paciente" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
+                            <input type="text" id="edit_tipo_atendimento">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_data_atendimento">Data do Atendimento:</label>
+                            <input type="date" id="edit_data_atendimento">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Motivo e contexto -->
+                <div class="form-section">
+                    <h3>Motivo e Contexto</h3>
+                    <div class="form-group">
+                        <label for="edit_motivo_consulta">Motivo da Consulta:</label>
+                        <textarea id="edit_motivo_consulta"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_relacao_pais">Relação com os Pais:</label>
+                            <textarea id="edit_relacao_pais"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_fato_marcante">Fato Marcante:</label>
+                            <textarea id="edit_fato_marcante"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit_incomodo_atual">Incômodo Atual:</label>
+                        <textarea id="edit_incomodo_atual"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Informações pessoais -->
+                <div class="form-section">
+                    <h3>Informações Pessoais</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_estado_civil">Estado Civil:</label>
+                            <input type="text" id="edit_estado_civil">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_filhos">Número de Filhos:</label>
+                            <input type="number" id="edit_filhos">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_profissao">Profissão:</label>
+                            <input type="text" id="edit_profissao">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="edit_fumante">
+                                <label for="edit_fumante">Fumante</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="edit_consome_alcool">
+                                <label for="edit_consome_alcool">Consome Álcool</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações médicas -->
+                <div class="form-section">
+                    <h3>Informações Médicas</h3>
+                    <div class="form-group">
+                        <label for="edit_acompanhamento_medico">Acompanhamento Médico:</label>
+                        <textarea id="edit_acompanhamento_medico"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_doencas">Doenças:</label>
+                            <textarea id="edit_doencas"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_medicacoes">Medicações:</label>
+                            <textarea id="edit_medicacoes"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit_cirurgias">Cirurgias:</label>
+                        <textarea id="edit_cirurgias"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Observações adicionais -->
+                <div class="form-section">
+                    <h3>Observações Adicionais</h3>
+                    <div class="form-group">
+                        <label for="edit_observacoes">Observações:</label>
+                        <textarea id="edit_observacoes"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" id="saveBtn">Salvar Alterações</button>
+                    <button type="button" id="deleteBtn">Excluir Ficha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- Dicas Personalizadas -->
     <div class="card">
         <h2>Criar Nova Dica</h2>
@@ -55,36 +207,266 @@
         <input type="text" id="paciente" placeholder="Deixe em branco para todos" />
       
         <button onclick="criarDica()">Criar Dica</button>
-      </div>
+    </div>
 
-      <script>
-        function criarDica() {
-          const titulo = document.getElementById('titulo').value.trim();
-          const descricao = document.getElementById('descricao').value.trim();
+    <script>
+        // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
+        function formatarData(dataString) {
+            if (!dataString) return '';
+            const data = new Date(dataString);
+            return data.toLocaleDateString('pt-BR');
+        }
         
-          if (!titulo || !descricao) {
-            alert("Preencha o título e a descrição.");
-            return;
-          }
+        // Função para carregar todas as fichas ou resultado da pesquisa
+        function carregarFichas(termoPesquisa = '') {
+            const loadingIndicator = document.getElementById('loadingFichas');
+            const tableBody = document.getElementById('fichasTableBody');
+            const noFichasMessage = document.getElementById('noFichasMessage');
+            
+            loadingIndicator.style.display = 'block';
+            tableBody.innerHTML = '';
+            noFichasMessage.style.display = 'none';
+            
+            let url = 'http://localhost:3000/api/fichas';
+            if (termoPesquisa) {
+                url = `http://localhost:3000/api/fichas/pesquisa?termo=${encodeURIComponent(termoPesquisa)}`;
+            }
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar fichas');
+                    }
+                    return response.json();
+                })
+                .then(fichas => {
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (fichas.length === 0) {
+                        noFichasMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    fichas.forEach(ficha => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${ficha.nome_paciente}</td>
+                            <td>${ficha.tipo_atendimento || 'Não especificado'}</td>
+                            <td>${formatarData(ficha.data_atendimento)}</td>
+                            <td>
+                                <button class="view-btn" data-id="${ficha.id_ficha}">Ver/Editar</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Adicionar evento de clique aos botões "Ver/Editar"
+                    document.querySelectorAll('.view-btn').forEach(btn => {
+                        btn.addEventListener('click', () => abrirModalFicha(btn.getAttribute('data-id')));
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    loadingIndicator.style.display = 'none';
+                    alert('Erro ao carregar fichas: ' + error.message);
+                });
+        }
         
-          fetch("http://localhost:3000/dicas", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ titulo, descricao })
-          })
-            .then(res => res.text())
-            .then(msg => {
-              alert(msg);
-              document.getElementById('titulo').value = '';
-              document.getElementById('descricao').value = '';
+        // Função para abrir o modal com os detalhes da ficha
+        function abrirModalFicha(idFicha) {
+            const modal = document.getElementById('fichaModal');
+            
+            // Limpar formulário antes de carregar novos dados
+            document.getElementById('editFichaForm').reset();
+            
+            // Buscar detalhes da ficha
+            fetch(`http://localhost:3000/api/fichas/${idFicha}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar detalhes da ficha');
+                    }
+                    return response.json();
+                })
+                .then(ficha => {
+                    // Preencher o formulário com os dados
+                    document.getElementById('edit_id_ficha').value = ficha.id_ficha;
+                    document.getElementById('edit_nome_paciente').value = ficha.nome_paciente;
+                    document.getElementById('edit_tipo_atendimento').value = ficha.tipo_atendimento || '';
+                    document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
+                    document.getElementById('edit_motivo_consulta').value = ficha.motivo_consulta || '';
+                    document.getElementById('edit_relacao_pais').value = ficha.relacao_pais || '';
+                    document.getElementById('edit_fato_marcante').value = ficha.fato_marcante || '';
+                    document.getElementById('edit_incomodo_atual').value = ficha.incomodo_atual || '';
+                    document.getElementById('edit_estado_civil').value = ficha.estado_civil || '';
+                    document.getElementById('edit_filhos').value = ficha.filhos || 0;
+                    document.getElementById('edit_profissao').value = ficha.profissao || '';
+                    document.getElementById('edit_fumante').checked = Boolean(ficha.fumante);
+                    document.getElementById('edit_consome_alcool').checked = Boolean(ficha.consome_alcool);
+                    document.getElementById('edit_acompanhamento_medico').value = ficha.acompanhamento_medico || '';
+                    document.getElementById('edit_doencas').value = ficha.doencas || '';
+                    document.getElementById('edit_medicacoes').value = ficha.medicacoes || '';
+                    document.getElementById('edit_cirurgias').value = ficha.cirurgias || '';
+                    document.getElementById('edit_observacoes').value = ficha.observacoes || '';
+                    
+                    // Exibir o modal
+                    modal.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao carregar detalhes da ficha: ' + error.message);
+                });
+        }
+        
+        // Função para salvar as alterações na ficha
+        function salvarAlteracoesFicha() {
+            const idFicha = document.getElementById('edit_id_ficha').value;
+            
+            const fichaAtualizada = {
+                tipo_atendimento: document.getElementById('edit_tipo_atendimento').value,
+                data_atendimento: document.getElementById('edit_data_atendimento').value,
+                motivo_consulta: document.getElementById('edit_motivo_consulta').value,
+                relacao_pais: document.getElementById('edit_relacao_pais').value,
+                fato_marcante: document.getElementById('edit_fato_marcante').value,
+                incomodo_atual: document.getElementById('edit_incomodo_atual').value,
+                estado_civil: document.getElementById('edit_estado_civil').value,
+                filhos: document.getElementById('edit_filhos').value,
+                profissao: document.getElementById('edit_profissao').value,
+                fumante: document.getElementById('edit_fumante').checked,
+                consome_alcool: document.getElementById('edit_consome_alcool').checked,
+                acompanhamento_medico: document.getElementById('edit_acompanhamento_medico').value,
+                doencas: document.getElementById('edit_doencas').value,
+                medicacoes: document.getElementById('edit_medicacoes').value,
+                cirurgias: document.getElementById('edit_cirurgias').value,
+                observacoes: document.getElementById('edit_observacoes').value
+            };
+            
+            fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fichaAtualizada)
             })
-            .catch(err => {
-              console.error(err);
-              alert("Erro ao salvar a dica.");
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao atualizar ficha');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.mensagem || 'Ficha atualizada com sucesso!');
+                document.getElementById('fichaModal').style.display = 'none';
+                carregarFichas(document.getElementById('searchInput').value.trim());
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao salvar alterações: ' + error.message);
             });
         }
-        </script>
+        
+        // Função para excluir uma ficha
+        function excluirFicha() {
+            if (!confirm('Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+            
+            const idFicha = document.getElementById('edit_id_ficha').value;
+            
+            fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao excluir ficha');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.mensagem || 'Ficha excluída com sucesso!');
+                document.getElementById('fichaModal').style.display = 'none';
+                carregarFichas(document.getElementById('searchInput').value.trim());
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao excluir ficha: ' + error.message);
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Carregar fichas ao carregar a página
+            carregarFichas();
+            
+            // Botão de pesquisa
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                const termoPesquisa = document.getElementById('searchInput').value.trim();
+                carregarFichas(termoPesquisa);
+            });
+            
+            // Botão para limpar pesquisa
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('searchInput').value = '';
+                carregarFichas();
+            });
+            
+            // Enviar pesquisa ao pressionar Enter
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const termoPesquisa = document.getElementById('searchInput').value.trim();
+                    carregarFichas(termoPesquisa);
+                }
+            });
+            
+            // Fechar modal ao clicar no X
+            document.querySelector('.close').addEventListener('click', () => {
+                document.getElementById('fichaModal').style.display = 'none';
+            });
+            
+            // Fechar modal ao clicar fora dele
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('fichaModal');
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Formulário de edição
+            document.getElementById('editFichaForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                salvarAlteracoesFicha();
+            });
+            
+            // Botão de exclusão
+            document.getElementById('deleteBtn').addEventListener('click', excluirFicha);
+        });
+
+        function criarDica() {
+            const titulo = document.getElementById('titulo').value.trim();
+            const descricao = document.getElementById('descricao').value.trim();
+          
+            if (!titulo || !descricao) {
+              alert("Preencha o título e a descrição.");
+              return;
+            }
+          
+            fetch("http://localhost:3000/api/dicas", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ titulo, descricao })
+            })
+              .then(res => res.json())
+              .then(data => {
+                alert(data.mensagem || "Dica criada com sucesso!");
+                document.getElementById('titulo').value = '';
+                document.getElementById('descricao').value = '';
+              })
+              .catch(err => {
+                console.error(err);
+                alert("Erro ao salvar a dica.");
+              });
+        }
+    </script>
 </body>
 </html>
