@@ -199,7 +199,7 @@ app.get('/api/dicas', (req, res) => {
 // Rota para listar todas as fichas dos pacientes
 app.get('/api/fichas', (req, res) => {
     connection.query(
-        `SELECT f.id_ficha, u.nome AS nome_paciente, f.tipo_atendimento, f.data_atendimento, f.data_criacao
+        `SELECT f.id, u.nome AS nome_paciente, f.tipo_atendimento, f.data_atendimento, f.data_criacao
          FROM FichaPaciente f
          JOIN Paciente p ON f.id_paciente = p.id_paciente
          JOIN Usuario u ON p.id_paciente = u.id_usuario
@@ -219,7 +219,7 @@ app.get('/api/fichas/pesquisa', (req, res) => {
     const termoPesquisa = req.query.termo || '';
     
     connection.query(
-        `SELECT f.id_ficha, u.nome AS nome_paciente, f.tipo_atendimento, f.data_atendimento, f.data_criacao
+        `SELECT f.id, u.nome AS nome_paciente, f.tipo_atendimento, f.data_atendimento, f.data_criacao
          FROM FichaPaciente f
          JOIN Paciente p ON f.id_paciente = p.id_paciente
          JOIN Usuario u ON p.id_paciente = u.id_usuario
@@ -245,7 +245,7 @@ app.get('/api/fichas/:id', (req, res) => {
          FROM FichaPaciente f
          JOIN Paciente p ON f.id_paciente = p.id_paciente
          JOIN Usuario u ON p.id_paciente = u.id_usuario
-         WHERE f.id_ficha = ?`,
+         WHERE f.id = ?`,
         [fichaId],
         (err, results) => {
             if (err) {
@@ -302,7 +302,7 @@ app.put('/api/fichas/:id', (req, res) => {
             medicacoes = ?,
             cirurgias = ?,
             observacoes = ?
-         WHERE id_ficha = ?`,
+         WHERE id = ?`,
         [
             tipo_atendimento,
             data_atendimento,
@@ -342,7 +342,7 @@ app.delete('/api/fichas/:id', (req, res) => {
     const fichaId = req.params.id;
     
     connection.query(
-        'DELETE FROM FichaPaciente WHERE id_ficha = ?',
+        'DELETE FROM FichaPaciente WHERE id = ?',
         [fichaId],
         (err, result) => {
             if (err) {

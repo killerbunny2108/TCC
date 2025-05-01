@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -63,7 +64,7 @@
             <h2 id="modalTitle">Detalhes da Ficha</h2>
             
             <form id="editFichaForm">
-                <input type="hidden" id="edit_id_ficha">
+                <input type="hidden" id="edit_id">
                 
                 <!-- Informações básicas -->
                 <div class="form-section">
@@ -222,10 +223,12 @@
             const loadingIndicator = document.getElementById('loadingFichas');
             const tableBody = document.getElementById('fichasTableBody');
             const noFichasMessage = document.getElementById('noFichasMessage');
+            const fichasTable = document.getElementById('fichasTable');
             
             loadingIndicator.style.display = 'block';
             tableBody.innerHTML = '';
             noFichasMessage.style.display = 'none';
+            fichasTable.style.display = 'none';
             
             let url = 'http://localhost:3000/api/fichas';
             if (termoPesquisa) {
@@ -247,6 +250,8 @@
                         return;
                     }
                     
+                    fichasTable.style.display = 'table';
+                    
                     fichas.forEach(ficha => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -254,7 +259,7 @@
                             <td>${ficha.tipo_atendimento || 'Não especificado'}</td>
                             <td>${formatarData(ficha.data_atendimento)}</td>
                             <td>
-                                <button class="view-btn" data-id="${ficha.id_ficha}">Ver/Editar</button>
+                                <button class="view-btn" data-id="${ficha.id}">Ver/Editar</button>
                             </td>
                         `;
                         tableBody.appendChild(row);
@@ -289,7 +294,7 @@
                 })
                 .then(ficha => {
                     // Preencher o formulário com os dados
-                    document.getElementById('edit_id_ficha').value = ficha.id_ficha;
+                    document.getElementById('edit_id').value = ficha.id;
                     document.getElementById('edit_nome_paciente').value = ficha.nome_paciente;
                     document.getElementById('edit_tipo_atendimento').value = ficha.tipo_atendimento || '';
                     document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
@@ -319,7 +324,7 @@
         
         // Função para salvar as alterações na ficha
         function salvarAlteracoesFicha() {
-            const idFicha = document.getElementById('edit_id_ficha').value;
+            const idFicha = document.getElementById('edit_id').value;
             
             const fichaAtualizada = {
                 tipo_atendimento: document.getElementById('edit_tipo_atendimento').value,
@@ -370,7 +375,7 @@
                 return;
             }
             
-            const idFicha = document.getElementById('edit_id_ficha').value;
+            const idFicha = document.getElementById('edit_id').value;
             
             fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
                 method: 'DELETE'
@@ -397,6 +402,7 @@
             // Carregar fichas ao carregar a página
             carregarFichas();
             
+          
             // Botão de pesquisa
             document.getElementById('searchBtn').addEventListener('click', () => {
                 const termoPesquisa = document.getElementById('searchInput').value.trim();

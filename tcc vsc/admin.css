@@ -1,246 +1,399 @@
 /* Importando as fontes Tan Pearl e Lovelace */
 @font-face {
-    font-family: "Tan Pearl";
-    src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
-    font-weight: normal;
-    font-style: normal;
+  font-family: "Tan Pearl";
+  src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: "Lovelace";
-    src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
-    font-weight: normal;
-    font-style: normal;
+  font-family: "Lovelace";
+  src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
 }
 
 /* Reset básico e altura cheia */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html, body {
-    height: 100%;
-    overflow-x: hidden;
+  height: 100%;
+  overflow-x: hidden;
 }
 
 /* Definição das cores */
 :root {
-    --primary-color: #ae89fa; /* Roxo */
-    --secondary-color: #ae89fa; /* Roxo mais escuro */
-    --background-color: #c9b2f1; /* Roxo claro */
-    --text-color: #333; /* Cor preta para contraste */
-    --button-hover: #512DA8; /* Roxo escuro para hover */
+  --primary-color: #ae89fa; /* Roxo */
+  --secondary-color: #ae89fa; /* Roxo mais escuro */
+  --background-color: #c9b2f1; /* Roxo claro */
+  --text-color: #333; /* Cor preta para contraste */
+  --button-hover: #512DA8; /* Roxo escuro para hover */
+  --light-bg: #f6f3fb; /* Fundo claro */
+  --table-header: #e6daf5; /* Cabeçalho tabela */
+  --table-border: #d6c5f5; /* Borda tabela */
 }
 
 /* Estilo do corpo */
 body {
-    font-family: "Lovelace", Arial, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    padding: 20px;
+  font-family: "Lovelace", Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: 20px;
 }
 
 /* Título principal */
 h1 {
-    font-family: "Tan Pearl", cursive;
-    color: var(--secondary-color);
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 36px;
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 36px;
 }
 
 /* Texto de boas-vindas */
 p {
-    font-family: "Lovelace", sans-serif;
-    font-size: 18px;
-    text-align: center;
-    margin-bottom: 30px;
+  font-family: "Lovelace", sans-serif;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 /* Link para sair */
 a {
-    text-decoration: none;
-    color: var(--secondary-color);
-    font-size: 16px;
-    margin-left: 20px;
-    display: inline-block;
+  text-decoration: none;
+  color: var(--secondary-color);
+  font-size: 16px;
+  margin-left: 20px;
+  display: inline-block;
 }
 
 /* Botões padrão */
 button {
-    padding: 10px 20px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-family: "Lovelace", sans-serif;
-    font-size: 16px;
-    margin: 10px auto;
-    display: block;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: "Lovelace", sans-serif;
+  font-size: 16px;
+  margin: 10px auto;
+  display: block;
 }
 
 /* Hover nos botões */
 button:hover {
-    background-color: var(--button-hover);
+  background-color: var(--button-hover);
 }
 
 /* Botão "Criar Ficha" */
 .create-ficha-button {
-    text-align: center;
-    margin-top: 20px;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .btn-criar-ficha {
-    display: inline-block;
-    background-color: var(--button-hover);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-family: "Lovelace", sans-serif;
-    font-size: 18px;
-    transition: background-color 0.3s ease;
+  display: inline-block;
+  background-color: var(--button-hover);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: "Lovelace", sans-serif;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
 }
 
 /* Hover no botão "Criar Ficha" */
 .btn-criar-ficha:hover {
-    background-color: var(--background-color);
+  background-color: var(--background-color);
 }
 
 /* Seção de fichas */
 .fichas-lista {
-    margin-top: 40px;
-    padding: 70px;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-top: 40px;
+  padding: 30px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .fichas-lista h2 {
-    font-family: "Tan Pearl", cursive;
-    color: var(--secondary-color);
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 28px;
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 28px;
 }
 
-.fichas-lista ul {
-    list-style: none;
-    padding: 0;
+/* Área de busca */
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: var(--light-bg);
+  border-radius: 8px;
 }
 
-.fichas-lista ul li {
-    background-color: var(--background-color);
-    margin-bottom: 10px;
-    padding: 12px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.search-container input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--table-border);
+  border-radius: 4px;
+  font-family: "Lovelace", sans-serif;
+  margin-right: 10px;
+  font-size: 16px;
 }
 
-.fichas-lista ul li span {
-    font-family: "Lovelace", sans-serif;
-    font-size: 16px;
+.search-container button {
+  margin: 0 5px;
+  display: inline-block;
 }
 
-.fichas-lista ul li a {
-    color: var(--primary-color);
-    font-family: "Lovelace", sans-serif;
-    text-decoration: none;
+/* Tabela de fichas */
+#fichasTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border: 1px solid var(--table-border);
+  font-family: "Lovelace", sans-serif;
 }
 
-.fichas-lista ul li a:hover {
-    text-decoration: underline;
+#fichasTable th, 
+#fichasTable td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--table-border);
 }
-/*DICAS PERSONALIZADAS*/
 
-/* RESET BÁSICO */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* CORPO */
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f2f4f8;
-    padding: 30px 20px;
-    max-width: 900px;
-    margin: auto;
-    color: #333;
-  }
-  
-  /* TÍTULOS */
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #2d3e50;
-  }
-  h2 {
-    color: #2d3e50;
-    margin-bottom: 15px;
-  }
-  
-  /* CARDS */
-  .card {
-    background: white;
-    padding: 70px;
-    margin-top: 10px; /*espaço entre a ficha e dica*/
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-    margin-bottom: 25px;
-    transition: box-shadow 0.3s ease;
-  }
-  .card:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  }
-  
-  /* FORMULÁRIO */
-  label {
-    display: block;
-    font-weight: 600;
-    margin: 12px 0 6px;
-    color: #444;
-  }
-  input[type="text"], textarea {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1.5px solid #ccc;
-    font-size: 1rem;
-    transition: border-color 0.2s ease;
-  }
-  input[type="text"]:focus,
-  textarea:focus {
-    border-color: #ae89fa;
-    outline: none;
-  }
-  
-  /* BOTÃO */
-  button {
-    margin-top: 20px;
-    background-color: #ae89fa;
-    color: white;
-    padding: 12px 20px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #ae89fa;
-  }
-  
-  /* TEXTO DE ERRO OU VAZIO */
-  #dicasContainer p {
-    color: #777;
-    font-style: italic;
-    margin-top: 10px;
-  }
+#fichasTable th {
+  background-color: var(--table-header);
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+#fichasTable tr:nth-child(even) {
+  background-color: var(--light-bg);
+}
+
+#fichasTable tr:hover {
+  background-color: #f0e8fc;
+}
+
+.view-btn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  text-align: center;
+  margin: 20px 0;
+  color: var(--text-color);
+  font-style: italic;
+}
+
+/* Mensagem de nenhuma ficha encontrada */
+#noFichasMessage {
+  text-align: center;
+  margin: 20px 0;
+  font-style: italic;
+  color: #666;
+}
+
+/* Modal para ver/editar ficha */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 30px;
+  border-radius: 12px;
+  width: 80%;
+  max-width: 800px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: black;
+}
+
+.form-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: var(--light-bg);
+  border-radius: 8px;
+}
+
+.form-section h3 {
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--table-border);
+  border-radius: 4px;
+  font-family: "Lovelace", sans-serif;
+}
+
+.form-group textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  margin: 0;
+}
+
+#saveBtn {
+  background-color: var(--primary-color);
+}
+
+#deleteBtn {
+  background-color: #ff6b6b;
+}
+
+/* DICAS PERSONALIZADAS */
+.card {
+  background: white;
+  padding: 30px;
+  margin-top: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  margin-bottom: 25px;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+  font-size: 28px;
+  text-align: center;
+}
+
+/* FORMULÁRIO DICAS */
+.card label {
+  display: block;
+  font-weight: 600;
+  margin: 12px 0 6px;
+  color: #444;
+}
+
+.card input[type="text"],
+.card textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1.5px solid #ccc;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.card input[type="text"]:focus,
+.card textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.card button {
+  margin-top: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.card button:hover {
+  background-color: var(--button-hover);
+}
+
+#dicasContainer p {
+  color: #777;
+  font-style: italic;
+  margin-top: 10px;
+}
