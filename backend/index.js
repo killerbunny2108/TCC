@@ -359,7 +359,7 @@ app.delete('/api/fichas/:id', (req, res) => {
     );
 });
 
-const express = require('express');
+
 const router = express.Router();
 const db = require('./db'); // ajuste o caminho conforme seu projeto
 
