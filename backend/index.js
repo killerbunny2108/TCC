@@ -358,3 +358,59 @@ app.delete('/api/fichas/:id', (req, res) => {
         }
     );
 });
+
+const express = require('express');
+const router = express.Router();
+const db = require('./db'); // ajuste o caminho conforme seu projeto
+
+router.get('/api/dicas', (req, res) => {
+  db.query('SELECT * FROM dicas', (err, results) => {
+    if (err) return res.status(500).send(err);
+    res.json(results);
+  });
+});
+
+router.post('/api/dicas', (req, res) => {
+  const { titulo, descricao } = req.body;
+  db.query('INSERT INTO dicas (titulo, descricao) VALUES (?, ?)', [titulo, descricao], (err) => {
+    if (err) return res.status(500).send(err);
+    res.sendStatus(201);
+  });
+});
+
+router.put('/api/dicas/:id', (req, res) => {
+  const { id } = req.params;
+  const { titulo, descricao } = req.body;
+  db.query('UPDATE dicas SET titulo = ?, descricao = ? WHERE id = ?', [titulo, descricao, id], (err) => {
+    if (err) return res.status(500).send(err);
+    res.sendStatus(200);
+  });
+});
+
+router.delete('/api/dicas/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM dicas WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).send(err);
+    res.sendStatus(200);
+  });
+});
+
+module.exports = router;
+
+app.post('/api/dicas', (req, res) => {
+    const { titulo, descricao } = req.body;
+  
+    if (!titulo || !descricao) {
+      return res.status(400).json({ message: 'Título e descrição são obrigatórios.' });
+    }
+  
+    const query = 'INSERT INTO dicas (titulo, descricao) VALUES (?, ?)';
+    db.query(query, [titulo, descricao], (err, result) => {
+      if (err) {
+        console.error('Erro ao inserir dica:', err);
+        return res.status(500).json({ message: 'Erro no servidor.' });
+      }
+  
+      res.status(201).json({ message: 'Dica criada com sucesso!', id: result.insertId });
+    });
+  });

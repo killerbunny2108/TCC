@@ -22,8 +22,21 @@
 
 html, body {
     height: 100%;
+    font-family: 'Tan Pearl';
+    background-color: var(--text-color);
     overflow-x: hidden;
+    margin: 0;
+    padding: 0;
 }
+
+/* Estilo do header */
+header {
+    background-color: var(--background-color);
+    color: var(--button-hover);
+    padding: 20px;
+    text-align: center;
+}
+
 
 /* Definição das cores */
 :root {
@@ -36,20 +49,19 @@ html, body {
 
 /* Estilos gerais */
 body {
-    font-family: "Lovelace", Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    display: flex;
+    flex-direction: column;
     background-color: var(--background-color); /* Fundo principal */
-    color: var(--text-color);
-    min-height: 100vh;
-}
-
-/* Estilo do header */
-header {
-    background-color: var(--background-color);
-    color: var(--button-hover);
+    height: 100%;
+    font-family: "Lovelace", Arial, sans-serif;
     padding: 20px;
-    text-align: center;
+    color: var(--text-color);
+    justify-content: space-between;
+}
+/* Conteúdo principal */
+main {
+    flex: 1;
+    padding: 40px 20px;
 }
 
 header h1 {
@@ -59,7 +71,7 @@ header h1 {
 }
 
 header a {
-    color: white;
+    color: var(--background-color);
     font-size: 1.2rem;
     position: absolute;
     right: 20px;
@@ -71,7 +83,7 @@ header a {
     background-color: var(--background-color);
     text-align: center;
     padding: 40px;
-    margin: 20px 0;
+    margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -79,34 +91,6 @@ header a {
 .boas-vindas p {
     font-size: 1.2rem;
     color: var(--secondary-color);
-}
-
-/* Seção de Dicas */
-.dicas {
-    background-color:var(--background-color);
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.dicas h2 {
-    font-size: 2rem;
-    margin-bottom: 15px;
-    color: var(--button-hover);
-    font-family: "Tan Pearl", Arial, sans-serif;
-}
-
-.dica {
-    background-color: var(--primary-color);
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 4px;
-    font-size: 1.1rem;
-}
-
-.dica:hover {
-    background-color:var(--secondary-color);
 }
 
 /* Seção de Agendamento */
@@ -134,11 +118,9 @@ header a {
 
 /* Rodapé */
 footer {
-    background-color: var(--secondary-color);
-    color: white;
-    text-align: center;
-    padding: 10px;
-    margin-top: 40px;
+    background-color: var(--background-color);
+    color: black;
+    text-align: center;   
 }
 
 footer p {
@@ -189,66 +171,20 @@ footer p {
     }
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-
-/* Container principal */
-.container {
-    width: 100%;
-    max-width: 1200px;
-    padding: 20px;
+/* DICAS CLIENTE */
+.dicas {
+    padding: 40px 20px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    margin: 30px auto;
+    max-width: 2000px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .dicas h2 {
+    font-size: 26px;
+    color: var(--primary-color);
     text-align: center;
-}
-
-h1 {
-    color: #5a5a5a;
-    font-size: 2.5rem;
-    margin-bottom: 30px;
-}
-
-/* Contêiner das dicas */
-.dicas-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-/* Cartão de dica */
-.card {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    text-align: left;
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    transform: scale(1.05);
-}
-
-.card h3 {
-    color: #4CAF50;
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-}
-
-.card p {
-    color: #555;
-    font-size: 1rem;
-    line-height: 1.5;
-}
+    margin-bottom: 25px;
+    font-family: 'Tan Pearl';
+  }

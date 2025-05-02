@@ -203,12 +203,122 @@
       
         <label for="descricao">Descrição:</label>
         <textarea id="descricao" rows="3"></textarea>
-      
-        <label for="paciente">Paciente (opcional):</label>
-        <input type="text" id="paciente" placeholder="Deixe em branco para todos" />
-      
+
         <button onclick="criarDica()">Criar Dica</button>
     </div>
+
+    <script>
+        async function carregarDicas() {
+          try {
+            const response = await fetch('http://localhost:3000/api/dicas');
+            const dicas = await response.json();
+            const container = document.getElementById('lista-dicas');
+            container.innerHTML = '';
+      
+            dicas.forEach(dica => {
+              const div = document.createElement('div');
+              div.className = 'card';
+              div.innerHTML = `
+                <h3>${dica.titulo}</h3>
+                <p>${dica.descricao}</p>
+                <button onclick="editarDica(${dica.id}, '${dica.titulo}', '${dica.descricao}')">Editar</button>
+                <button onclick="excluirDica(${dica.id})">Excluir</button>
+              `;
+              container.appendChild(div);
+            });
+          } catch (error) {
+            console.error('Erro ao carregar dicas:', error);
+          }
+        }
+      
+        async function criarDica() {
+          const titulo = document.getElementById('titulo').value;
+          const descricao = document.getElementById('descricao').value;
+      
+          if (!titulo || !descricao) {
+            alert('Preencha todos os campos.');
+            return;
+          }
+      
+          await fetch('http://localhost:3000/api/dicas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, descricao })
+          });
+      
+          document.getElementById('titulo').value = '';
+          document.getElementById('descricao').value = '';
+          carregarDicas();
+        }
+      
+        async function excluirDica(id) {
+          await fetch(`http://localhost:3000/api/dicas/${id}`, { method: 'DELETE' });
+          carregarDicas();
+        }
+      
+        function editarDica(id, titulo, descricao) {
+          document.getElementById('titulo').value = titulo;
+          document.getElementById('descricao').value = descricao;
+      
+          const botao = document.querySelector('.card button');
+          botao.textContent = 'Salvar Edição';
+          botao.onclick = async function () {
+            await fetch(`http://localhost:3000/api/dicas/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                titulo: document.getElementById('titulo').value,
+                descricao: document.getElementById('descricao').value
+              })
+            });
+            botao.textContent = 'Criar Dica';
+            botao.onclick = criarDica;
+            document.getElementById('titulo').value = '';
+            document.getElementById('descricao').value = '';
+            carregarDicas();
+          };
+        }
+      
+        document.addEventListener('DOMContentLoaded', carregarDicas);
+      </script>
+      
+      <!-- onde as dicas aparecerão -->
+      <div id="lista-dicas"></div>
+
+      <script>
+        async function criarDica() {
+          const titulo = document.getElementById('titulo').value;
+          const descricao = document.getElementById('descricao').value;
+      
+          if (!titulo || !descricao) {
+            alert('Preencha todos os campos.');
+            return;
+          }
+      
+          try {
+            const response = await fetch('http://localhost:3000/api/dicas', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ titulo, descricao })
+            });
+      
+            const result = await response.json();
+      
+            if (response.ok) {
+              alert('Dica criada com sucesso!');
+              document.getElementById('titulo').value = '';
+              document.getElementById('descricao').value = '';
+            } else {
+              alert('Erro ao criar dica: ' + result.message);
+            }
+          } catch (error) {
+            console.error('Erro na requisição:', error);
+            alert('Erro ao conectar com o servidor.');
+          }
+        }
+      </script>
 
     <script>
         // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
@@ -445,34 +555,10 @@
             // Botão de exclusão
             document.getElementById('deleteBtn').addEventListener('click', excluirFicha);
         });
-
-        function criarDica() {
-            const titulo = document.getElementById('titulo').value.trim();
-            const descricao = document.getElementById('descricao').value.trim();
-          
-            if (!titulo || !descricao) {
-              alert("Preencha o título e a descrição.");
-              return;
-            }
-          
-            fetch("http://localhost:3000/api/dicas", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ titulo, descricao })
-            })
-              .then(res => res.json())
-              .then(data => {
-                alert(data.mensagem || "Dica criada com sucesso!");
-                document.getElementById('titulo').value = '';
-                document.getElementById('descricao').value = '';
-              })
-              .catch(err => {
-                console.error(err);
-                alert("Erro ao salvar a dica.");
-              });
-        }
     </script>
+
+    <footer>
+        <p>&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados</p>
+    </footer>
 </body>
 </html>

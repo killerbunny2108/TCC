@@ -6,76 +6,34 @@
     <title>Área do Cliente</title>
     <link rel="stylesheet" href="usuario.css">
 
-    <!-- Calendly link widget begin -->
+    <!-- Calendly link widget -->
     <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
     <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
-    <!-- Calendly link widget end -->
 </head>
 <body>
+
     <header>
         <h1>Bem-vindo, Cliente!</h1>
         <a href="inicio.html" id="sair">Sair</a>
     </header>
-    
+
     <main>
         <section class="boas-vindas">
             <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
         </section>
 
-        <section class="dicas">
-            <h2>Dicas Personalizadas</h2>
-            <div class="dica">Mantenha uma rotina organizada para melhor produtividade.</div>
-            <div class="dica">Separe um tempo do dia para relaxar e cuidar da saúde mental.</div>
-            <div class="dica">Estabeleça metas claras e acompanhe seu progresso.</div>
-        </section>
-
         <section class="agendamento">
             <button id="agendar">Agendar Consulta</button>
         </section>
+
+        <section class="dicas">
+            <h2>Dicas Personalizadas</h2>
+            <div id="lista-dicas-clientes"></div>
+          </section>
     </main>
-    <div class="card">
-        <label for="nomePaciente">Digite seu nome:</label>
-        <input type="text" id="nomePaciente" placeholder="Ex: Larissa" />
-        <button onclick="mostrarDicas()">Ver Dicas</button>
-      </div>
-
-      <!--Dicas Personalizadas-->
-      <div class="container">
-        <h2>Dicas Gerais</h2>
-        <div id="dicasContainer" class="dicas-container"></div>
-      </div>
-
-      <script>
-        document.addEventListener("DOMContentLoaded", mostrarDicas);
-        
-        function mostrarDicas() {
-          const container = document.getElementById('dicasContainer');
-          container.innerHTML = '';
-        
-          fetch("http://localhost:3000/dicas")
-            .then(res => res.json())
-            .then(dicas => {
-              if (dicas.length === 0) {
-                container.innerHTML = "<p>Nenhuma dica disponível no momento.</p>";
-                return;
-              }
-        
-              dicas.forEach(dica => {
-                const card = document.createElement('div');
-                card.className = 'card dica';
-                card.innerHTML = `<h3>${dica.titulo}</h3><p>${dica.descricao}</p>`;
-                container.appendChild(card);
-              });
-            })
-            .catch(err => {
-              container.innerHTML = "<p>Erro ao carregar dicas.</p>";
-              console.error(err);
-            });
-        }
-        </script>
 
     <footer>
-        <p>© 2025 Todos os direitos reservados.</p>
+        <p>&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados.</p>
     </footer>
 
     <script>
@@ -84,5 +42,28 @@
             return false;
         });
     </script>
+
+    <script>
+  async function carregarDicasCliente() {
+    try {
+      const response = await fetch('http://localhost:3000/api/dicas');
+      const dicas = await response.json();
+      const container = document.getElementById('lista-dicas-clientes');
+      container.innerHTML = '';
+
+      dicas.forEach(dica => {
+        const div = document.createElement('div');
+        div.className = 'dica';
+        div.innerHTML = `<strong>${dica.titulo}</strong><p>${dica.descricao}</p>`;
+        container.appendChild(div);
+      });
+    } catch (err) {
+      console.error('Erro ao carregar dicas do cliente:', err);
+      document.getElementById('lista-dicas-clientes').textContent = 'Erro ao carregar dicas.';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', carregarDicasCliente);
+</script>
 </body>
 </html>

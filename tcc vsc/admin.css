@@ -391,9 +391,3 @@ button:hover {
 .card button:hover {
   background-color: var(--button-hover);
 }
-
-#dicasContainer p {
-  color: #777;
-  font-style: italic;
-  margin-top: 10px;
-}
