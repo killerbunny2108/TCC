@@ -4,6 +4,7 @@ const cors = require('cors');
 
 // Importações
 const usuarioRoutes = require('./routes/usuario');
+const dicasRoutes = require('./routes/dicas');
 const connection = require('./db'); // Conexão com banco de dados
 
 const app = express();
@@ -14,6 +15,8 @@ app.use(bodyParser.json());
 
 // Rotas de usuário
 app.use('/api/usuario', usuarioRoutes);
+app.use('/', dicasRoutes);
+
 
 // ====================
 // Rota para listar pacientes (para o combo box)
@@ -168,7 +171,7 @@ app.post('/api/dica', (req, res) => {
     }
 
     connection.query(
-        'INSERT INTO Dica (titulo, descricao) VALUES (?, ?)',
+        'INSERT INTO dica (titulo, descricao) VALUES (?, ?)',
         [titulo, descricao],
         (err, result) => {
             if (err) {
@@ -180,19 +183,7 @@ app.post('/api/dica', (req, res) => {
     );
 });
 
-// Rota para buscar todas as dicas gerais
-app.get('/api/dica', (req, res) => {
-    connection.query(
-        'SELECT titulo, descricao FROM Dica ORDER BY data_criacao DESC',
-        (err, results) => {
-            if (err) {
-                console.error('Erro ao buscar dicas:', err);
-                return res.status(500).json({ mensagem: 'Erro ao buscar dicas.' });
-            }
-            res.json(results);
-        }
-    );
-});
+
 
 // Adicione estas novas rotas ao arquivo backend/index.js
 
@@ -360,57 +351,3 @@ app.delete('/api/fichas/:id', (req, res) => {
 });
 
 
-const router = express.Router();
-const db = require('./db'); // ajuste o caminho conforme seu projeto
-
-router.get('/api/dica', (req, res) => {
-  db.query('SELECT * FROM dica', (err, results) => {
-    if (err) return res.status(500).send(err);
-    res.json(results);
-  });
-});
-
-router.post('/api/dica', (req, res) => {
-  const { titulo, descricao } = req.body;
-  db.query('INSERT INTO dica (titulo, descricao) VALUES (?, ?)', [titulo, descricao], (err) => {
-    if (err) return res.status(500).send(err);
-    res.sendStatus(201);
-  });
-});
-
-router.put('/api/dica/:id', (req, res) => {
-  const { id } = req.params;
-  const { titulo, descricao } = req.body;
-  db.query('UPDATE dica SET titulo = ?, descricao = ? WHERE id = ?', [titulo, descricao, id], (err) => {
-    if (err) return res.status(500).send(err);
-    res.sendStatus(200);
-  });
-});
-
-router.delete('/api/dica/:id', (req, res) => {
-  const { id } = req.params;
-  db.query('DELETE FROM dica WHERE id = ?', [id], (err) => {
-    if (err) return res.status(500).send(err);
-    res.sendStatus(200);
-  });
-});
-
-module.exports = router;
-
-app.post('/api/dica', (req, res) => {
-    const { titulo, descricao } = req.body;
-  
-    if (!titulo || !descricao) {
-      return res.status(400).json({ message: 'Título e descrição são obrigatórios.' });
-    }
-  
-    const query = 'INSERT INTO dica (titulo, descricao) VALUES (?, ?)';
-    db.query(query, [titulo, descricao], (err, result) => {
-      if (err) {
-        console.error('Erro ao inserir dica:', err);
-        return res.status(500).json({ message: 'Erro no servidor.' });
-      }
-  
-      res.status(201).json({ message: 'Dica criada com sucesso!', id: result.insertId });
-    });
-  });

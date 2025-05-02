@@ -1,93 +1,106 @@
 <!DOCTYPE html>
 <html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Área do Cliente</title>
-    <link rel="stylesheet" href="usuario.css">
 
-    <!-- Calendly link widget -->
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área do Cliente</title>
+  <link rel="stylesheet" href="usuario.css">
+
+  <!-- Calendly link widget -->
+  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+  <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
 </head>
+
 <body>
 
-    <header>
-        <h1>Bem-vindo, Cliente!</h1>
-        <a href="inicio.html" id="sair">Sair</a>
-    </header>
+  <header>
+    <h1>Bem-vindo, Cliente!</h1>
+    <a href="inicio.html" id="sair">Sair</a>
+  </header>
 
-    <main>
-        <section class="boas-vindas">
-            <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
-        </section>
+  <main>
+    <section class="boas-vindas">
+      <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
+    </section>
 
-        <section class="agendamento">
-            <button id="agendar">Agendar Consulta</button>
-        </section>
+    <section class="agendamento">
+      <button id="agendar">Agendar Consulta</button>
+    </section>
 
-        <section class="dicas">
-            <h2>Dicas Personalizadas</h2>
-            <div id="lista-dicas-clientes">
-                <!-- As dicas serão carregadas aqui -->
-                <p id="loading-dicas">Carregando dicas...</p>
-            </div>
-        </section>
-    </main>
+    <section class="dicas">
+      <h2>Dicas Personalizadas</h2>
+      <div id="lista-dicas-clientes">
+        <!-- As dicas serão carregadas aqui -->
+        <p id="loading-dicas">Carregando dicas...</p>
+      </div>
+    </section>
+  </main>
 
-    <footer>
-        <p>&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados.</p>
-    </footer>
+  <footer>
+    <p>&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados.</p>
+  </footer>
 
-    <script>
-        document.getElementById("agendar").addEventListener("click", function () {
-            Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
-            return false;
-        });
-        
-        async function carregarDicasCliente() {
-            const container = document.getElementById('lista-dicas-clientes');
-            const loading = document.getElementById('loading-dicas');
-            
-            try {
-                const response = await fetch('http://localhost:3000/api/dicas');
-                
-                if (!response.ok) {
-                    throw new Error(`Erro na requisição: ${response.status}`);
-                }
-                
-                const dicas = await response.json();
-                
-                // Remover mensagem de carregamento
-                loading.style.display = 'none';
-                
-                // Verificar se há dicas para exibir
-                if (dicas.length === 0) {
-                    container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
-                    return;
-                }
-                
-                // Criar e adicionar cada dica ao container
-                dicas.forEach(dica => {
-                    const div = document.createElement('div');
-                    div.className = 'dica-card';
-                    div.innerHTML = `
-                        <h3>${dica.titulo}</h3>
-                        <p>${dica.descricao}</p>
-                    `;
-                    container.appendChild(div);
-                });
-                
-                console.log("Dicas carregadas com sucesso:", dicas);
-            } catch (error) {
-                console.error('Erro ao carregar dicas:', error);
-                loading.style.display = 'none';
-                container.innerHTML = `<p class="erro">Não foi possível carregar as dicas. Tente novamente mais tarde.</p>`;
-            }
+  <script>
+    document.getElementById("agendar").addEventListener("click", function () {
+      Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
+      return false;
+    });
+
+    document.getElementById("agendar").addEventListener("click", function () {
+      Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
+      return false;
+    });
+
+    async function carregarDicasCliente() {
+      const container = document.getElementById('lista-dicas-clientes');
+      const loading = document.getElementById('loading-dicas');
+
+      try {
+        // Atualizamos a URL para usar a rota correta
+        const response = await fetch('http://localhost:3000/api/dicas');
+
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status}`);
         }
 
-        // Carregar dicas quando a página for carregada
-        document.addEventListener('DOMContentLoaded', carregarDicasCliente);
-    </script>
+        const dicas = await response.json();
+
+        // Remover mensagem de carregamento
+        loading.style.display = 'none';
+
+        // Verificar se há dicas para exibir
+        if (dicas.length === 0) {
+          container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
+          return;
+        }
+
+        // Limpar o container antes de adicionar novas dicas
+        container.innerHTML = '';
+
+        // Criar e adicionar cada dica ao container
+        dicas.forEach(dica => {
+          const div = document.createElement('div');
+          div.className = 'dica-card';
+          div.innerHTML = `
+                    <h3>${dica.titulo}</h3>
+                    <p>${dica.descricao}</p>
+                `;
+          container.appendChild(div);
+        });
+
+        console.log("Dicas carregadas com sucesso:", dicas);
+      } catch (error) {
+        console.error('Erro ao carregar dicas:', error);
+        loading.style.display = 'none';
+        container.innerHTML = `<p class="erro">Não foi possível carregar as dicas. Tente novamente mais tarde.</p>`;
+      }
+    }
+
+    // Carregar dicas quando a página for carregada
+    document.addEventListener('DOMContentLoaded', carregarDicasCliente);
+  </script>
+
 </body>
+
 </html>

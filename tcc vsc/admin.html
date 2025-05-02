@@ -195,130 +195,261 @@
         </div>
     </div>
     
-    <!-- Dicas Personalizadas -->
-    <div class="card">
-        <h2>Criar Nova Dica</h2>
-        <label for="titulo">Título da dica:</label>
-        <input type="text" id="titulo" />
-      
-        <label for="descricao">Descrição:</label>
-        <textarea id="descricao" rows="3"></textarea>
+    <!-- Substitua a seção de Dicas Personalizadas do admin.html por este código: -->
 
-        <button onclick="criarDica()">Criar Dica</button>
+<!-- Dicas Personalizadas -->
+<div class="card">
+    <h2>Criar Nova Dica</h2>
+    <label for="titulo">Título da dica:</label>
+    <input type="text" id="titulo" />
+  
+    <label for="descricao">Descrição:</label>
+    <textarea id="descricao" rows="3"></textarea>
+
+    <button id="btnDica">Criar Dica</button>
+</div>
+
+<!-- Onde as dicas aparecerão -->
+<div class="dicas-container">
+    <h2>Dicas Cadastradas</h2>
+    <div id="lista-dicas">
+        <!-- As dicas serão inseridas aqui dinamicamente -->
+        <p>Carregando dicas...</p>
     </div>
+</div>
 
-    <script>
-        async function carregarDicas() {
-          try {
+<script src="dicas.js"></script>
+
+
+<script>
+    // Função para carregar todas as dicas
+    async function carregarDicas() {
+        try {
             const response = await fetch('http://localhost:3000/api/dicas');
+            if (!response.ok) {
+                throw new Error('Erro ao buscar dicas');
+            }
+            
             const dicas = await response.json();
             const container = document.getElementById('lista-dicas');
             container.innerHTML = '';
-      
+    
+            if (dicas.length === 0) {
+                container.innerHTML = '<p>Nenhuma dica cadastrada.</p>';
+                return;
+            }
+    
             dicas.forEach(dica => {
-              const div = document.createElement('div');
-              div.className = 'card';
-              div.innerHTML = `
-                <h3>${dica.titulo}</h3>
-                <p>${dica.descricao}</p>
-                <button onclick="editarDica(${dica.id}, '${dica.titulo}', '${dica.descricao}')">Editar</button>
-                <button onclick="excluirDica(${dica.id})">Excluir</button>
-              `;
-              container.appendChild(div);
+                const div = document.createElement('div');
+                div.className = 'dica-item';
+                div.innerHTML = `
+                    <h3>${dica.titulo}</h3>
+                    <p>${dica.descricao}</p>
+                    <div class="dica-actions">
+                        <button class="btn-editar" data-id="${dica.id}" data-titulo="${dica.titulo}" data-descricao="${dica.descricao}">Editar</button>
+                        <button class="btn-excluir" data-id="${dica.id}">Excluir</button>
+                    </div>
+                `;
+                container.appendChild(div);
             });
-          } catch (error) {
-            console.error('Erro ao carregar dicas:', error);
-          }
+            
+            // Adicionar eventos aos botões
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const titulo = this.getAttribute('data-titulo');
+                    const descricao = this.getAttribute('data-descricao');
+                    
+                    document.getElementById('titulo').value = titulo;
+                    document.getElementById('descricao').value = descricao;
+                    
+                    const btnDica = document.getElementById('btnDica');
+                    btnDica.textContent = 'Atualizar Dica';
+                    btnDica.setAttribute('data-id', id);
+                    btnDica.setAttribute('data-editing', 'true');
+                });
+            });
+            
+            document.querySelectorAll('.btn-excluir').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    if (confirm('Tem certeza que deseja excluir esta dica?')) {
+                        const id = this.getAttribute('data-id');
+                        await excluirDica(id);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao carregar dicas.');
         }
-      
-        async function criarDica() {
-          const titulo = document.getElementById('titulo').value;
-          const descricao = document.getElementById('descricao').value;
-      
-          if (!titulo || !descricao) {
+    }
+    
+    // Função para criar/atualizar dica
+    async function salvarDica(event) {
+        event.preventDefault();
+        
+        const titulo = document.getElementById('titulo').value;
+        const descricao = document.getElementById('descricao').value;
+        
+        if (!titulo || !descricao) {
             alert('Preencha todos os campos.');
             return;
-          }
-      
-          await fetch('http://localhost:3000/api/dicas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ titulo, descricao })
-          });
-      
-          document.getElementById('titulo').value = '';
-          document.getElementById('descricao').value = '';
-          carregarDicas();
         }
-      
-        async function excluirDica(id) {
-          await fetch(`http://localhost:3000/api/dicas/${id}`, { method: 'DELETE' });
-          carregarDicas();
-        }
-      
-        function editarDica(id, titulo, descricao) {
-          document.getElementById('titulo').value = titulo;
-          document.getElementById('descricao').value = descricao;
-      
-          const botao = document.querySelector('.card button');
-          botao.textContent = 'Salvar Edição';
-          botao.onclick = async function () {
-            await fetch(`http://localhost:3000/api/dicas/${id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                titulo: document.getElementById('titulo').value,
-                descricao: document.getElementById('descricao').value
-              })
+        
+        const btnDica = document.getElementById('btnDica');
+        const isEditing = btnDica.getAttribute('data-editing') === 'true';
+        
+        try {
+            let url = 'http://localhost:3000/api/dicas';
+            let method = 'POST';
+            
+            if (isEditing) {
+                const id = btnDica.getAttribute('data-id');
+                url = `http://localhost:3000/api/dicas/${id}`;
+                method = 'PUT';
+            }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ titulo, descricao })
             });
-            botao.textContent = 'Criar Dica';
-            botao.onclick = criarDica;
+            
+            if (!response.ok) {
+                throw new Error('Erro na requisição');
+            }
+            
+            // Limpar formulário
             document.getElementById('titulo').value = '';
             document.getElementById('descricao').value = '';
-            carregarDicas();
-          };
+            
+            // Resetar o botão
+            btnDica.textContent = 'Criar Dica';
+            btnDica.removeAttribute('data-id');
+            btnDica.setAttribute('data-editing', 'false');
+            
+            // Recarregar lista de dicas
+            await carregarDicas();
+            
+            alert(isEditing ? 'Dica atualizada com sucesso!' : 'Dica criada com sucesso!');
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao salvar dica.');
         }
-      
-        document.addEventListener('DOMContentLoaded', carregarDicas);
-      </script>
-      
-      <!-- onde as dicas aparecerão -->
-      <div id="lista-dicas"></div>
-
-      <script>
-        async function criarDica() {
-          const titulo = document.getElementById('titulo').value;
-          const descricao = document.getElementById('descricao').value;
-      
-          if (!titulo || !descricao) {
-            alert('Preencha todos os campos.');
-            return;
-          }
-      
-          try {
-            const response = await fetch('http://localhost:3000/api/dicas', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ titulo, descricao })
+    }
+    
+    // Função para excluir dica
+    async function excluirDica(id) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/dicas/${id}`, {
+                method: 'DELETE'
             });
-      
-            const result = await response.json();
-      
-            if (response.ok) {
-              alert('Dica criada com sucesso!');
-              document.getElementById('titulo').value = '';
-              document.getElementById('descricao').value = '';
-            } else {
-              alert('Erro ao criar dica: ' + result.message);
+            
+            if (!response.ok) {
+                throw new Error('Erro ao excluir dica');
             }
-          } catch (error) {
-            console.error('Erro na requisição:', error);
-            alert('Erro ao conectar com o servidor.');
-          }
+            
+            await carregarDicas();
+            alert('Dica excluída com sucesso!');
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao excluir dica.');
         }
-      </script>
+    }
+    
+    // Carregar dicas ao iniciar a página
+    document.addEventListener('DOMContentLoaded', carregarDicas);
+    
+    // Evento de submissão do formulário
+    document.getElementById('dicaForm').addEventListener('submit', salvarDica);
+</script>
+
+<style>
+    /* Estilos adicionais para a seção de dicas */
+    .card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
+    .card h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+    }
+    
+    .card label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .card input, .card textarea {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .card button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .card button:hover {
+        background-color: var(--button-hover);
+    }
+    
+    #lista-dicas {
+        margin-top: 30px;
+    }
+    
+    .dica-item {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+    }
+    
+    .dica-item h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+    
+    .dica-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-editar, .btn-excluir {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-editar {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-excluir {
+        background-color: #e74c3c;
+        color: white;
+    }
+</style>
 
     <script>
         // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
