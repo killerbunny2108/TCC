@@ -185,3 +185,27 @@ function buscarDicas() {
   
   // Chamar a função para buscar as dicas quando a página carregar
   document.addEventListener('DOMContentLoaded', buscarDicas);
+
+let slideIndex = 0;
+const slides = document.querySelectorAll('.carousel-slide');
+const prevBtn = document.querySelector('.prev');
+const nextBtn = document.querySelector('.next');
+
+function showSlide(index) {
+  slides.forEach((slide, i) => {
+    slide.style.display = (i === index) ? 'block' : 'none';
+  });
+}
+
+prevBtn.addEventListener('click', () => {
+  slideIndex = (slideIndex - 1 + slides.length) % slides.length;
+  showSlide(slideIndex);
+});
+
+nextBtn.addEventListener('click', () => {
+  slideIndex = (slideIndex + 1) % slides.length;
+  showSlide(slideIndex);
+});
+
+// Mostrar o primeiro slide ao carregar
+showSlide(slideIndex);
