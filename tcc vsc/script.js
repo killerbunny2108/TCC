@@ -127,85 +127,110 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Carregar pacientes na combo box
-    const API_PACIENTES_URL = "http://localhost:3000/api/pacientes";
-
+    // Carregar pacientes na combo box - MODIFICADO PARA VERIFICAR SE O ELEMENTO EXISTE
     function carregarPacientes() {
-        fetch(API_PACIENTES_URL)
-            .then(response => response.json())
-            .then(pacientes => {
-                const comboBox = document.getElementById('comboPacientes');
-                comboBox.innerHTML = '<option value="">Selecione um Paciente</option>';
+        // Verificar para ambos os IDs possíveis - 'comboPacientes' e 'id_paciente'
+        const comboBox = document.getElementById('comboPacientes') || document.getElementById('id_paciente');
+        // Só executar se o elemento existir na página atual
+        if (comboBox) {
+            fetch("http://localhost:3000/api/pacientes")
+                .then(response => response.json())
+                .then(pacientes => {
+                    comboBox.innerHTML = '<option value="">Selecione um Paciente</option>';
 
-                if (pacientes.length === 0) {
-                    const option = document.createElement('option');
-                    option.textContent = 'Nenhum paciente encontrado';
-                    comboBox.appendChild(option);
-                } else {
-                    pacientes.forEach(paciente => {
+                    if (pacientes.length === 0) {
                         const option = document.createElement('option');
-                        option.value = paciente.id_usuario;
-                        option.textContent = paciente.nome;
+                        option.textContent = 'Nenhum paciente encontrado';
                         comboBox.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao carregar pacientes:', error);
-                alert('Erro ao carregar a lista de pacientes');
-            });
+                    } else {
+                        pacientes.forEach(paciente => {
+                            const option = document.createElement('option');
+                            // Usar o id_paciente que foi retornado da API
+                            option.value = paciente.id_paciente;
+                            option.textContent = paciente.nome;
+                            comboBox.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar pacientes:', error);
+                    // Remover o alert para evitar mensagens desnecessárias
+                    // alert('Erro ao carregar a lista de pacientes');
+                });
+        }
     }
 
-    window.onload = carregarPacientes;
+    // Chamar a função apenas se estivermos em uma página que precisa dela
+    if (window.location.pathname.includes('admin.html') || 
+        document.getElementById('comboPacientes') || 
+        document.getElementById('id_paciente')) {
+        carregarPacientes();
+    }
 
+    // Prevenir rolagem da página quando a tecla espaço é pressionada
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' && e.target === document.body) {
+            e.preventDefault();
+        }
+    });
 });
 
 // Função para buscar as dicas da API
 function buscarDicas() {
-    fetch('http://localhost:3000/api/dicas')  // URL da sua API
-      .then(response => response.json())
-      .then(dicas => {
-        const listaDicas = document.getElementById('dicas-list');
-        listaDicas.innerHTML = ''; // Limpar qualquer conteúdo anterior
-  
-        // Adicionar cada dica na lista
-        dicas.forEach(dica => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <h3>${dica.titulo}</h3>
-            <p>${dica.descricao}</p>
-          `;
-          listaDicas.appendChild(li);
-        });
-      })
-      .catch(error => {
-        console.error('Erro ao carregar as dicas:', error);
-      });
-  }
-  
-  // Chamar a função para buscar as dicas quando a página carregar
-  document.addEventListener('DOMContentLoaded', buscarDicas);
+    const listaDicas = document.getElementById('dicas-list');
+    // Só executar se o elemento existir na página atual
+    if (listaDicas) {
+        fetch('http://localhost:3000/api/dicas')
+            .then(response => response.json())
+            .then(dicas => {
+                listaDicas.innerHTML = ''; // Limpar qualquer conteúdo anterior
+        
+                // Adicionar cada dica na lista
+                dicas.forEach(dica => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <h3>${dica.titulo}</h3>
+                        <p>${dica.descricao}</p>
+                    `;
+                    listaDicas.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao carregar as dicas:', error);
+            });
+    }
+}
+
+// Chamar a função para buscar as dicas apenas se estiver em uma página que usa dicas
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('dicas-list')) {
+        buscarDicas();
+    }
+});
 
 let slideIndex = 0;
 const slides = document.querySelectorAll('.carousel-slide');
 const prevBtn = document.querySelector('.prev');
 const nextBtn = document.querySelector('.next');
 
-function showSlide(index) {
-  slides.forEach((slide, i) => {
-    slide.style.display = (i === index) ? 'block' : 'none';
-  });
+// Só executar o código do carrossel se os elementos existirem
+if (slides.length > 0 && prevBtn && nextBtn) {
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.style.display = (i === index) ? 'block' : 'none';
+        });
+    }
+
+    prevBtn.addEventListener('click', () => {
+        slideIndex = (slideIndex - 1 + slides.length) % slides.length;
+        showSlide(slideIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        slideIndex = (slideIndex + 1) % slides.length;
+        showSlide(slideIndex);
+    });
+
+    // Mostrar o primeiro slide ao carregar
+    showSlide(slideIndex);
 }
-
-prevBtn.addEventListener('click', () => {
-  slideIndex = (slideIndex - 1 + slides.length) % slides.length;
-  showSlide(slideIndex);
-});
-
-nextBtn.addEventListener('click', () => {
-  slideIndex = (slideIndex + 1) % slides.length;
-  showSlide(slideIndex);
-});
-
-// Mostrar o primeiro slide ao carregar
-showSlide(slideIndex);
