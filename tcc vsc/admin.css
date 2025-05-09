@@ -326,7 +326,7 @@ button:hover {
 }
 
 #deleteBtn {
-  background-color: #ff6b6b;
+  background-color: var(--primary-color);
 }
 
 /* DICAS PERSONALIZADAS */
@@ -390,4 +390,73 @@ button:hover {
 
 .card button:hover {
   background-color: var(--button-hover);
+}
+
+/* Estilos adicionais da seção de dicas que estavam no HTML */
+.dicas-container {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-top: 40px;
+}
+
+.dicas-container h2 {
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+#lista-dicas {
+  margin-top: 30px;
+}
+
+.dica-item {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+}
+
+.dica-item h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.dica-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-editar, .btn-excluir {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  
+}
+
+.btn-editar {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-excluir {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Estilos para o footer */
+footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px 0;
+  color: var(--button-hover);
+  font-size: 14px;
+  border-top: 1px solid var(--table-border);
+  background-color: white;
 }

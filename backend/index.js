@@ -18,10 +18,12 @@ app.use('/api/usuario', usuarioRoutes);
 app.use('/', dicasRoutes);
 
 
-// ====================
+
 // Rota para listar pacientes (para o combo box)
-// Correção da rota de listar pacientes
+// Versão corrigida com melhor tratamento de erros
 app.get('/api/pacientes', (req, res) => {
+    console.log("Endpoint /api/pacientes chamado");
+    
     connection.query(
         `SELECT p.id_paciente, u.id_usuario, u.nome 
          FROM Paciente p
@@ -30,14 +32,20 @@ app.get('/api/pacientes', (req, res) => {
         (err, results) => {
             if (err) {
                 console.error("Erro ao buscar pacientes:", err);
-                return res.status(500).json({ mensagem: 'Erro ao buscar pacientes.' });
+                return res.status(500).json({ 
+                  mensagem: 'Erro ao buscar pacientes.', 
+                  erro: err.message 
+                });
             }
+            
             console.log("Pacientes encontrados:", results);
-            res.json(results);
+            
+            // Garantir que estamos enviando um array mesmo que vazio
+            const pacientes = Array.isArray(results) ? results : [];
+            res.json(pacientes);
         }
     );
 });
-
 
 // Rota para salvar ficha de anamnese
 app.post('/api/ficha', (req, res) => {

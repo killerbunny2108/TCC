@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
             if (data.usuario) {
-                alert("Login bem-sucedido!");
+                // Removido o alert de "Login bem-sucedido!"
                 localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
 
                 if (email === "nunescleusa1974@gmail.com") {
@@ -82,8 +82,8 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "ficha.html";
     });
 
-    // Submissão da ficha (sem verificação de usuário logado)
-    document.getElementById("fichaForm")?.addEventListener("submit", async (e) => {
+    // Submissão da ficha de anamnese - Corrigido para redirecionar para admin.html após salvar
+    document.getElementById("formFicha")?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         console.log("Formulário enviado");
@@ -95,13 +95,15 @@ document.addEventListener("DOMContentLoaded", function () {
             fichaData[key] = value;
         });
 
-        fichaData.fumante = formData.get("fumante") === "on";
-        fichaData.consome_alcool = formData.get("consome_alcool") === "on";
+        fichaData.fumante = document.getElementById("fumante").checked;
+        fichaData.consome_alcool = document.getElementById("consome_alcool").checked;
 
-        // A partir daqui, removi qualquer uso do "usuarioLogado"
+        // Obter o ID do administrador do localStorage (assumindo que está logado)
+        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado") || "{}");
+        fichaData.id_administrador = usuarioLogado.id_usuario;
 
         if (!fichaData.id_paciente) {
-            alert("Informe o ID do paciente.");
+            alert("Selecione um paciente.");
             return;
         }
 
@@ -114,12 +116,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify(fichaData),
             });
 
+            const result = await response.json();
+            
             if (response.ok) {
                 alert("Ficha salva com sucesso!");
-                e.target.reset();
+                // Redirecionar para a página do administrador após salvar com sucesso
+                window.location.href = "admin.html";
             } else {
-                console.error("Erro ao salvar a ficha:", response);
-                alert("Erro ao salvar ficha.");
+                console.error("Erro ao salvar a ficha:", result);
+                alert(result.mensagem || "Erro ao salvar ficha.");
             }
         } catch (error) {
             console.error("Erro:", error);
@@ -127,25 +132,31 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Carregar pacientes na combo box - MODIFICADO PARA VERIFICAR SE O ELEMENTO EXISTE
+    // Carregar pacientes na combo box - MODIFICADO PARA USAR O ID CORRETO
     function carregarPacientes() {
-        // Verificar para ambos os IDs possíveis - 'comboPacientes' e 'id_paciente'
-        const comboBox = document.getElementById('comboPacientes') || document.getElementById('id_paciente');
-        // Só executar se o elemento existir na página atual
+        const comboBox = document.getElementById('id_paciente');
+        
         if (comboBox) {
+            console.log("Carregando pacientes...");
             fetch("http://localhost:3000/api/pacientes")
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Falha ao obter dados dos pacientes: ' + response.status);
+                    }
+                    return response.json();
+                })
                 .then(pacientes => {
+                    console.log("Pacientes recebidos:", pacientes);
                     comboBox.innerHTML = '<option value="">Selecione um Paciente</option>';
 
                     if (pacientes.length === 0) {
                         const option = document.createElement('option');
                         option.textContent = 'Nenhum paciente encontrado';
+                        option.disabled = true;
                         comboBox.appendChild(option);
                     } else {
                         pacientes.forEach(paciente => {
                             const option = document.createElement('option');
-                            // Usar o id_paciente que foi retornado da API
                             option.value = paciente.id_paciente;
                             option.textContent = paciente.nome;
                             comboBox.appendChild(option);
@@ -154,16 +165,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .catch(error => {
                     console.error('Erro ao carregar pacientes:', error);
-                    // Remover o alert para evitar mensagens desnecessárias
-                    // alert('Erro ao carregar a lista de pacientes');
+                    alert('Erro ao carregar a lista de pacientes. Verifique o console para mais detalhes.');
                 });
         }
     }
 
-    // Chamar a função apenas se estivermos em uma página que precisa dela
-    if (window.location.pathname.includes('admin.html') || 
-        document.getElementById('comboPacientes') || 
-        document.getElementById('id_paciente')) {
+    // Chamar a função apenas se estivermos na página de ficha
+    if (window.location.pathname.includes('ficha.html')) {
         carregarPacientes();
     }
 
@@ -208,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Código do carrossel
 let slideIndex = 0;
 const slides = document.querySelectorAll('.carousel-slide');
 const prevBtn = document.querySelector('.prev');

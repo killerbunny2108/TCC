@@ -219,9 +219,52 @@
 </div>
 
 <script src="dicas.js"></script>
-
+ <!-- Modal de confirmação -->
+ <div id="confirmModal" class="confirm-modal" style="display: none;">
+    <div class="confirm-content">
+        <h3 class="confirm-title">Excluir produto</h3>
+        <p class="confirm-message">Você tem certeza que deseja excluir este produto?</p>
+        <div class="confirm-buttons">
+            <button id="btnCancelar" class="btn-confirm btn-cancel">Cancelar</button>
+            <button id="btnConfirmar" class="btn-confirm btn-delete">Confirmar</button>
+        </div>
+    </div>
+</div>
+</div>
 
 <script>
+    // Função para exibir o modal de confirmação
+    function exibirModalConfirmacao(titulo, mensagem, callbackConfirmar) {
+            const modal = document.getElementById('confirmModal');
+            const tituloEl = modal.querySelector('.confirm-title');
+            const mensagemEl = modal.querySelector('.confirm-message');
+            const btnConfirmar = document.getElementById('btnConfirmar');
+            const btnCancelar = document.getElementById('btnCancelar');
+            
+            tituloEl.textContent = titulo;
+            mensagemEl.textContent = mensagem;
+            
+            modal.style.display = 'flex';
+            
+            // Limpar eventos antigos
+            const novoConfirmar = btnConfirmar.cloneNode(true);
+            const novoCancelar = btnCancelar.cloneNode(true);
+            
+            btnConfirmar.parentNode.replaceChild(novoConfirmar, btnConfirmar);
+            btnCancelar.parentNode.replaceChild(novoCancelar, btnCancelar);
+            
+            // Adicionar novos eventos
+            novoConfirmar.addEventListener('click', function() {
+                modal.style.display = 'none';
+                if (typeof callbackConfirmar === 'function') {
+                    callbackConfirmar();
+                }
+            });
+            
+            novoCancelar.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
     // Função para carregar todas as dicas
     async function carregarDicas() {
         try {
@@ -366,90 +409,7 @@
     document.getElementById('dicaForm').addEventListener('submit', salvarDica);
 </script>
 
-<style>
-    /* Estilos adicionais para a seção de dicas */
-    .card {
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-    
-    .card h2 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: var(--primary-color);
-    }
-    
-    .card label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    
-    .card input, .card textarea {
-        width: 100%;
-        padding: 8px;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-    
-    .card button {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    
-    .card button:hover {
-        background-color: var(--button-hover);
-    }
-    
-    #lista-dicas {
-        margin-top: 30px;
-    }
-    
-    .dica-item {
-        background-color: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        margin-bottom: 15px;
-    }
-    
-    .dica-item h3 {
-        margin-top: 0;
-        color: var(--primary-color);
-    }
-    
-    .dica-actions {
-        margin-top: 10px;
-        display: flex;
-        gap: 10px;
-    }
-    
-    .btn-editar, .btn-excluir {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .btn-editar {
-        background-color: #3498db;
-        color: white;
-    }
-    
-    .btn-excluir {
-        background-color: #e74c3c;
-        color: white;
-    }
-</style>
+
 
     <script>
         // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
