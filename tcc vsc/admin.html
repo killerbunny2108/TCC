@@ -68,21 +68,63 @@
     
     <!-- Modal para visualizar/editar ficha -->
     <div id="fichaModal" class="modal">
-        <!-- O conteúdo do modal permanece igual -->
         <div class="modal-content">
-            <!-- Conteúdo existente do modal -->
-            <!-- ... -->
+            <span class="close">&times;</span>
+            <h2>Detalhes da Ficha</h2>
+            
+            <form id="editFichaForm">
+                <input type="hidden" id="edit_id">
+                
+                <div class="form-group">
+                    <label for="edit_nome_paciente">Nome do Paciente:</label>
+                    <input type="text" id="edit_nome_paciente" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
+                    <select id="edit_tipo_atendimento">
+                        <option value="Presencial">Presencial</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_data_atendimento">Data de Atendimento:</label>
+                    <input type="date" id="edit_data_atendimento">
+                </div>
+                
+                <!-- Mais campos do formulário... -->
+                <div class="form-group">
+                    <label for="edit_motivo_consulta">Motivo da Consulta:</label>
+                    <textarea id="edit_motivo_consulta" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_observacoes">Observações:</label>
+                    <textarea id="edit_observacoes" rows="3"></textarea>
+                </div>
+                
+                <!-- Botões de ação -->
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">Salvar Alterações</button>
+                    <button type="button" id="deleteBtn" class="delete-btn">Excluir Ficha</button>
+                </div>
+            </form>
         </div>
     </div>
     
     <!-- Dicas Personalizadas -->
     <div class="card">
         <h2>Criar Nova Dica</h2>
-        <label for="titulo">Título da dica:</label>
-        <input type="text" id="titulo" />
+        <div class="form-group">
+            <label for="titulo">Título da dica:</label>
+            <input type="text" id="titulo">
+        </div>
       
-        <label for="descricao">Descrição:</label>
-        <textarea id="descricao" rows="3"></textarea>
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" rows="3"></textarea>
+        </div>
     
         <button id="btnDica">Criar Dica</button>
     </div>
@@ -108,7 +150,7 @@
         </div>
     </div>
     
-    <!-- Rodapé melhorado -->
+    <!-- Rodapé (apenas um) -->
     <footer>
         <div class="footer-content">
             <p class="copyright">&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados</p>
@@ -120,6 +162,7 @@
         </div>
     </footer>
     
+    <!-- Scripts do sistema -->
     <script src="dicas.js"></script>
     <script>
         // Função para exibir o modal de confirmação
@@ -155,157 +198,6 @@
             });
         }
         
-    
-    </script>
-</body>
-</html>
-    // Função para carregar todas as dicas
-    async function carregarDicas() {
-        try {
-            const response = await fetch('http://localhost:3000/api/dicas');
-            if (!response.ok) {
-                throw new Error('Erro ao buscar dicas');
-            }
-            
-            const dicas = await response.json();
-            const container = document.getElementById('lista-dicas');
-            container.innerHTML = '';
-    
-            if (dicas.length === 0) {
-                container.innerHTML = '<p>Nenhuma dica cadastrada.</p>';
-                return;
-            }
-    
-            dicas.forEach(dica => {
-                const div = document.createElement('div');
-                div.className = 'dica-item';
-                div.innerHTML = `
-                    <h3>${dica.titulo}</h3>
-                    <p>${dica.descricao}</p>
-                    <div class="dica-actions">
-                        <button class="btn-editar" data-id="${dica.id}" data-titulo="${dica.titulo}" data-descricao="${dica.descricao}">Editar</button>
-                        <button class="btn-excluir" data-id="${dica.id}">Excluir</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-            
-            // Adicionar eventos aos botões
-            document.querySelectorAll('.btn-editar').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const titulo = this.getAttribute('data-titulo');
-                    const descricao = this.getAttribute('data-descricao');
-                    
-                    document.getElementById('titulo').value = titulo;
-                    document.getElementById('descricao').value = descricao;
-                    
-                    const btnDica = document.getElementById('btnDica');
-                    btnDica.textContent = 'Atualizar Dica';
-                    btnDica.setAttribute('data-id', id);
-                    btnDica.setAttribute('data-editing', 'true');
-                });
-            });
-            
-            document.querySelectorAll('.btn-excluir').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    if (confirm('Tem certeza que deseja excluir esta dica?')) {
-                        const id = this.getAttribute('data-id');
-                        await excluirDica(id);
-                    }
-                });
-            });
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao carregar dicas.');
-        }
-    }
-    
-    // Função para criar/atualizar dica
-    async function salvarDica(event) {
-        event.preventDefault();
-        
-        const titulo = document.getElementById('titulo').value;
-        const descricao = document.getElementById('descricao').value;
-        
-        if (!titulo || !descricao) {
-            alert('Preencha todos os campos.');
-            return;
-        }
-        
-        const btnDica = document.getElementById('btnDica');
-        const isEditing = btnDica.getAttribute('data-editing') === 'true';
-        
-        try {
-            let url = 'http://localhost:3000/api/dicas';
-            let method = 'POST';
-            
-            if (isEditing) {
-                const id = btnDica.getAttribute('data-id');
-                url = `http://localhost:3000/api/dicas/${id}`;
-                method = 'PUT';
-            }
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ titulo, descricao })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Erro na requisição');
-            }
-            
-            // Limpar formulário
-            document.getElementById('titulo').value = '';
-            document.getElementById('descricao').value = '';
-            
-            // Resetar o botão
-            btnDica.textContent = 'Criar Dica';
-            btnDica.removeAttribute('data-id');
-            btnDica.setAttribute('data-editing', 'false');
-            
-            // Recarregar lista de dicas
-            await carregarDicas();
-            
-            alert(isEditing ? 'Dica atualizada com sucesso!' : 'Dica criada com sucesso!');
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao salvar dica.');
-        }
-    }
-    
-    // Função para excluir dica
-    async function excluirDica(id) {
-        try {
-            const response = await fetch(`http://localhost:3000/api/dicas/${id}`, {
-                method: 'DELETE'
-            });
-            
-            if (!response.ok) {
-                throw new Error('Erro ao excluir dica');
-            }
-            
-            await carregarDicas();
-            alert('Dica excluída com sucesso!');
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('Erro ao excluir dica.');
-        }
-    }
-    
-    // Carregar dicas ao iniciar a página
-    document.addEventListener('DOMContentLoaded', carregarDicas);
-    
-    // Evento de submissão do formulário
-    document.getElementById('dicaForm').addEventListener('submit', salvarDica);
-</script>
-
-
-
-    <script>
         // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
         function formatarData(dataString) {
             if (!dataString) return '';
@@ -394,18 +286,6 @@
                     document.getElementById('edit_tipo_atendimento').value = ficha.tipo_atendimento || '';
                     document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
                     document.getElementById('edit_motivo_consulta').value = ficha.motivo_consulta || '';
-                    document.getElementById('edit_relacao_pais').value = ficha.relacao_pais || '';
-                    document.getElementById('edit_fato_marcante').value = ficha.fato_marcante || '';
-                    document.getElementById('edit_incomodo_atual').value = ficha.incomodo_atual || '';
-                    document.getElementById('edit_estado_civil').value = ficha.estado_civil || '';
-                    document.getElementById('edit_filhos').value = ficha.filhos || 0;
-                    document.getElementById('edit_profissao').value = ficha.profissao || '';
-                    document.getElementById('edit_fumante').checked = Boolean(ficha.fumante);
-                    document.getElementById('edit_consome_alcool').checked = Boolean(ficha.consome_alcool);
-                    document.getElementById('edit_acompanhamento_medico').value = ficha.acompanhamento_medico || '';
-                    document.getElementById('edit_doencas').value = ficha.doencas || '';
-                    document.getElementById('edit_medicacoes').value = ficha.medicacoes || '';
-                    document.getElementById('edit_cirurgias').value = ficha.cirurgias || '';
                     document.getElementById('edit_observacoes').value = ficha.observacoes || '';
                     
                     // Exibir o modal
@@ -418,25 +298,15 @@
         }
         
         // Função para salvar as alterações na ficha
-        function salvarAlteracoesFicha() {
+        function salvarAlteracoesFicha(e) {
+            e.preventDefault();
             const idFicha = document.getElementById('edit_id').value;
             
             const fichaAtualizada = {
+                nome_paciente: document.getElementById('edit_nome_paciente').value,
                 tipo_atendimento: document.getElementById('edit_tipo_atendimento').value,
                 data_atendimento: document.getElementById('edit_data_atendimento').value,
                 motivo_consulta: document.getElementById('edit_motivo_consulta').value,
-                relacao_pais: document.getElementById('edit_relacao_pais').value,
-                fato_marcante: document.getElementById('edit_fato_marcante').value,
-                incomodo_atual: document.getElementById('edit_incomodo_atual').value,
-                estado_civil: document.getElementById('edit_estado_civil').value,
-                filhos: document.getElementById('edit_filhos').value,
-                profissao: document.getElementById('edit_profissao').value,
-                fumante: document.getElementById('edit_fumante').checked,
-                consome_alcool: document.getElementById('edit_consome_alcool').checked,
-                acompanhamento_medico: document.getElementById('edit_acompanhamento_medico').value,
-                doencas: document.getElementById('edit_doencas').value,
-                medicacoes: document.getElementById('edit_medicacoes').value,
-                cirurgias: document.getElementById('edit_cirurgias').value,
                 observacoes: document.getElementById('edit_observacoes').value
             };
             
@@ -466,30 +336,32 @@
         
         // Função para excluir uma ficha
         function excluirFicha() {
-            if (!confirm('Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.')) {
-                return;
-            }
-            
             const idFicha = document.getElementById('edit_id').value;
             
-            fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao excluir ficha');
+            exibirModalConfirmacao(
+                "Excluir Ficha", 
+                "Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.", 
+                function() {
+                    fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao excluir ficha');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert(data.mensagem || 'Ficha excluída com sucesso!');
+                        document.getElementById('fichaModal').style.display = 'none';
+                        carregarFichas(document.getElementById('searchInput').value.trim());
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        alert('Erro ao excluir ficha: ' + error.message);
+                    });
                 }
-                return response.json();
-            })
-            .then(data => {
-                alert(data.mensagem || 'Ficha excluída com sucesso!');
-                document.getElementById('fichaModal').style.display = 'none';
-                carregarFichas(document.getElementById('searchInput').value.trim());
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao excluir ficha: ' + error.message);
-            });
+            );
         }
 
         // Event listeners
@@ -497,31 +369,42 @@
             // Carregar fichas ao carregar a página
             carregarFichas();
             
-          
             // Botão de pesquisa
-            document.getElementById('searchBtn').addEventListener('click', () => {
-                const termoPesquisa = document.getElementById('searchInput').value.trim();
-                carregarFichas(termoPesquisa);
-            });
-            
-            // Botão para limpar pesquisa
-            document.getElementById('resetBtn').addEventListener('click', () => {
-                document.getElementById('searchInput').value = '';
-                carregarFichas();
-            });
-            
-            // Enviar pesquisa ao pressionar Enter
-            document.getElementById('searchInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
+            const searchBtn = document.getElementById('searchBtn');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', () => {
                     const termoPesquisa = document.getElementById('searchInput').value.trim();
                     carregarFichas(termoPesquisa);
-                }
-            });
+                });
+            }
+            
+            // Botão para limpar pesquisa
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    document.getElementById('searchInput').value = '';
+                    carregarFichas();
+                });
+            }
+            
+            // Enviar pesquisa ao pressionar Enter
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const termoPesquisa = searchInput.value.trim();
+                        carregarFichas(termoPesquisa);
+                    }
+                });
+            }
             
             // Fechar modal ao clicar no X
-            document.querySelector('.close').addEventListener('click', () => {
-                document.getElementById('fichaModal').style.display = 'none';
-            });
+            const closeBtn = document.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    document.getElementById('fichaModal').style.display = 'none';
+                });
+            }
             
             // Fechar modal ao clicar fora dele
             window.addEventListener('click', (e) => {
@@ -532,18 +415,17 @@
             });
             
             // Formulário de edição
-            document.getElementById('editFichaForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                salvarAlteracoesFicha();
-            });
+            const editFichaForm = document.getElementById('editFichaForm');
+            if (editFichaForm) {
+                editFichaForm.addEventListener('submit', salvarAlteracoesFicha);
+            }
             
             // Botão de exclusão
-            document.getElementById('deleteBtn').addEventListener('click', excluirFicha);
+            const deleteBtn = document.getElementById('deleteBtn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', excluirFicha);
+            }
         });
     </script>
-
-    <footer>
-        <p>&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados</p>
-    </footer>
 </body>
 </html>

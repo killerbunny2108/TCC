@@ -48,7 +48,7 @@ body {
   flex-direction: column;
 }
 
-/* ===== NOVAS MELHORIAS NO HEADER E CABEÇALHO ===== */
+/* ===== HEADER E CABEÇALHO ===== */
 .admin-header {
   background-color: white;
   padding: 30px;
@@ -63,6 +63,7 @@ body {
   margin-bottom: 15px;
   font-size: 40px;
   color: var(--secondary-color);
+  font-family: "Tan Pearl", cursive;
 }
 
 .admin-header p {
@@ -155,7 +156,7 @@ body {
   font-size: 18px;
 }
 
-/* Título principal (estilo legado, mantido para compatibilidade) */
+/* Título principal (estilo legado) */
 h1 {
   font-family: "Tan Pearl", cursive;
   color: var(--secondary-color);
@@ -164,7 +165,7 @@ h1 {
   font-size: 36px;
 }
 
-/* Texto de boas-vindas (estilo legado, mantido para compatibilidade) */
+/* Estilos gerais para texto e links */
 p {
   font-family: "Lovelace", sans-serif;
   font-size: 18px;
@@ -172,7 +173,6 @@ p {
   margin-bottom: 30px;
 }
 
-/* Link para sair (estilo legado, mantido para compatibilidade) */
 a {
   text-decoration: none;
   color: var(--secondary-color);
@@ -196,33 +196,8 @@ button {
   display: block;
 }
 
-
-/* Hover nos botões */
 button:hover {
   background-color: var(--button-hover);
-}
-
-/* Botão "Criar Ficha" */
-.create-ficha-button {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.btn-criar-ficha {
-  display: inline-block;
-  background-color: var(--button-hover);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-family: "Lovelace", sans-serif;
-  font-size: 18px;
-  transition: background-color 0.3s ease;
-}
-
-/* Hover no botão "Criar Ficha" */
-.btn-criar-ficha:hover {
-  background-color: var(--background-color);
 }
 
 /* Seção de fichas */
@@ -267,7 +242,6 @@ button:hover {
   margin: 0 5px;
   display: inline-block;
 }
-
 /* Tabela de fichas */
 #fichasTable {
   width: 100%;
@@ -349,6 +323,7 @@ button:hover {
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
 }
 
 .close {
@@ -357,90 +332,16 @@ button:hover {
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
+  position: absolute;
+  right: 20px;
+  top: 15px;
 }
 
 .close:hover {
   color: black;
 }
 
-.form-section {
-  margin-bottom: 25px;
-  padding: 15px;
-  background-color: var(--light-bg);
-  border-radius: 8px;
-}
-
-.form-section h3 {
-  font-family: "Tan Pearl", cursive;
-  color: var(--secondary-color);
-  margin-bottom: 15px;
-  font-size: 20px;
-}
-
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: var(--text-color);
-}
-
-.form-group input[type="text"],
-.form-group input[type="date"],
-.form-group input[type="number"],
-.form-group textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--table-border);
-  border-radius: 4px;
-  font-family: "Lovelace", sans-serif;
-}
-
-.form-group textarea {
-  height: 100px;
-  resize: vertical;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.checkbox-container input[type="checkbox"] {
-  margin-right: 8px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.modal-actions button {
-  margin: 0;
-}
-
-#saveBtn {
-  background-color: var(--primary-color);
-}
-
-#deleteBtn {
-  background-color: var(--primary-color);
-}
-
-/* DICAS PERSONALIZADAS */
+/* Seção de dicas personalizadas */
 .card {
   background: white;
   padding: 30px;
@@ -479,6 +380,7 @@ button:hover {
   border: 1.5px solid #ccc;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  font-family: "Lovelace", sans-serif;
 }
 
 .card input[type="text"]:focus,
@@ -503,7 +405,7 @@ button:hover {
   background-color: var(--button-hover);
 }
 
-/* Estilos adicionais da seção de dicas que estavam no HTML */
+/* Onde as dicas aparecerão */
 .dicas-container {
   background-color: white;
   padding: 30px;
@@ -525,30 +427,39 @@ button:hover {
 }
 
 .dica-item {
-  background-color: white;
-  padding: 15px;
+  background-color: var(--light-bg);
+  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   margin-bottom: 15px;
+  transition: transform 0.2s ease;
+}
+
+.dica-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dica-item h3 {
   margin-top: 0;
   color: var(--primary-color);
+  font-family: "Lovelace", sans-serif;
+  font-size: 20px;
 }
 
 .dica-actions {
-  margin-top: 10px;
+  margin-top: 15px;
   display: flex;
   gap: 10px;
 }
 
 .btn-editar, .btn-excluir {
-  padding: 5px 10px;
+  padding: 8px 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 .btn-editar {
@@ -561,15 +472,20 @@ button:hover {
   color: white;
 }
 
+.btn-editar:hover, .btn-excluir:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Modal de Confirmação */
 .confirm-modal {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1100;
@@ -631,123 +547,18 @@ button:hover {
 .btn-delete:hover {
   background-color: var(--button-hover);
 }
-/* Melhorias no header e cabeçalho da página */
-.admin-header {
-  background-color: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-  text-align: center;
-  position: relative;
-}
 
-.admin-header h1 {
-  margin-bottom: 15px;
-  font-size: 40px;
-  color: var(--secondary-color);
-}
-
-.admin-header p {
-  font-size: 18px;
-  color: #555;
-  margin-bottom: 20px;
-  line-height: 1.6;
-}
-
-.admin-actions {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin: 30px 0;
-}
-
-.admin-button {
-  padding: 14px 24px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: "Lovelace", sans-serif;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 200px;
-}
-
-.admin-button:hover {
-  background-color: var(--button-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.logout-link {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 16px;
-  background-color: #f3f3f3;
-  color: var(--text-color);
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.logout-link:hover {
-  background-color: #e0e0e0;
-}
-
-.logout-link::before {
-  content: "→";
-  margin-right: 8px;
-  font-size: 18px;
-  transform: rotate(180deg);
-  display: inline-block;
-}
-
-/* Imagem de perfil */
-.admin-profile {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: var(--light-bg);
-  margin: 0 auto 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.admin-profile img {
-  width: 100%;
-  height: auto;
-}
-
-/* Ícones para os botões */
-.admin-button i {
-  margin-right: 8px;
-  font-size: 18px;
-}
 /* Rodapé melhorado */
 footer {
-  margin-top: 60px;
+  margin-top: auto;
   padding: 25px 0;
   background-color: white;
   color: var(--text-color);
   text-align: center;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   position: relative;
-  left: -20px; /* Compensar o padding do body */
-  width: calc(100% + 40px); /* Compensar o padding do body em ambos os lados */
+  left: -20px;
+  width: calc(100% + 40px);
 }
 
 footer .footer-content {
@@ -769,14 +580,18 @@ footer .copyright {
 
 footer .social-links {
   margin-top: 15px;
+  display: flex;
+  gap: 15px;
 }
 
 footer .social-links a {
-  margin: 0 10px;
+  margin: 0;
   color: var(--primary-color);
   transition: color 0.3s ease;
+  font-size: 22px;
 }
 
 footer .social-links a:hover {
   color: var(--button-hover);
+  transform: scale(1.1);
 }
