@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,45 +9,46 @@
     <!-- Adicionar ícones Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
     <!-- Header melhorado -->
     <div class="admin-header">
         <a href="inicio.html" class="logout-link">Sair</a>
-        
+
         <div class="admin-profile">
             <!-- Substituir por imagem real quando disponível -->
             <img src="/tcc vsc/imagens/fotoCleo1.jpg" alt="Administrador">
         </div>
-        
+
         <h1>Bem-vindo, Administrador!</h1>
         <p>Aqui você pode criar e gerenciar fichas de pacientes, além de enviar dicas personalizadas.</p>
     </div>
-    
+
     <!-- Botões de ação -->
     <div class="admin-actions">
         <a href="https://calendly.com/event_types" target="_blank" class="admin-button">
             <i class="fas fa-calendar"></i> Gerenciar Horários
         </a>
-        
+
         <a href="ficha.html" class="admin-button">
             <i class="fas fa-file-medical"></i> Criar Ficha de Anamnese
         </a>
     </div>
-    
+
     <!-- Lista de Fichas Já Feitas -->
     <div class="fichas-lista">
         <h2>Fichas de Anamnese</h2>
-        
+
         <!-- Campo de pesquisa -->
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Pesquisar por nome do paciente...">
             <button id="searchBtn">Buscar</button>
             <button id="resetBtn">Limpar</button>
         </div>
-        
+
         <!-- Loading indicator -->
         <div id="loadingFichas" class="loading-indicator">Carregando fichas...</div>
-        
+
         <!-- Tabela de fichas -->
         <table id="fichasTable">
             <thead>
@@ -61,25 +63,25 @@
                 <!-- As fichas serão inseridas aqui dinamicamente -->
             </tbody>
         </table>
-        
+
         <!-- Mensagem para quando não houver fichas -->
         <p id="noFichasMessage" style="display: none">Nenhuma ficha encontrada.</p>
     </div>
-    
+
     <!-- Modal para visualizar/editar ficha -->
     <div id="fichaModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Detalhes da Ficha</h2>
-            
+
             <form id="editFichaForm">
                 <input type="hidden" id="edit_id">
-                
+
                 <div class="form-group">
                     <label for="edit_nome_paciente">Nome do Paciente:</label>
                     <input type="text" id="edit_nome_paciente" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
                     <select id="edit_tipo_atendimento">
@@ -87,23 +89,23 @@
                         <option value="Online">Online</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="edit_data_atendimento">Data de Atendimento:</label>
                     <input type="date" id="edit_data_atendimento">
                 </div>
-                
+
                 <!-- Mais campos do formulário... -->
                 <div class="form-group">
                     <label for="edit_motivo_consulta">Motivo da Consulta:</label>
                     <textarea id="edit_motivo_consulta" rows="3"></textarea>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="edit_observacoes">Observações:</label>
                     <textarea id="edit_observacoes" rows="3"></textarea>
                 </div>
-                
+
                 <!-- Botões de ação -->
                 <div class="form-actions">
                     <button type="submit" class="save-btn">Salvar Alterações</button>
@@ -112,7 +114,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Dicas Personalizadas -->
     <div class="card">
         <h2>Criar Nova Dica</h2>
@@ -120,15 +122,15 @@
             <label for="titulo">Título da dica:</label>
             <input type="text" id="titulo">
         </div>
-      
+
         <div class="form-group">
             <label for="descricao">Descrição:</label>
             <textarea id="descricao" rows="3"></textarea>
         </div>
-    
+
         <button id="btnDica">Criar Dica</button>
     </div>
-    
+
     <!-- Onde as dicas aparecerão -->
     <div class="dicas-container">
         <h2>Dicas Cadastradas</h2>
@@ -137,7 +139,7 @@
             <p>Carregando dicas...</p>
         </div>
     </div>
-    
+
     <!-- Modal de confirmação -->
     <div id="confirmModal" class="confirm-modal">
         <div class="confirm-content">
@@ -149,7 +151,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Rodapé (apenas um) -->
     <footer>
         <div class="footer-content">
@@ -161,7 +163,7 @@
             </div>
         </div>
     </footer>
-    
+
     <!-- Scripts do sistema -->
     <script src="dicas.js"></script>
     <script>
@@ -172,56 +174,56 @@
             const mensagemEl = modal.querySelector('.confirm-message');
             const btnConfirmar = document.getElementById('btnConfirmar');
             const btnCancelar = document.getElementById('btnCancelar');
-            
+
             tituloEl.textContent = titulo;
             mensagemEl.textContent = mensagem;
-            
+
             modal.style.display = 'flex';
-            
+
             // Limpar eventos antigos
             const novoConfirmar = btnConfirmar.cloneNode(true);
             const novoCancelar = btnCancelar.cloneNode(true);
-            
+
             btnConfirmar.parentNode.replaceChild(novoConfirmar, btnConfirmar);
             btnCancelar.parentNode.replaceChild(novoCancelar, btnCancelar);
-            
+
             // Adicionar novos eventos
-            novoConfirmar.addEventListener('click', function() {
+            novoConfirmar.addEventListener('click', function () {
                 modal.style.display = 'none';
                 if (typeof callbackConfirmar === 'function') {
                     callbackConfirmar();
                 }
             });
-            
-            novoCancelar.addEventListener('click', function() {
+
+            novoCancelar.addEventListener('click', function () {
                 modal.style.display = 'none';
             });
         }
-        
+
         // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
         function formatarData(dataString) {
             if (!dataString) return '';
             const data = new Date(dataString);
             return data.toLocaleDateString('pt-BR');
         }
-        
+
         // Função para carregar todas as fichas ou resultado da pesquisa
         function carregarFichas(termoPesquisa = '') {
             const loadingIndicator = document.getElementById('loadingFichas');
             const tableBody = document.getElementById('fichasTableBody');
             const noFichasMessage = document.getElementById('noFichasMessage');
             const fichasTable = document.getElementById('fichasTable');
-            
+
             loadingIndicator.style.display = 'block';
             tableBody.innerHTML = '';
             noFichasMessage.style.display = 'none';
             fichasTable.style.display = 'none';
-            
+
             let url = 'http://localhost:3000/api/fichas';
             if (termoPesquisa) {
                 url = `http://localhost:3000/api/fichas/pesquisa?termo=${encodeURIComponent(termoPesquisa)}`;
             }
-            
+
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
@@ -231,14 +233,14 @@
                 })
                 .then(fichas => {
                     loadingIndicator.style.display = 'none';
-                    
+
                     if (fichas.length === 0) {
                         noFichasMessage.style.display = 'block';
                         return;
                     }
-                    
+
                     fichasTable.style.display = 'table';
-                    
+
                     fichas.forEach(ficha => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -251,7 +253,7 @@
                         `;
                         tableBody.appendChild(row);
                     });
-                    
+
                     // Adicionar evento de clique aos botões "Ver/Editar"
                     document.querySelectorAll('.view-btn').forEach(btn => {
                         btn.addEventListener('click', () => abrirModalFicha(btn.getAttribute('data-id')));
@@ -263,14 +265,14 @@
                     alert('Erro ao carregar fichas: ' + error.message);
                 });
         }
-        
+
         // Função para abrir o modal com os detalhes da ficha
         function abrirModalFicha(idFicha) {
             const modal = document.getElementById('fichaModal');
-            
+
             // Limpar formulário antes de carregar novos dados
             document.getElementById('editFichaForm').reset();
-            
+
             // Buscar detalhes da ficha
             fetch(`http://localhost:3000/api/fichas/${idFicha}`)
                 .then(response => {
@@ -287,7 +289,7 @@
                     document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
                     document.getElementById('edit_motivo_consulta').value = ficha.motivo_consulta || '';
                     document.getElementById('edit_observacoes').value = ficha.observacoes || '';
-                    
+
                     // Exibir o modal
                     modal.style.display = 'block';
                 })
@@ -296,12 +298,12 @@
                     alert('Erro ao carregar detalhes da ficha: ' + error.message);
                 });
         }
-        
+
         // Função para salvar as alterações na ficha
         function salvarAlteracoesFicha(e) {
             e.preventDefault();
             const idFicha = document.getElementById('edit_id').value;
-            
+
             const fichaAtualizada = {
                 nome_paciente: document.getElementById('edit_nome_paciente').value,
                 tipo_atendimento: document.getElementById('edit_tipo_atendimento').value,
@@ -309,7 +311,7 @@
                 motivo_consulta: document.getElementById('edit_motivo_consulta').value,
                 observacoes: document.getElementById('edit_observacoes').value
             };
-            
+
             fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
                 method: 'PUT',
                 headers: {
@@ -317,58 +319,164 @@
                 },
                 body: JSON.stringify(fichaAtualizada)
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao atualizar ficha');
-                }
-                return response.json();
-            })
-            .then(data => {
-                alert(data.mensagem || 'Ficha atualizada com sucesso!');
-                document.getElementById('fichaModal').style.display = 'none';
-                carregarFichas(document.getElementById('searchInput').value.trim());
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao salvar alterações: ' + error.message);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao atualizar ficha');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.mensagem || 'Ficha atualizada com sucesso!');
+                    document.getElementById('fichaModal').style.display = 'none';
+                    carregarFichas(document.getElementById('searchInput').value.trim());
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao salvar alterações: ' + error.message);
+                });
         }
-        
+
         // Função para excluir uma ficha
         function excluirFicha() {
             const idFicha = document.getElementById('edit_id').value;
-            
+
             exibirModalConfirmacao(
-                "Excluir Ficha", 
-                "Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.", 
-                function() {
+                "Excluir Ficha",
+                "Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.",
+                function () {
                     fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
                         method: 'DELETE'
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Erro ao excluir ficha');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        alert(data.mensagem || 'Ficha excluída com sucesso!');
-                        document.getElementById('fichaModal').style.display = 'none';
-                        carregarFichas(document.getElementById('searchInput').value.trim());
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        alert('Erro ao excluir ficha: ' + error.message);
-                    });
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Erro ao excluir ficha');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            alert(data.mensagem || 'Ficha excluída com sucesso!');
+                            document.getElementById('fichaModal').style.display = 'none';
+                            carregarFichas(document.getElementById('searchInput').value.trim());
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            alert('Erro ao excluir ficha: ' + error.message);
+                        });
                 }
             );
         }
+        // Função para abrir o modal com os detalhes da ficha
+        function abrirModalFicha(idFicha) {
+            const modal = document.getElementById('fichaModal');
 
+            // Limpar formulário antes de carregar novos dados
+            document.getElementById('editFichaForm').reset();
+
+            // Buscar detalhes da ficha
+            fetch(`http://localhost:3000/api/fichas/${idFicha}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar detalhes da ficha');
+                    }
+                    return response.json();
+                })
+                .then(ficha => {
+                    // Preencher o formulário com os dados
+                    document.getElementById('edit_id').value = ficha.id;
+                    document.getElementById('edit_nome_paciente').value = ficha.nome_paciente || '';
+                    document.getElementById('edit_tipo_atendimento').value = ficha.tipo_atendimento || '';
+                    document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
+
+                    // Dados de motivo e contexto
+                    document.getElementById('edit_motivo_consulta').value = ficha.motivo_consulta || '';
+                    document.getElementById('edit_relacao_pais').value = ficha.relacao_pais || '';
+                    document.getElementById('edit_fato_marcante').value = ficha.fato_marcante || '';
+                    document.getElementById('edit_incomodo_atual').value = ficha.incomodo_atual || '';
+
+                    // Dados pessoais
+                    document.getElementById('edit_estado_civil').value = ficha.estado_civil || '';
+                    document.getElementById('edit_filhos').value = ficha.filhos || '';
+                    document.getElementById('edit_profissao').value = ficha.profissao || '';
+                    document.getElementById('edit_fumante').checked = ficha.fumante || false;
+                    document.getElementById('edit_consome_alcool').checked = ficha.consome_alcool || false;
+
+                    // Informações médicas
+                    document.getElementById('edit_acompanhamento_medico').value = ficha.acompanhamento_medico || '';
+                    document.getElementById('edit_doencas').value = ficha.doencas || '';
+                    document.getElementById('edit_medicacoes').value = ficha.medicacoes || '';
+                    document.getElementById('edit_cirurgias').value = ficha.cirurgias || '';
+
+                    // Observações
+                    document.getElementById('edit_observacoes').value = ficha.observacoes || '';
+
+                    // Exibir o modal
+                    modal.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao carregar detalhes da ficha: ' + error.message);
+                });
+        }// Função para salvar as alterações na ficha
+        function salvarAlteracoesFicha(e) {
+            e.preventDefault();
+            const idFicha = document.getElementById('edit_id').value;
+
+            const fichaAtualizada = {
+                nome_paciente: document.getElementById('edit_nome_paciente').value,
+                tipo_atendimento: document.getElementById('edit_tipo_atendimento').value,
+                data_atendimento: document.getElementById('edit_data_atendimento').value,
+
+                // Motivo e contexto
+                motivo_consulta: document.getElementById('edit_motivo_consulta').value,
+                relacao_pais: document.getElementById('edit_relacao_pais').value,
+                fato_marcante: document.getElementById('edit_fato_marcante').value,
+                incomodo_atual: document.getElementById('edit_incomodo_atual').value,
+
+                // Informações pessoais
+                estado_civil: document.getElementById('edit_estado_civil').value,
+                filhos: document.getElementById('edit_filhos').value,
+                profissao: document.getElementById('edit_profissao').value,
+                fumante: document.getElementById('edit_fumante').checked,
+                consome_alcool: document.getElementById('edit_consome_alcool').checked,
+
+                // Informações médicas
+                acompanhamento_medico: document.getElementById('edit_acompanhamento_medico').value,
+                doencas: document.getElementById('edit_doencas').value,
+                medicacoes: document.getElementById('edit_medicacoes').value,
+                cirurgias: document.getElementById('edit_cirurgias').value,
+
+                // Observações
+                observacoes: document.getElementById('edit_observacoes').value
+            };
+
+            fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(fichaAtualizada)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao atualizar ficha');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.mensagem || 'Ficha atualizada com sucesso!');
+                    document.getElementById('fichaModal').style.display = 'none';
+                    carregarFichas(document.getElementById('searchInput').value.trim());
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao salvar alterações: ' + error.message);
+                });
+        }
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Carregar fichas ao carregar a página
             carregarFichas();
-            
+
             // Botão de pesquisa
             const searchBtn = document.getElementById('searchBtn');
             if (searchBtn) {
@@ -377,7 +485,7 @@
                     carregarFichas(termoPesquisa);
                 });
             }
-            
+
             // Botão para limpar pesquisa
             const resetBtn = document.getElementById('resetBtn');
             if (resetBtn) {
@@ -386,7 +494,7 @@
                     carregarFichas();
                 });
             }
-            
+
             // Enviar pesquisa ao pressionar Enter
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
@@ -397,7 +505,7 @@
                     }
                 });
             }
-            
+
             // Fechar modal ao clicar no X
             const closeBtn = document.querySelector('.close');
             if (closeBtn) {
@@ -405,7 +513,7 @@
                     document.getElementById('fichaModal').style.display = 'none';
                 });
             }
-            
+
             // Fechar modal ao clicar fora dele
             window.addEventListener('click', (e) => {
                 const modal = document.getElementById('fichaModal');
@@ -413,13 +521,13 @@
                     modal.style.display = 'none';
                 }
             });
-            
+
             // Formulário de edição
             const editFichaForm = document.getElementById('editFichaForm');
             if (editFichaForm) {
                 editFichaForm.addEventListener('submit', salvarAlteracoesFicha);
             }
-            
+
             // Botão de exclusão
             const deleteBtn = document.getElementById('deleteBtn');
             if (deleteBtn) {
@@ -427,5 +535,139 @@
             }
         });
     </script>
+    <!-- Modal para visualizar/editar ficha -->
+    <div id="fichaModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Detalhes da Ficha</h2>
+
+            <form id="editFichaForm">
+                <input type="hidden" id="edit_id">
+
+                <!-- Informações básicas -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Informações Básicas</h3>
+                    <div class="form-group">
+                        <label for="edit_nome_paciente">Nome do Paciente:</label>
+                        <input type="text" id="edit_nome_paciente" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
+                        <select id="edit_tipo_atendimento">
+                            <option value="Presencial">Presencial</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_data_atendimento">Data de Atendimento:</label>
+                        <input type="date" id="edit_data_atendimento">
+                    </div>
+                </div>
+
+                <!-- Motivo e contexto -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Motivo e Contexto</h3>
+                    <div class="form-group">
+                        <label for="edit_motivo_consulta">Motivo da Consulta:</label>
+                        <textarea id="edit_motivo_consulta" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_relacao_pais">Relação com os Pais:</label>
+                        <textarea id="edit_relacao_pais" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_fato_marcante">Fato Marcante:</label>
+                        <textarea id="edit_fato_marcante" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_incomodo_atual">Incômodo Atual:</label>
+                        <textarea id="edit_incomodo_atual" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Informações pessoais -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Informações Pessoais</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_estado_civil">Estado Civil:</label>
+                            <input type="text" id="edit_estado_civil">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_filhos">Número de Filhos:</label>
+                            <input type="number" id="edit_filhos">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_profissao">Profissão:</label>
+                            <input type="text" id="edit_profissao">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="edit_fumante">
+                                <label for="edit_fumante">Fumante</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="edit_consome_alcool">
+                                <label for="edit_consome_alcool">Consome Álcool</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações médicas -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Informações Médicas</h3>
+                    <div class="form-group">
+                        <label for="edit_acompanhamento_medico">Acompanhamento Médico:</label>
+                        <textarea id="edit_acompanhamento_medico" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_doencas">Doenças:</label>
+                        <textarea id="edit_doencas" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_medicacoes">Medicações:</label>
+                        <textarea id="edit_medicacoes" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_cirurgias">Cirurgias:</label>
+                        <textarea id="edit_cirurgias" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Observações adicionais -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Observações Adicionais</h3>
+                    <div class="form-group">
+                        <label for="edit_observacoes">Observações:</label>
+                        <textarea id="edit_observacoes" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Botões de ação -->
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">Salvar Alterações</button>
+                    <button type="button" id="deleteBtn" class="delete-btn">Excluir Ficha</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
+
 </html>

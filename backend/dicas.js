@@ -1,4 +1,4 @@
-// Script para gestão de dicas
+// Script melhorado para gestão de dicas
 let editandoDicaId = null;
 
 // Função para carregar todas as dicas
@@ -7,7 +7,7 @@ async function carregarDicas() {
     console.log("Iniciando carregamento de dicas...");
     const response = await fetch('http://localhost:3000/api/dicas');
     if (!response.ok) {
-      throw new Error('Erro ao buscar dicas');
+      throw new Error(`Erro ao buscar dicas: ${response.status} ${response.statusText}`);
     }
     
     const dicas = await response.json();
@@ -81,16 +81,23 @@ async function carregarDicas() {
         const id = event.target.getAttribute('data-id');
         console.log(`Solicitada exclusão da dica ID: ${id}`);
         
-        if (confirm('Tem certeza que deseja excluir esta dica?')) {
-          excluirDica(id);
-        }
+        // Usar o modal de confirmação personalizado em vez do confirm nativo
+        exibirModalConfirmacao(
+          'Excluir Dica', 
+          'Tem certeza que deseja excluir esta dica?', 
+          function() {
+            excluirDica(id);
+          }
+        );
       }
     });
     
     console.log("Dicas carregadas e eventos adicionados com sucesso!");
   } catch (error) {
     console.error('Erro ao carregar dicas:', error);
-    alert('Erro ao carregar dicas. Verifique o console para mais detalhes.');
+    document.getElementById('lista-dicas').innerHTML = 
+      `<p style="color: red;">Erro ao carregar dicas. ${error.message}</p>
+       <button onclick="carregarDicas()">Tentar novamente</button>`;
   }
 }
 
@@ -119,6 +126,8 @@ async function salvarDica(event) {
       method = 'PUT';
     }
     
+    console.log(`Enviando requisição ${method} para ${url}`);
+    
     const response = await fetch(url, {
       method: method,
       headers: {
@@ -128,7 +137,8 @@ async function salvarDica(event) {
     });
     
     if (!response.ok) {
-      throw new Error('Erro na requisição');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.mensagem || 'Erro na requisição');
     }
     
     // Limpar formulário
@@ -146,7 +156,7 @@ async function salvarDica(event) {
     alert(isEditing ? 'Dica atualizada com sucesso!' : 'Dica criada com sucesso!');
   } catch (error) {
     console.error('Erro ao salvar dica:', error);
-    alert('Erro ao salvar dica.');
+    alert(`Erro ao salvar dica: ${error.message}`);
   }
 }
 
@@ -182,8 +192,19 @@ async function excluirDica(id) {
   }
 }
 
+// Verificar se a função exibirModalConfirmacao existe, caso não exista, criar uma versão própria
+if (typeof exibirModalConfirmacao !== 'function') {
+  function exibirModalConfirmacao(titulo, mensagem, callbackConfirmar) {
+    if (confirm(mensagem)) {
+      callbackConfirmar();
+    }
+  }
+}
+
 // Configuração inicial quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM carregado, inicializando script de dicas...");
+  
   // Carregar a lista de dicas
   carregarDicas();
   
@@ -195,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log("Botão Criar/Atualizar Dica clicado!");
       salvarDica(event);
     });
+    btnDica.setAttribute('data-editing', 'false');
   } else {
     console.error("Elemento com ID 'btnDica' não encontrado!");
   }
