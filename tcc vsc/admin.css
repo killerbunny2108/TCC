@@ -550,15 +550,14 @@ button:hover {
 
 /* Rodapé melhorado */
 footer {
-  margin-top: auto;
-  padding: 25px 0;
+  
+  padding: 10px 0;
   background-color: white;
   color: var(--text-color);
   text-align: center;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   position: relative;
-  left: -20px;
-  width: calc(100% + 40px);
+  
 }
 
 footer .footer-content {

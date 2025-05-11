@@ -1,4 +1,4 @@
-// Script melhorado para gestão de dicas
+// Script para gestão de dicas
 let editandoDicaId = null;
 
 // Função para carregar todas as dicas
@@ -189,15 +189,6 @@ async function excluirDica(id) {
   } catch (error) {
     console.error('Erro ao excluir dica:', error);
     alert(`Erro ao excluir dica: ${error.message}`);
-  }
-}
-
-// Verificar se a função exibirModalConfirmacao existe, caso não exista, criar uma versão própria
-if (typeof exibirModalConfirmacao !== 'function') {
-  function exibirModalConfirmacao(titulo, mensagem, callbackConfirmar) {
-    if (confirm(mensagem)) {
-      callbackConfirmar();
-    }
   }
 }
 
