@@ -77,33 +77,120 @@
             <form id="editFichaForm">
                 <input type="hidden" id="edit_id">
 
-                <div class="form-group">
-                    <label for="edit_nome_paciente">Nome do Paciente:</label>
-                    <input type="text" id="edit_nome_paciente" required>
+                <!-- Informações básicas -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Informações Básicas</h3>
+                    <div class="form-group">
+                        <label for="edit_nome_paciente">Nome do Paciente:</label>
+                        <input type="text" id="edit_nome_paciente" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
+                        <select id="edit_tipo_atendimento">
+                            <option value="Presencial">Presencial</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_data_atendimento">Data de Atendimento:</label>
+                        <input type="date" id="edit_data_atendimento">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
-                    <select id="edit_tipo_atendimento">
-                        <option value="Presencial">Presencial</option>
-                        <option value="Online">Online</option>
-                    </select>
+                <!-- Motivo e contexto -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Motivo e Contexto</h3>
+                    <div class="form-group">
+                        <label for="edit_motivo_consulta">Motivo da Consulta:</label>
+                        <textarea id="edit_motivo_consulta" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_relacao_pais">Relação com os Pais:</label>
+                        <textarea id="edit_relacao_pais" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_fato_marcante">Fato Marcante:</label>
+                        <textarea id="edit_fato_marcante" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_incomodo_atual">Incômodo Atual:</label>
+                        <textarea id="edit_incomodo_atual" rows="3"></textarea>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="edit_data_atendimento">Data de Atendimento:</label>
-                    <input type="date" id="edit_data_atendimento">
+                <!-- Informações pessoais -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Informações Pessoais</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_estado_civil">Estado Civil:</label>
+                            <input type="text" id="edit_estado_civil">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_filhos">Número de Filhos:</label>
+                            <input type="number" id="edit_filhos">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_profissao">Profissão:</label>
+                            <input type="text" id="edit_profissao">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="edit_fumante">
+                                <label for="edit_fumante">Fumante</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="edit_consome_alcool">
+                                <label for="edit_consome_alcool">Consome Álcool</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Mais campos do formulário... -->
-                <div class="form-group">
-                    <label for="edit_motivo_consulta">Motivo da Consulta:</label>
-                    <textarea id="edit_motivo_consulta" rows="3"></textarea>
+                <!-- Informações médicas -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Informações Médicas</h3>
+                    <div class="form-group">
+                        <label for="edit_acompanhamento_medico">Acompanhamento Médico:</label>
+                        <textarea id="edit_acompanhamento_medico" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_doencas">Doenças:</label>
+                        <textarea id="edit_doencas" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_medicacoes">Medicações:</label>
+                        <textarea id="edit_medicacoes" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit_cirurgias">Cirurgias:</label>
+                        <textarea id="edit_cirurgias" rows="3"></textarea>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="edit_observacoes">Observações:</label>
-                    <textarea id="edit_observacoes" rows="3"></textarea>
+                <!-- Observações adicionais -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Observações Adicionais</h3>
+                    <div class="form-group">
+                        <label for="edit_observacoes">Observações:</label>
+                        <textarea id="edit_observacoes" rows="3"></textarea>
+                    </div>
                 </div>
 
                 <!-- Botões de ação -->
@@ -266,7 +353,7 @@
                 });
         }
 
-        // Função para abrir o modal com os detalhes da ficha
+        // Função para abrir o modal com os detalhes da ficha - VERSÃO CORRIGIDA
         function abrirModalFicha(idFicha) {
             const modal = document.getElementById('fichaModal');
 
@@ -284,116 +371,19 @@
                 .then(ficha => {
                     // Preencher o formulário com os dados
                     document.getElementById('edit_id').value = ficha.id;
-                    document.getElementById('edit_nome_paciente').value = ficha.nome_paciente;
-                    document.getElementById('edit_tipo_atendimento').value = ficha.tipo_atendimento || '';
-                    document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
-                    document.getElementById('edit_motivo_consulta').value = ficha.motivo_consulta || '';
-                    document.getElementById('edit_observacoes').value = ficha.observacoes || '';
-
-                    // Exibir o modal
-                    modal.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao carregar detalhes da ficha: ' + error.message);
-                });
-        }
-
-        // Função para salvar as alterações na ficha
-        function salvarAlteracoesFicha(e) {
-            e.preventDefault();
-            const idFicha = document.getElementById('edit_id').value;
-
-            const fichaAtualizada = {
-                nome_paciente: document.getElementById('edit_nome_paciente').value,
-                tipo_atendimento: document.getElementById('edit_tipo_atendimento').value,
-                data_atendimento: document.getElementById('edit_data_atendimento').value,
-                motivo_consulta: document.getElementById('edit_motivo_consulta').value,
-                observacoes: document.getElementById('edit_observacoes').value
-            };
-
-            fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(fichaAtualizada)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro ao atualizar ficha');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    alert(data.mensagem || 'Ficha atualizada com sucesso!');
-                    document.getElementById('fichaModal').style.display = 'none';
-                    carregarFichas(document.getElementById('searchInput').value.trim());
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao salvar alterações: ' + error.message);
-                });
-        }
-
-        // Função para excluir uma ficha
-        function excluirFicha() {
-            const idFicha = document.getElementById('edit_id').value;
-
-            exibirModalConfirmacao(
-                "Excluir Ficha",
-                "Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.",
-                function () {
-                    fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
-                        method: 'DELETE'
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Erro ao excluir ficha');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            alert(data.mensagem || 'Ficha excluída com sucesso!');
-                            document.getElementById('fichaModal').style.display = 'none';
-                            carregarFichas(document.getElementById('searchInput').value.trim());
-                        })
-                        .catch(error => {
-                            console.error('Erro:', error);
-                            alert('Erro ao excluir ficha: ' + error.message);
-                        });
-                }
-            );
-        }
-        // Função para abrir o modal com os detalhes da ficha
-        function abrirModalFicha(idFicha) {
-            const modal = document.getElementById('fichaModal');
-
-            // Limpar formulário antes de carregar novos dados
-            document.getElementById('editFichaForm').reset();
-
-            // Buscar detalhes da ficha
-            fetch(`http://localhost:3000/api/fichas/${idFicha}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro ao buscar detalhes da ficha');
-                    }
-                    return response.json();
-                })
-                .then(ficha => {
-                    // Preencher o formulário com os dados
-                    document.getElementById('edit_id').value = ficha.id;
+                    
+                    // Informações básicas
                     document.getElementById('edit_nome_paciente').value = ficha.nome_paciente || '';
                     document.getElementById('edit_tipo_atendimento').value = ficha.tipo_atendimento || '';
                     document.getElementById('edit_data_atendimento').value = ficha.data_atendimento ? ficha.data_atendimento.split('T')[0] : '';
 
-                    // Dados de motivo e contexto
+                    // Motivo e contexto
                     document.getElementById('edit_motivo_consulta').value = ficha.motivo_consulta || '';
                     document.getElementById('edit_relacao_pais').value = ficha.relacao_pais || '';
                     document.getElementById('edit_fato_marcante').value = ficha.fato_marcante || '';
                     document.getElementById('edit_incomodo_atual').value = ficha.incomodo_atual || '';
 
-                    // Dados pessoais
+                    // Informações pessoais
                     document.getElementById('edit_estado_civil').value = ficha.estado_civil || '';
                     document.getElementById('edit_filhos').value = ficha.filhos || '';
                     document.getElementById('edit_profissao').value = ficha.profissao || '';
@@ -416,7 +406,9 @@
                     console.error('Erro:', error);
                     alert('Erro ao carregar detalhes da ficha: ' + error.message);
                 });
-        }// Função para salvar as alterações na ficha
+        }
+
+        // Função para salvar as alterações na ficha
         function salvarAlteracoesFicha(e) {
             e.preventDefault();
             const idFicha = document.getElementById('edit_id').value;
@@ -463,7 +455,6 @@
                     return response.json();
                 })
                 .then(data => {
-                    alert(data.mensagem || 'Ficha atualizada com sucesso!');
                     document.getElementById('fichaModal').style.display = 'none';
                     carregarFichas(document.getElementById('searchInput').value.trim());
                 })
@@ -472,6 +463,37 @@
                     alert('Erro ao salvar alterações: ' + error.message);
                 });
         }
+
+        // Função para excluir uma ficha
+        function excluirFicha() {
+            const idFicha = document.getElementById('edit_id').value;
+
+            exibirModalConfirmacao(
+                "Excluir Ficha",
+                "Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.",
+                function () {
+                    fetch(`http://localhost:3000/api/fichas/${idFicha}`, {
+                        method: 'DELETE'
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Erro ao excluir ficha');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            alert(data.mensagem || 'Ficha excluída com sucesso!');
+                            document.getElementById('fichaModal').style.display = 'none';
+                            carregarFichas(document.getElementById('searchInput').value.trim());
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            alert('Erro ao excluir ficha: ' + error.message);
+                        });
+                }
+            );
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Carregar fichas ao carregar a página
@@ -535,139 +557,6 @@
             }
         });
     </script>
-    <!-- Modal para visualizar/editar ficha -->
-    <div id="fichaModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Detalhes da Ficha</h2>
-
-            <form id="editFichaForm">
-                <input type="hidden" id="edit_id">
-
-                <!-- Informações básicas -->
-                <div class="form-section">
-                    <h3 class="form-section-title">Informações Básicas</h3>
-                    <div class="form-group">
-                        <label for="edit_nome_paciente">Nome do Paciente:</label>
-                        <input type="text" id="edit_nome_paciente" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_tipo_atendimento">Tipo de Atendimento:</label>
-                        <select id="edit_tipo_atendimento">
-                            <option value="Presencial">Presencial</option>
-                            <option value="Online">Online</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_data_atendimento">Data de Atendimento:</label>
-                        <input type="date" id="edit_data_atendimento">
-                    </div>
-                </div>
-
-                <!-- Motivo e contexto -->
-                <div class="form-section">
-                    <h3 class="form-section-title">Motivo e Contexto</h3>
-                    <div class="form-group">
-                        <label for="edit_motivo_consulta">Motivo da Consulta:</label>
-                        <textarea id="edit_motivo_consulta" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_relacao_pais">Relação com os Pais:</label>
-                        <textarea id="edit_relacao_pais" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_fato_marcante">Fato Marcante:</label>
-                        <textarea id="edit_fato_marcante" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_incomodo_atual">Incômodo Atual:</label>
-                        <textarea id="edit_incomodo_atual" rows="3"></textarea>
-                    </div>
-                </div>
-
-                <!-- Informações pessoais -->
-                <div class="form-section">
-                    <h3 class="form-section-title">Informações Pessoais</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="edit_estado_civil">Estado Civil:</label>
-                            <input type="text" id="edit_estado_civil">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="edit_filhos">Número de Filhos:</label>
-                            <input type="number" id="edit_filhos">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="edit_profissao">Profissão:</label>
-                            <input type="text" id="edit_profissao">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="edit_fumante">
-                                <label for="edit_fumante">Fumante</label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="edit_consome_alcool">
-                                <label for="edit_consome_alcool">Consome Álcool</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Informações médicas -->
-                <div class="form-section">
-                    <h3 class="form-section-title">Informações Médicas</h3>
-                    <div class="form-group">
-                        <label for="edit_acompanhamento_medico">Acompanhamento Médico:</label>
-                        <textarea id="edit_acompanhamento_medico" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_doencas">Doenças:</label>
-                        <textarea id="edit_doencas" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_medicacoes">Medicações:</label>
-                        <textarea id="edit_medicacoes" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="edit_cirurgias">Cirurgias:</label>
-                        <textarea id="edit_cirurgias" rows="3"></textarea>
-                    </div>
-                </div>
-
-                <!-- Observações adicionais -->
-                <div class="form-section">
-                    <h3 class="form-section-title">Observações Adicionais</h3>
-                    <div class="form-group">
-                        <label for="edit_observacoes">Observações:</label>
-                        <textarea id="edit_observacoes" rows="3"></textarea>
-                    </div>
-                </div>
-
-                <!-- Botões de ação -->
-                <div class="form-actions">
-                    <button type="submit" class="save-btn">Salvar Alterações</button>
-                    <button type="button" id="deleteBtn" class="delete-btn">Excluir Ficha</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </body>
 
 </html>
