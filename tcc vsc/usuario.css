@@ -93,7 +93,7 @@ body {
   line-height: 1.6;
 }
 
-/* Logout link */
+/* Correções para o botão de sair */
 .logout-link {
   position: absolute;
   top: 20px;
@@ -107,6 +107,7 @@ body {
   text-decoration: none;
   font-size: 14px;
   transition: all 0.3s ease;
+  z-index: 10; /* Garantir que fique acima de outros elementos */
 }
 
 .logout-link:hover {
@@ -123,7 +124,7 @@ body {
   display: inline-block;
 }
 
-/* Imagem de perfil */
+/* Corrigindo a imagem de perfil do usuário */
 .usuario-profile {
   width: 110px;
   height: 110px;
@@ -137,37 +138,21 @@ body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border: 3px solid var(--primary-color);
   transition: transform 0.3s ease;
-}
-
-.usuario-profile:hover {
-  transform: scale(1.05);
+  position: relative; /* Garante posicionamento correto */
 }
 
 .usuario-profile img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover; /* Garante que a imagem cubra todo o espaço */
 }
 
-/* Conteúdo principal */
-main {
-  flex: 1;
-  padding: 20px 0;
-}
-
-/* Título principal */
-h1 {
-  font-family: "Tan Pearl", cursive;
-  color: var(--secondary-color);
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 36px;
-}
-
-/* Status do usuário */
+/* Garantindo que o badge de status apareça */
 .usuario-status {
   display: flex;
   justify-content: center;
   margin: 10px 0 25px;
+  width: 100%; /* Garantir largura total */
 }
 
 .status-badge {
@@ -179,21 +164,25 @@ h1 {
   font-weight: bold;
   display: inline-flex;
   align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Adicionar sombra para destaque */
 }
 
 .status-badge::before {
   content: "•";
   margin-right: 6px;
   font-size: 18px;
+  color: #009688; /* Cor específica para o ponto */
 }
 
-/* Seção de navegação do usuário */
+/* Corrigindo a navegação do usuário */
 .usuario-nav {
   display: flex;
   justify-content: center;
   gap: 15px;
   margin: 15px 0;
   flex-wrap: wrap;
+  width: 100%; /* Garantir largura total */
+  padding: 10px 0; /* Adicionar espaço vertical */
 }
 
 .nav-item {
@@ -205,8 +194,59 @@ h1 {
   font-size: 16px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: inline-block; /* Garantir que seja exibido como bloco */
 }
 
+.nav-item:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.nav-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Garantir que o cabeçalho do usuário seja exibido corretamente */
+.usuario-header {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  text-align: center;
+  position: relative;
+  overflow: visible; /* Alterado de hidden para visible */
+  display: block; /* Garantir que seja exibido como bloco */
+  width: 100%; /* Garantir largura total */
+}
+
+/* Estilos específicos para dispositivos móveis */
+@media (max-width: 768px) {
+  .usuario-header {
+    padding: 45px 15px 25px; /* Aumentar padding superior para acomodar o botão de logout */
+  }
+  
+  .logout-link {
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .usuario-nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .nav-item {
+    width: 80%;
+    text-align: center;
+  }
+}
 .nav-item:hover {
   background-color: var(--primary-color);
   color: white;
