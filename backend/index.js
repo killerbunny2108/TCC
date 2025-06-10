@@ -359,3 +359,259 @@ app.delete('/api/fichas/:id', (req, res) => {
 });
 
 
+// Adicione estas rotas ao arquivo backend/index.js
+
+// Rota para obter dados do perfil do usuário
+app.get('/api/perfil/:id_usuario', (req, res) => {
+    const id_usuario = req.params.id_usuario;
+    
+    connection.query(
+        `SELECT u.*, p.telefone, p.endereco, p.data_nascimento, p.foto_perfil 
+         FROM Usuario u
+         LEFT JOIN Perfil p ON u.id_usuario = p.id_usuario
+         WHERE u.id_usuario = ?`,
+        [id_usuario],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar perfil:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar perfil.' });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ mensagem: 'Usuário não encontrado.' });
+            }
+            
+            // Remover senha antes de enviar
+            delete results[0].senha;
+            res.json(results[0]);
+        }
+    );
+});
+
+// Rota para atualizar perfil do usuário
+app.put('/api/perfil/:id_usuario', (req, res) => {
+    const id_usuario = req.params.id_usuario;
+    const { nome, telefone, endereco, data_nascimento, foto_perfil } = req.body;
+    
+    // Primeiro, atualizar a tabela Usuario
+    connection.query(
+        'UPDATE Usuario SET nome = ? WHERE id_usuario = ?',
+        [nome, id_usuario],
+        (err, result) => {
+            if (err) {
+                console.error('Erro ao atualizar usuário:', err);
+                return res.status(500).json({ mensagem: 'Erro ao atualizar usuário.' });
+            }
+            
+            // Verificar se já existe um perfil
+            connection.query(
+                'SELECT * FROM Perfil WHERE id_usuario = ?',
+                [id_usuario],
+                (err, results) => {
+                    if (err) {
+                        console.error('Erro ao verificar perfil:', err);
+                        return res.status(500).json({ mensagem: 'Erro ao verificar perfil.' });
+                    }
+                    
+                    if (results.length > 0) {
+                        // Atualizar perfil existente
+                        connection.query(
+                            'UPDATE Perfil SET telefone = ?, endereco = ?, data_nascimento = ?, foto_perfil = ? WHERE id_usuario = ?',
+                            [telefone, endereco, data_nascimento, foto_perfil, id_usuario],
+                            (err, result) => {
+                                if (err) {
+                                    console.error('Erro ao atualizar perfil:', err);
+                                    return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
+                                }
+                                res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+                            }
+                        );
+                    } else {
+                        // Criar novo perfil
+                        connection.query(
+                            'INSERT INTO Perfil (id_usuario, telefone, endereco, data_nascimento, foto_perfil) VALUES (?, ?, ?, ?, ?)',
+                            [id_usuario, telefone, endereco, data_nascimento, foto_perfil],
+                            (err, result) => {
+                                if (err) {
+                                    console.error('Erro ao criar perfil:', err);
+                                    return res.status(500).json({ mensagem: 'Erro ao criar perfil.' });
+                                }
+                                res.json({ mensagem: 'Perfil criado com sucesso!' });
+                            }
+                        );
+                    }
+                }
+            );
+        }
+    );
+});
+
+// Rota para obter histórico de consultas do usuário
+app.get('/api/historico/:id_usuario', (req, res) => {
+    const id_usuario = req.params.id_usuario;
+    
+    connection.query(
+        `SELECT f.id, f.tipo_atendimento, f.data_atendimento, f.motivo_consulta, 
+                f.observacoes, f.data_criacao,
+                u_admin.nome AS nome_administrador
+         FROM FichaPaciente f
+         JOIN Paciente p ON f.id_paciente = p.id_paciente
+         JOIN Administrador a ON f.id_administrador = a.id_administrador
+         JOIN Usuario u_admin ON a.is_usuario = u_admin.id_usuario
+         WHERE p.id_usuario = ?
+         ORDER BY f.data_atendimento DESC`,
+        [id_usuario],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar histórico:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar histórico.' });
+            }
+            
+            res.json(results);
+        }
+    );
+});
+
+// Rota para upload de foto de perfil (simulada - você pode implementar com multer)
+app.post('/api/upload-foto', (req, res) => {
+    // Por enquanto, retornamos uma URL fictícia
+    // Na implementação real, você usaria multer para upload de arquivos
+    const { base64Image, id_usuario } = req.body;
+    
+    if (!base64Image || !id_usuario) {
+        return res.status(400).json({ mensagem: 'Dados incompletos.' });
+    }
+    
+    // Aqui você salvaria a imagem no servidor e retornaria a URL
+    // Por enquanto, vamos simular salvando no banco como base64
+    connection.query(
+        `INSERT INTO Perfil (id_usuario, foto_perfil) VALUES (?, ?) 
+         ON DUPLICATE KEY UPDATE foto_perfil = ?`,
+        [id_usuario, base64Image, base64Image],
+        (err, result) => {
+            if (err) {
+                console.error('Erro ao salvar foto:', err);
+                return res.status(500).json({ mensagem: 'Erro ao salvar foto.' });
+            }
+            
+            res.json({ 
+                mensagem: 'Foto salva com sucesso!',
+                foto_url: base64Image
+            });
+        }
+    );
+});
+
+// Adicione estas rotas ao seu backend/index.js
+
+// Rota para obter dados do perfil do paciente
+app.get('/api/perfil/:id_usuario', (req, res) => {
+    const id_usuario = req.params.id_usuario;
+    
+    connection.query(
+        `SELECT u.id_usuario, u.nome, u.email, 
+                p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
+         FROM Usuario u
+         LEFT JOIN Paciente p ON u.id_usuario = p.id_usuario
+         WHERE u.id_usuario = ?`,
+        [id_usuario],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar perfil:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar perfil.' });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ mensagem: 'Usuário não encontrado.' });
+            }
+            
+            res.json(results[0]);
+        }
+    );
+});
+
+// Rota para atualizar perfil do paciente
+app.put('/api/perfil/:id_usuario', (req, res) => {
+    const id_usuario = req.params.id_usuario;
+    const { nome, telefone, endereco, data_nascimento } = req.body;
+    
+    // Primeiro atualizar a tabela Usuario
+    connection.query(
+        'UPDATE Usuario SET nome = ? WHERE id_usuario = ?',
+        [nome, id_usuario],
+        (err, result) => {
+            if (err) {
+                console.error('Erro ao atualizar usuário:', err);
+                return res.status(500).json({ mensagem: 'Erro ao atualizar usuário.' });
+            }
+            
+            // Depois atualizar/inserir na tabela Paciente
+            connection.query(
+                `UPDATE Paciente SET telefone = ?, endereco = ?, data_nascimento = ? 
+                 WHERE id_usuario = ?`,
+                [telefone, endereco, data_nascimento, id_usuario],
+                (err, result) => {
+                    if (err) {
+                        console.error('Erro ao atualizar paciente:', err);
+                        return res.status(500).json({ mensagem: 'Erro ao atualizar perfil.' });
+                    }
+                    
+                    res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+                }
+            );
+        }
+    );
+});
+
+// Rota para obter histórico de fichas do paciente
+app.get('/api/historico/:id_usuario', (req, res) => {
+    const id_usuario = req.params.id_usuario;
+    
+    connection.query(
+        `SELECT f.id, f.tipo_atendimento, f.data_atendimento, f.data_criacao,
+                f.motivo_consulta, f.observacoes, u_admin.nome as terapeuta_nome
+         FROM FichaPaciente f
+         JOIN Paciente p ON f.id_paciente = p.id_paciente
+         JOIN Administrador a ON f.id_administrador = a.id_administrador
+         JOIN Usuario u_admin ON a.is_usuario = u_admin.id_usuario
+         WHERE p.id_usuario = ?
+         ORDER BY f.data_atendimento DESC`,
+        [id_usuario],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar histórico:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar histórico.' });
+            }
+            
+            res.json(results);
+        }
+    );
+});
+
+// Rota para obter detalhes de uma consulta específica
+app.get('/api/consulta/:id_ficha', (req, res) => {
+    const id_ficha = req.params.id_ficha;
+    
+    connection.query(
+        `SELECT f.*, u_admin.nome as terapeuta_nome, u_paciente.nome as paciente_nome
+         FROM FichaPaciente f
+         JOIN Paciente p ON f.id_paciente = p.id_paciente
+         JOIN Usuario u_paciente ON p.id_usuario = u_paciente.id_usuario
+         JOIN Administrador a ON f.id_administrador = a.id_administrador
+         JOIN Usuario u_admin ON a.is_usuario = u_admin.id_usuario
+         WHERE f.id = ?`,
+        [id_ficha],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar detalhes da consulta:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar detalhes.' });
+            }
+            
+            if (results.length === 0) {
+                return res.status(404).json({ mensagem: 'Consulta não encontrada.' });
+            }
+            
+            res.json(results[0]);
+        }
+    );
+});
