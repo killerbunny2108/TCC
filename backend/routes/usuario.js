@@ -522,33 +522,64 @@ function fecharModal() {
     document.getElementById('modal-consulta').classList.remove('show');
 }
 
-// Mostrar ajuda
-function mostrarAjuda() {
-    // Esconder outras seções
-    document.querySelectorAll('main > section').forEach(section => {
-        section.style.display = 'none';
-    });
+// Carregar histórico completo de consultas
+async function carregarHistoricoCompleto() {
+    const container = document.getElementById('historico-completo');
+    container.innerHTML = '<div class="loading">Carregando histórico...</div>';
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/fichas/${usuarioLogado.id_usuario}`);
+        const historico = await response.json();
+
+        if (response.ok && Array.isArray(historico) && historico.length > 0) {
+            let html = '<ul class="lista-historico">';
+            historico.forEach(ficha => {
+                const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString();
+                html += `
+                    <li class="item-historico" onclick="abrirModalConsulta(${ficha.id_ficha})">
+                        <span>Consulta em: ${dataConsulta}</span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<p>Não há consultas anteriores registradas.</p>';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        container.innerHTML = '<p>Erro ao carregar histórico de consultas.</p>';
+    }
+}
+// Abrir modal com detalhes da consulta
+async function abrirModalConsulta(idFicha) {
+    const modal = document.getElementById('modal-consulta');
+    const modalBody = document.getElementById('modal-body-consulta');
+    modalBody.innerHTML = '<p>Carregando detalhes da consulta...</p>';
+    modal.style.display = 'block';
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/ficha/${idFicha}`);
+        const detalhes = await response.json();
+
+        if (response.ok) {
+            modalBody.innerHTML = `
+                <p><strong>Data:</strong> ${new Date(detalhes.data_consulta).toLocaleDateString()}</p>
+                <p><strong>Queixa principal:</strong> ${detalhes.queixa_principal || '—'}</p>
+                <p><strong>Histórico médico:</strong> ${detalhes.historico_medico || '—'}</p>
+                <p><strong>Observações:</strong> ${detalhes.observacoes || '—'}</p>
+            `;
+        } else {
+            modalBody.innerHTML = '<p>Erro ao carregar detalhes da consulta.</p>';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar detalhes:', error);
+        modalBody.innerHTML = '<p>Erro ao carregar detalhes da consulta.</p>';
+    }
+}
+
     
-    // Criar seção de ajuda se não existir
-    let ajudaSection = document.querySelector('.ajuda');
-    if (!ajudaSection) {
-        const main = document.querySelector('main');
-        const ajudaHTML = `
-            <section class="ajuda">
-                <h2>Central de Ajuda</h2>
-                <div class="ajuda-container">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Como agendar uma consulta?</h3>
-                        </div>
-                        <div class="card-content">
-                            <p>Clique no botão "Agendar Consulta" no dashboard e escolha o melhor horário disponível no calendário.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Como editar meu perfil?</h3>
-                        </div>
-                        <div class="card-content">
-                            <p>Acesse a seção "Perfil" e clique em "Editar Perfil" para at
+   // Fechar modal de consulta
+function fecharModal() {
+    document.getElementById('modal-consulta').style.display = 'none';
+}
