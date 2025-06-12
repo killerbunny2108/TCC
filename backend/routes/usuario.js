@@ -28,7 +28,7 @@ router.post('/login', (req, res) => {
 
             const usuario = results[0];
 
-           
+            // Verificar senha (em produção, use bcrypt)
             if (senha !== usuario.senha) { 
                 return res.status(401).json({ mensagem: 'Email ou senha incorretos' });
             }
@@ -41,7 +41,7 @@ router.post('/login', (req, res) => {
     );
 });
 
-// Rota de cadastro - CORRIGIDA
+// Rota de cadastro
 router.post('/cadastro', (req, res) => {
     const { nome, email, senha } = req.body;
 
@@ -64,13 +64,10 @@ router.post('/cadastro', (req, res) => {
                 return res.status(400).json({ mensagem: 'Este email já está em uso' });
             }
 
-            // Na prática, você deveria usar bcrypt.hash aqui
-            // const senhaHash = await bcrypt.hash(senha, 10);
-
             // Inserir na tabela Usuario
             connection.query(
                 'INSERT INTO Usuario (nome, email, senha) VALUES (?, ?, ?)',
-                [nome, email, senha], // Use senhaHash no lugar de senha quando implementar bcrypt
+                [nome, email, senha], // Em produção, use hash da senha
                 (err, result) => {
                     if (err) {
                         console.error('Erro ao cadastrar usuário:', err);
@@ -79,8 +76,7 @@ router.post('/cadastro', (req, res) => {
 
                     const id_usuario = result.insertId;
 
-                    // CORREÇÃO: Inserir também na tabela Paciente
-                    // Somente se não for o email do admin
+                    // Inserir também na tabela Paciente se não for admin
                     if (email !== 'nunescleusa1974@gmail.com') {
                         connection.query(
                             'INSERT INTO Paciente (id_paciente, id_usuario) VALUES (?, ?)',
@@ -88,7 +84,6 @@ router.post('/cadastro', (req, res) => {
                             (err, result) => {
                                 if (err) {
                                     console.error('Erro ao cadastrar paciente:', err);
-                                    // Se falhar, ainda mantemos o usuário criado
                                     return res.status(500).json({ mensagem: 'Usuário criado mas erro ao registrar como paciente' });
                                 }
 
@@ -98,7 +93,7 @@ router.post('/cadastro', (req, res) => {
                     } else {
                         // Se for o email do admin, inserir na tabela Administrador
                         connection.query(
-                            'INSERT INTO Administrador (id_administrador, is_usuario) VALUES (?, ?)',
+                            'INSERT INTO Administrador (id_administrador, id_usuario) VALUES (?, ?)',
                             [id_usuario, id_usuario],
                             (err, result) => {
                                 if (err) {
@@ -161,12 +156,21 @@ router.put('/perfil/:id', (req, res) => {
     );
 });
 
-// Rota para buscar histórico de fichas/consultas
+// Rota para buscar histórico de fichas/consultas do paciente
 router.get('/fichas/:id_usuario', (req, res) => {
     const { id_usuario } = req.params;
 
+    // Buscar fichas de anamnese do paciente
     connection.query(
-        'SELECT id_ficha, data_consulta FROM Ficha_Anamnese WHERE id_paciente = ? ORDER BY data_consulta DESC',
+        `SELECT 
+            f.id_ficha, 
+            f.data_consulta,
+            f.queixa_principal,
+            f.observacoes
+         FROM Ficha_Anamnese f 
+         INNER JOIN Paciente p ON f.id_paciente = p.id_paciente 
+         WHERE p.id_usuario = ? 
+         ORDER BY f.data_consulta DESC`,
         [id_usuario],
         (err, results) => {
             if (err) {
@@ -197,6 +201,71 @@ router.get('/ficha/:id_ficha', (req, res) => {
             }
 
             res.json(results[0]);
+        }
+    );
+});
+
+// Rota para buscar dados completos do usuário logado (incluindo se é paciente ou admin)
+router.get('/dados/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Primeiro buscar os dados do usuário
+    connection.query(
+        'SELECT id_usuario, nome, email, telefone, endereco, data_nascimento, foto_perfil FROM Usuario WHERE id_usuario = ?',
+        [id],
+        (err, userResults) => {
+            if (err) {
+                console.error('Erro ao buscar usuário:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar dados do usuário' });
+            }
+
+            if (userResults.length === 0) {
+                return res.status(404).json({ mensagem: 'Usuário não encontrado' });
+            }
+
+            const usuario = userResults[0];
+
+            // Verificar se é paciente
+            connection.query(
+                'SELECT id_paciente FROM Paciente WHERE id_usuario = ?',
+                [id],
+                (err, pacienteResults) => {
+                    if (err) {
+                        console.error('Erro ao verificar paciente:', err);
+                        return res.status(500).json({ mensagem: 'Erro ao verificar tipo de usuário' });
+                    }
+
+                    if (pacienteResults.length > 0) {
+                        // É um paciente
+                        usuario.tipo = 'paciente';
+                        usuario.id_paciente = pacienteResults[0].id_paciente;
+                        return res.json(usuario);
+                    }
+
+                    // Verificar se é administrador
+                    connection.query(
+                        'SELECT id_administrador FROM Administrador WHERE id_usuario = ?',
+                        [id],
+                        (err, adminResults) => {
+                            if (err) {
+                                console.error('Erro ao verificar administrador:', err);
+                                return res.status(500).json({ mensagem: 'Erro ao verificar tipo de usuário' });
+                            }
+
+                            if (adminResults.length > 0) {
+                                // É um administrador
+                                usuario.tipo = 'admin';
+                                usuario.id_administrador = adminResults[0].id_administrador;
+                            } else {
+                                // Usuário sem tipo específico
+                                usuario.tipo = 'usuario';
+                            }
+
+                            res.json(usuario);
+                        }
+                    );
+                }
+            );
         }
     );
 });

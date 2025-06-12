@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     inicializarPagina();
     configurarNavegacao();
     carregarUsuarioLogado();
+    carregarHistoricoResumo();
 });
 
 // Função para inicializar a página
@@ -17,6 +18,7 @@ function inicializarPagina() {
     const usuario = localStorage.getItem('usuarioLogado');
     if (usuario) {
         usuarioLogado = JSON.parse(usuario);
+        atualizarBemVindo();
         atualizarHeaderUsuario();
     } else {
         // Redirecionar para login se não estiver logado
@@ -24,36 +26,46 @@ function inicializarPagina() {
     }
 }
 
+// Atualizar mensagem de boas-vindas com nome do paciente
+function atualizarBemVindo() {
+    if (usuarioLogado && usuarioLogado.nome) {
+        const welcomeElement = document.getElementById('welcome-message');
+        if (welcomeElement) {
+            welcomeElement.textContent = `Bem-vindo, ${usuarioLogado.nome}!`;
+        }
+    }
+}
+
 // Configurar navegação entre seções
 function configurarNavegacao() {
     const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('main > section');
     
-    navItems.forEach((item, index) => {
+    navItems.forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             
             // Remove active de todos os itens
             navItems.forEach(nav => nav.classList.remove('active'));
-            sections.forEach(section => section.classList.remove('active'));
-            
-            // Adiciona active no item clicado
             this.classList.add('active');
             
+            // Esconde todas as seções
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
             // Mostra a seção correspondente
-            switch(index) {
-                case 0: // Dashboard
-                    mostrarDashboard();
-                    break;
-                case 1: // Perfil
-                    mostrarPerfil();
-                    break;
-                case 2: // Histórico
-                    mostrarHistorico();
-                    break;
-                case 3: // Ajuda
-                    mostrarAjuda();
-                    break;
+            const sectionName = this.getAttribute('data-section');
+            const targetSection = document.getElementById(`${sectionName}-section`);
+            
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                // Carregar dados específicos da seção
+                if (sectionName === 'perfil') {
+                    carregarPerfilUsuario();
+                } else if (sectionName === 'historico') {
+                    carregarHistoricoCompleto();
+                }
             }
         });
     });
@@ -62,101 +74,11 @@ function configurarNavegacao() {
 // Atualizar header com dados do usuário
 function atualizarHeaderUsuario() {
     if (usuarioLogado) {
-        const headerElement = document.querySelector('.usuario-header h1');
-        if (headerElement) {
-            headerElement.textContent = `Bem-vindo, ${usuarioLogado.nome}!`;
-        }
-        
         // Atualizar foto se existir
-        const fotoProfile = document.querySelector('.usuario-profile img');
+        const fotoProfile = document.getElementById('header-foto');
         if (fotoProfile && usuarioLogado.foto_perfil) {
             fotoProfile.src = usuarioLogado.foto_perfil;
         }
-    }
-}
-
-// Mostrar Dashboard (padrão)
-function mostrarDashboard() {
-    document.querySelectorAll('main > section').forEach(section => {
-        section.style.display = 'block';
-    });
-    
-    // Esconder seções específicas
-    const perfilSection = document.querySelector('.perfil');
-    const historicoSection = document.querySelector('.historico-detalhado');
-    
-    if (perfilSection) perfilSection.style.display = 'none';
-    if (historicoSection) historicoSection.style.display = 'none';
-}
-
-// Mostrar seção de perfil
-function mostrarPerfil() {
-    // Esconder outras seções
-    document.querySelectorAll('main > section').forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Criar ou mostrar seção de perfil
-    let perfilSection = document.querySelector('.perfil');
-    if (!perfilSection) {
-        criarSecaoPerfil();
-    } else {
-        perfilSection.style.display = 'block';
-    }
-    
-    carregarPerfilUsuario();
-}
-
-// Criar seção de perfil
-function criarSecaoPerfil() {
-    const main = document.querySelector('main');
-    const perfilHTML = `
-        <section class="perfil">
-            <h2>Meu Perfil</h2>
-            <div class="perfil-container">
-                <div class="perfil-foto">
-                    <div class="foto-preview" id="foto-preview">
-                        <span class="foto-placeholder">👤</span>
-                    </div>
-                    <button class="btn-foto" onclick="alterarFoto()">Alterar Foto</button>
-                    <input type="file" id="input-foto" accept="image/*" style="display: none;">
-                </div>
-                <div class="perfil-form">
-                    <div class="form-group">
-                        <label for="nome">Nome Completo</label>
-                        <input type="text" id="nome" name="nome" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="telefone">Telefone</label>
-                        <input type="tel" id="telefone" name="telefone" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="endereco">Endereço</label>
-                        <input type="text" id="endereco" name="endereco" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="data_nascimento">Data de Nascimento</label>
-                        <input type="date" id="data_nascimento" name="data_nascimento" readonly>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn-primary" id="btn-editar" onclick="toggleEdicao()">Editar Perfil</button>
-                        <button class="btn-secondary" id="btn-cancelar" onclick="cancelarEdicao()" style="display: none;">Cancelar</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    `;
-    
-    main.insertAdjacentHTML('beforeend', perfilHTML);
-    
-    // Configurar upload de foto
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.addEventListener('change', handleFileSelect);
     }
 }
 
@@ -284,6 +206,7 @@ async function salvarPerfil() {
             // Atualizar dados locais
             usuarioLogado.nome = dadosPerfil.nome;
             localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+            atualizarBemVindo();
             atualizarHeaderUsuario();
             
             // Sair do modo de edição
@@ -297,50 +220,56 @@ async function salvarPerfil() {
     }
 }
 
-// Mostrar histórico
-function mostrarHistorico() {
-    // Esconder outras seções
-    document.querySelectorAll('main > section').forEach(section => {
-        section.style.display = 'none';
-    });
+// Carregar histórico resumido para dashboard
+async function carregarHistoricoResumo() {
+    if (!usuarioLogado) return;
     
-    // Criar ou mostrar seção de histórico detalhado
-    let historicoSection = document.querySelector('.historico-detalhado');
-    if (!historicoSection) {
-        criarSecaoHistorico();
-    } else {
-        historicoSection.style.display = 'block';
-    }
+    const container = document.getElementById('historico-resumo');
+    if (!container) return;
     
-    carregarHistoricoCompleto();
-}
+    try {
+        const response = await fetch(`http://localhost:3000/api/usuario/fichas/${usuarioLogado.id_usuario}`);
+        const historico = await response.json();
 
-// Criar seção de histórico detalhado
-function criarSecaoHistorico() {
-    const main = document.querySelector('main');
-    const historicoHTML = `
-        <section class="historico-detalhado">
-            <h2>Histórico Completo de Consultas</h2>
-            <div class="historico-container" id="historico-completo">
-                <div class="loading">Carregando histórico...</div>
-            </div>
-        </section>
-        
-        <!-- Modal para detalhes da consulta -->
-        <div id="modal-consulta" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Detalhes da Consulta</h3>
-                    <span class="close" onclick="fecharModal()">&times;</span>
+        if (response.ok && Array.isArray(historico) && historico.length > 0) {
+            // Mostrar apenas as 3 últimas consultas
+            const ultimasConsultas = historico.slice(0, 3);
+            let html = '';
+            
+            ultimasConsultas.forEach(ficha => {
+                const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString('pt-BR');
+                html += `
+                    <div class="historico-item">
+                        <div class="historico-data">${dataConsulta}</div>
+                        <div class="historico-info">
+                            <h4>Consulta Realizada</h4>
+                            <p>Clique em "Histórico" para ver detalhes</p>
+                        </div>
+                        <div class="historico-status">Concluída</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `
+                <div class="historico-item">
+                    <div class="historico-info">
+                        <p>Nenhuma consulta anterior encontrada.</p>
+                    </div>
                 </div>
-                <div class="modal-body" id="modal-body-consulta">
-                    <!-- Conteúdo será preenchido dinamicamente -->
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar histórico resumido:', error);
+        container.innerHTML = `
+            <div class="historico-item">
+                <div class="historico-info">
+                    <p>Erro ao carregar histórico.</p>
                 </div>
             </div>
-        </div>
-    `;
-    
-    main.insertAdjacentHTML('beforeend', historicoHTML);
+        `;
+    }
 }
 
 // Carregar histórico completo de consultas
@@ -359,10 +288,11 @@ async function carregarHistoricoCompleto() {
         if (response.ok && Array.isArray(historico) && historico.length > 0) {
             let html = '<ul class="lista-historico">';
             historico.forEach(ficha => {
-                const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString();
+                const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString('pt-BR');
                 html += `
                     <li class="item-historico" onclick="abrirModalConsulta(${ficha.id_ficha})">
-                        <span>Consulta em: ${dataConsulta}</span>
+                        <div class="data-consulta">${dataConsulta}</div>
+                        <div class="info-consulta">Clique para ver detalhes da consulta</div>
                     </li>
                 `;
             });
@@ -392,11 +322,14 @@ async function abrirModalConsulta(idFicha) {
         const detalhes = await response.json();
 
         if (response.ok) {
+            const dataFormatada = new Date(detalhes.data_consulta).toLocaleDateString('pt-BR');
             modalBody.innerHTML = `
-                <p><strong>Data:</strong> ${new Date(detalhes.data_consulta).toLocaleDateString()}</p>
-                <p><strong>Queixa principal:</strong> ${detalhes.queixa_principal || '—'}</p>
-                <p><strong>Histórico médico:</strong> ${detalhes.historico_medico || '—'}</p>
-                <p><strong>Observações:</strong> ${detalhes.observacoes || '—'}</p>
+                <div style="line-height: 1.6;">
+                    <p><strong>📅 Data da Consulta:</strong> ${dataFormatada}</p>
+                    <p><strong>🩺 Queixa Principal:</strong> ${detalhes.queixa_principal || 'Não informado'}</p>
+                    <p><strong>📋 Histórico Médico:</strong> ${detalhes.historico_medico || 'Não informado'}</p>
+                    <p><strong>📝 Observações:</strong> ${detalhes.observacoes || 'Nenhuma observação registrada'}</p>
+                </div>
             `;
         } else {
             modalBody.innerHTML = '<p>Erro ao carregar detalhes da consulta.</p>';
@@ -415,57 +348,13 @@ function fecharModal() {
     }
 }
 
-// Mostrar seção de ajuda
-function mostrarAjuda() {
-    // Esconder outras seções
-    document.querySelectorAll('main > section').forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Criar ou mostrar seção de ajuda
-    let ajudaSection = document.querySelector('.ajuda');
-    if (!ajudaSection) {
-        criarSecaoAjuda();
-    } else {
-        ajudaSection.style.display = 'block';
-    }
-}
-
-// Criar seção de ajuda
-function criarSecaoAjuda() {
-    const main = document.querySelector('main');
-    const ajudaHTML = `
-        <section class="ajuda">
-            <h2>Central de Ajuda</h2>
-            <div class="ajuda-container">
-                <div class="ajuda-item">
-                    <h3>Como agendar uma consulta?</h3>
-                    <p>Para agendar uma consulta, entre em contato através dos nossos canais de atendimento.</p>
-                </div>
-                <div class="ajuda-item">
-                    <h3>Como alterar meus dados?</h3>
-                    <p>Vá até a seção "Perfil" e clique em "Editar Perfil" para alterar suas informações.</p>
-                </div>
-                <div class="ajuda-item">
-                    <h3>Como visualizar meu histórico?</h3>
-                    <p>Na seção "Histórico" você pode ver todas as suas consultas anteriores.</p>
-                </div>
-            </div>
-        </section>
-    `;
-    
-    main.insertAdjacentHTML('beforeend', ajudaHTML);
-}
-
 // Função auxiliar para carregar usuário logado
 function carregarUsuarioLogado() {
-    // Esta função pode ser expandida conforme necessário
     console.log('Usuário carregado:', usuarioLogado);
 }
 
 // Função auxiliar para mostrar alertas
 function mostrarAlerta(mensagem, tipo = 'info') {
-    // Implementar sistema de alertas aqui
     if (tipo === 'success') {
         alert('✅ ' + mensagem);
     } else if (tipo === 'error') {
@@ -475,7 +364,7 @@ function mostrarAlerta(mensagem, tipo = 'info') {
     }
 }
 
-// Função para alterar foto (placeholder)
+// Função para alterar foto
 function alterarFoto() {
     const inputFoto = document.getElementById('input-foto');
     if (inputFoto) {
@@ -495,6 +384,22 @@ function handleFileSelect(event) {
             }
         };
         reader.readAsDataURL(file);
+    }
+}
+
+// Configurar upload de foto
+document.addEventListener('DOMContentLoaded', function() {
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) {
+        inputFoto.addEventListener('change', handleFileSelect);
+    }
+});
+
+// Fechar modal ao clicar fora dele
+window.onclick = function(event) {
+    const modal = document.getElementById('modal-consulta');
+    if (event.target === modal) {
+        modal.style.display = 'none';
     }
 }
 

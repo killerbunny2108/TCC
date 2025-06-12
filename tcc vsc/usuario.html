@@ -16,65 +16,142 @@
 
   <header class="usuario-header">
     <div class="usuario-profile">
-      <img src="images/user-placeholder.jpg" alt="Foto de perfil">
+      <img src="images/user-placeholder.jpg" alt="Foto de perfil" id="header-foto">
     </div>
-    <h1>Bem-vindo, Cliente!</h1>
+    <h1 id="welcome-message">Bem-vindo, Cliente!</h1>
     <div class="usuario-status">
       <span class="status-badge">Cliente Ativo</span>
     </div>
     <a href="inicio.html" class="logout-link">Sair</a>
     
     <div class="usuario-nav">
-      <a href="#" class="nav-item active">Dashboard</a>
-      <a href="#" class="nav-item">Perfil</a>
-      <a href="#" class="nav-item">Histórico</a>
-      <a href="#" class="nav-item">Ajuda</a>
+      <a href="#" class="nav-item active" data-section="dashboard">Dashboard</a>
+      <a href="#" class="nav-item" data-section="perfil">Perfil</a>
+      <a href="#" class="nav-item" data-section="historico">Histórico</a>
+      <a href="#" class="nav-item" data-section="ajuda">Ajuda</a>
     </div>
   </header>
 
   <main>
-    <section class="boas-vindas">
-      <h2>Área do Cliente</h2>
-      <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
-    </section>
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="content-section active">
+      <section class="boas-vindas">
+        <h2>Área do Cliente</h2>
+        <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
+      </section>
 
-  
-    <section class="agendamento">
-      <h2>Agende sua próxima consulta</h2>
-      <p>Escolha o melhor horário para sua consulta através do nosso calendário online.</p>
-      <button id="agendar">Agendar Consulta</button>
-    </section>
+      <section class="agendamento">
+        <h2>Agende sua próxima consulta</h2>
+        <p>Escolha o melhor horário para sua consulta através do nosso calendário online.</p>
+        <button id="agendar">Agendar Consulta</button>
+      </section>
 
-    <section class="dicas">
-      <h2>Dicas Personalizadas</h2>
-      <div class="dicas-container" id="lista-dicas-clientes">
-        <!-- As dicas serão carregadas aqui -->
-        <p id="loading-dicas">Carregando dicas...</p>
-      </div>
-    </section>
-    
-    <section class="historico">
-      <h2>Histórico de Consultas</h2>
-      <div class="historico-container">
-        <div class="historico-item">
-          <div class="historico-data">30/04/2025</div>
-          <div class="historico-info">
-            <h4>Consulta Online</h4>
-            <p>Sessão de terapia regular</p>
-          </div>
-          <div class="historico-status">Concluída</div>
+      <section class="dicas">
+        <h2>Dicas Personalizadas</h2>
+        <div class="dicas-container" id="lista-dicas-clientes">
+          <!-- As dicas serão carregadas aqui -->
+          <p id="loading-dicas">Carregando dicas...</p>
         </div>
-        <div class="historico-item">
-          <div class="historico-data">15/04/2025</div>
-          <div class="historico-info">
-            <h4>Consulta Online</h4>
-            <p>Sessão de terapia regular</p>
-          </div>
-          <div class="historico-status">Concluída</div>
+      </section>
+      
+      <section class="historico">
+        <h2>Últimas Consultas</h2>
+        <div class="historico-container" id="historico-resumo">
+          <!-- Histórico resumido será carregado aqui -->
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
+
+    <!-- Perfil Section -->
+    <div id="perfil-section" class="content-section">
+      <section class="perfil">
+        <h2>Meu Perfil</h2>
+        <div class="perfil-container">
+          <div class="perfil-foto">
+            <div class="foto-preview" id="foto-preview">
+              <span class="foto-placeholder">👤</span>
+            </div>
+            <button class="btn-foto" onclick="alterarFoto()">Alterar Foto</button>
+            <input type="file" id="input-foto" accept="image/*" style="display: none;">
+          </div>
+          <div class="perfil-form">
+            <div class="form-group">
+              <label for="nome">Nome Completo</label>
+              <input type="text" id="nome" name="nome" readonly>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" readonly>
+            </div>
+            <div class="form-group">
+              <label for="telefone">Telefone</label>
+              <input type="tel" id="telefone" name="telefone" readonly>
+            </div>
+            <div class="form-group">
+              <label for="endereco">Endereço</label>
+              <input type="text" id="endereco" name="endereco" readonly>
+            </div>
+            <div class="form-group">
+              <label for="data_nascimento">Data de Nascimento</label>
+              <input type="date" id="data_nascimento" name="data_nascimento" readonly>
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" id="btn-editar" onclick="toggleEdicao()">Editar Perfil</button>
+              <button class="btn-secondary" id="btn-cancelar" onclick="cancelarEdicao()" style="display: none;">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Histórico Section -->
+    <div id="historico-section" class="content-section">
+      <section class="historico-detalhado">
+        <h2>Histórico Completo de Consultas</h2>
+        <div class="historico-container" id="historico-completo">
+          <div class="loading">Carregando histórico...</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Ajuda Section -->
+    <div id="ajuda-section" class="content-section">
+      <section class="ajuda">
+        <h2>Central de Ajuda</h2>
+        <div class="ajuda-container">
+          <div class="ajuda-item">
+            <h3>Como agendar uma consulta?</h3>
+            <p>Para agendar uma consulta, clique no botão "Agendar Consulta" na dashboard ou entre em contato através dos nossos canais de atendimento.</p>
+          </div>
+          <div class="ajuda-item">
+            <h3>Como alterar meus dados?</h3>
+            <p>Vá até a seção "Perfil" e clique em "Editar Perfil" para alterar suas informações.</p>
+          </div>
+          <div class="ajuda-item">
+            <h3>Como visualizar meu histórico?</h3>
+            <p>Na seção "Histórico" você pode ver todas as suas consultas anteriores com detalhes.</p>
+          </div>
+          <div class="ajuda-item">
+            <h3>Problemas com o sistema?</h3>
+            <p>Se você encontrar algum problema, entre em contato conosco através do email: contato@cleonunes.com.br</p>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
+
+  <!-- Modal para detalhes da consulta -->
+  <div id="modal-consulta" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Detalhes da Consulta</h3>
+        <span class="close" onclick="fecharModal()">&times;</span>
+      </div>
+      <div class="modal-body" id="modal-body-consulta">
+        <!-- Conteúdo será preenchido dinamicamente -->
+      </div>
+    </div>
+  </div>
 
   <footer>
     <div class="footer-content">
@@ -96,17 +173,18 @@
   </footer>
 
   <script>
+    // Calendly integration
     document.getElementById("agendar").addEventListener("click", function () {
       Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
       return false;
     });
 
+    // Carregar dicas do cliente
     async function carregarDicasCliente() {
       const container = document.getElementById('lista-dicas-clientes');
       const loading = document.getElementById('loading-dicas');
 
       try {
-        // Atualizamos a URL para usar a rota correta
         const response = await fetch('http://localhost:3000/api/dicas');
 
         if (!response.ok) {
@@ -115,22 +193,18 @@
 
         const dicas = await response.json();
 
-        // Remover mensagem de carregamento
         loading.style.display = 'none';
 
-        // Verificar se há dicas para exibir
         if (dicas.length === 0) {
           container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
           return;
         }
 
-        // Limpar o container antes de adicionar novas dicas
         container.innerHTML = '';
 
-        // Criar e adicionar cada dica ao container
         dicas.forEach(dica => {
           const div = document.createElement('div');
-          div.className = 'dicas-item'; // Alterado para usar a classe correta
+          div.className = 'dicas-item';
           div.innerHTML = `
             <span class="dica-icon">💡</span>
             <h3>${dica.titulo}</h3>
@@ -148,9 +222,11 @@
     }
 
     // Carregar dicas quando a página for carregada
-    document.addEventListener('DOMContentLoaded', carregarDicasCliente);
+    document.addEventListener('DOMContentLoaded', function() {
+      carregarDicasCliente();
+    });
   </script>
-<script src="js/usuario.js"></script>
+  <script src="js/usuario.js"></script>
 </body>
 
 </html>
