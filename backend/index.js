@@ -359,7 +359,7 @@ app.delete('/api/fichas/:id', (req, res) => {
 });
 
 
-// Adicione estas rotas ao arquivo backend/index.js
+
 
 // Rota para obter dados do perfil do usuário
 app.get('/api/perfil/:id_usuario', (req, res) => {
