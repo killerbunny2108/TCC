@@ -2,6 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const connection = require('../db');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const db = require('../db');
 
 // Rota de login
 router.post('/login', (req, res) => {
@@ -268,6 +272,48 @@ router.get('/dados/:id', (req, res) => {
             );
         }
     );
+
+    // Configuração do upload da foto
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, `foto_${Date.now()}${ext}`);
+    }
+});
+
+const upload = multer({ storage });
+
+// Rota PUT para atualizar dados do paciente (inclui foto)
+router.put('/paciente/perfil/:id', upload.single('foto'), (req, res) => {
+    const id = req.params.id;
+    const { nome, telefone, endereco, data_nascimento } = req.body;
+    const foto_perfil = req.file ? `/uploads/${req.file.filename}` : null;
+
+    let sql = `
+        UPDATE paciente 
+        SET nome = ?, telefone = ?, endereco = ?, data_nascimento = ?
+        ${foto_perfil ? ', foto_perfil = ?' : ''}
+        WHERE id_paciente = ?
+    `;
+
+    const params = foto_perfil
+        ? [nome, telefone, endereco, data_nascimento, foto_perfil, id]
+        : [nome, telefone, endereco, data_nascimento, id];
+
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error('Erro ao atualizar perfil do paciente:', err);
+            return res.status(500).json({ mensagem: 'Erro ao atualizar perfil' });
+        }
+        res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+    });
 });
 
 module.exports = router;
+});
+

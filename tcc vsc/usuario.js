@@ -407,3 +407,37 @@ window.onclick = function(event) {
 function formatarData(data) {
     return new Date(data).toLocaleDateString('pt-BR');
 }
+async function salvarPerfil() {
+    if (!usuarioLogado) return;
+
+    const formData = new FormData();
+    formData.append('nome', document.getElementById('nome').value);
+    formData.append('telefone', document.getElementById('telefone').value);
+    formData.append('endereco', document.getElementById('endereco').value);
+    formData.append('data_nascimento', document.getElementById('data_nascimento').value);
+
+    const file = document.getElementById('input-foto').files[0];
+    if (file) {
+        formData.append('foto', file);
+    }
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/paciente/perfil/${usuarioLogado.id_paciente}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        const resultado = await response.json();
+
+        if (response.ok) {
+            mostrarAlerta('Perfil atualizado com sucesso!', 'success');
+            carregarPerfilUsuario(); // Atualiza visual
+            cancelarEdicao();
+        } else {
+            mostrarAlerta(resultado.mensagem || 'Erro ao salvar perfil', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar perfil:', error);
+        mostrarAlerta('Erro ao salvar perfil', 'error');
+    }
+}

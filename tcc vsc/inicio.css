@@ -318,6 +318,7 @@ h1, .terapias h1{
 .carousel-slide {
   display: flex;
   height: 100%;
+  width: 100%;
 }
 
 .carousel-slide img {
@@ -362,9 +363,9 @@ button.next {
 }
 
 button.prev {
-  left: 10px;
+    left: 10px;
 }
 
 button.next {
-  right: 10px;
+    right: 10px;
 }

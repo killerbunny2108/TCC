@@ -1,0 +1,402 @@
+/* PARTE 1: ESTILOS BÁSICOS E ESTRUTURAIS */
+
+/* Importando as fontes Tan Pearl e Lovelace */
+@font-face {
+  font-family: "Tan Pearl";
+  src: url("fontes/tan-pearl-font/tan-pearl.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Lovelace";
+  src: url("fontes/lovelace/Lovelace/Zetafonts - Lovelace Text Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Reset básico e altura cheia */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Definição das cores */
+:root {
+  --primary-color: #ae89fa; /* Roxo */
+  --secondary-color: #ae89fa; /* Roxo mais escuro */
+  --background-color: #c9b2f1; /* Roxo claro */
+  --text-color: #333; /* Cor preta para contraste */
+  --button-hover: #512DA8; /* Roxo escuro para hover */
+  --light-bg: #f6f3fb; /* Fundo claro */
+  --table-header: #e6daf5; /* Cabeçalho tabela */
+  --table-border: #d6c5f5; /* Borda tabela */
+  --accent-color: #ffb6c1; /* Cor de destaque (rosa suave) */
+  --gradient-start: #c9b2f1; /* Início do gradiente */
+  --gradient-end: #e6daf5; /* Fim do gradiente */
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+}
+
+/* Estilo do corpo */
+body {
+  font-family: "Lovelace", Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  background-attachment: fixed;
+}
+
+/* ===== HEADER E CABEÇALHO ===== */
+.usuario-header {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.usuario-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary-color), var(--button-hover));
+}
+
+.usuario-header h1 {
+  margin-bottom: 15px;
+  font-size: 40px;
+  color: var(--secondary-color);
+  font-family: "Tan Pearl", cursive;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.usuario-header p {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* Correções para o botão de sair */
+.logout-link {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #f3f3f3;
+  color: var(--text-color);
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  z-index: 10; /* Garantir que fique acima de outros elementos */
+}
+
+.logout-link:hover {
+  background-color: var(--button-hover);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Corrigindo a imagem de perfil do usuário */
+.usuario-profile {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background-color: var(--light-bg);
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 3px solid var(--primary-color);
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+.usuario-profile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Garantindo que o badge de status apareça */
+.usuario-status {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 25px;
+  width: 100%;
+}
+
+.status-badge {
+  background-color: #e0f2f1;
+  color: #009688;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge::before {
+  content: "•";
+  margin-right: 6px;
+  font-size: 18px;
+  color: #009688;
+}
+
+/* Corrigindo a navegação do usuário */
+.usuario-nav {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.nav-item {
+  padding: 10px 20px;
+  background-color: white;
+  border-radius: 8px;
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.nav-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Garantir que o cabeçalho do usuário seja exibido corretamente */
+.usuario-header {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+  display: block;
+  width: 100%;
+}
+
+/* Seção de Boas-vindas */
+.boas-vindas {
+  background-color: white;
+  text-align: center;
+  padding: 40px;
+  margin-bottom: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.boas-vindas::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  background-image: url('images/decorative-shape.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.boas-vindas h2 {
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+  font-size: 28px;
+  position: relative;
+  display: inline-block;
+}
+
+.boas-vindas h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  border-radius: 3px;
+}
+
+.boas-vindas p {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Seção de Agendamento */
+.agendamento {
+  text-align: center;
+  margin: 40px 0;
+  padding: 40px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.agendamento h2 {
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.agendamento p {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#agendar {
+  background: linear-gradient(135deg, var(--primary-color), var(--button-hover));
+  color: white;
+  font-size: 18px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Lovelace", Arial, sans-serif;
+  min-width: 200px;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#agendar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--button-hover), var(--primary-color));
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+#agendar:hover::before {
+  opacity: 1;
+}
+
+#agendar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Controle de visibilidade das seções */
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .usuario-header {
+    padding: 45px 15px 25px;
+  }
+  
+  .logout-link {
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .usuario-nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .nav-item {
+    width: 80%;
+    text-align: center;
+  }
+
+  .usuario-header, .boas-vindas, .agendamento {
+    padding: 25px 20px;
+  }
+
+  .usuario-header h1 {
+    font-size: 28px;
+  }
+
+  #agendar {
+    width: 100%;
+    font-size: 16px;
+  }
+}
+
+
