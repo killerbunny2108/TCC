@@ -334,15 +334,6 @@ h1, .terapias h1{
   color: white;
 }
 
-.carousel-buttons {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 20px;
-}
-
 button.prev,
 button.next {
   width: 100%;

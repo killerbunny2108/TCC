@@ -276,3 +276,463 @@
   border-radius: 8px;
   border-left: 4px solid var(--error-color);
 }
+
+/* ===== ESTILOS FALTANTES PARA COMPLETAR O DESIGN ===== */
+
+/* ===== CONTROLE DE VISIBILIDADE DAS SEÇÕES ===== */
+.content-section {
+  display: none;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.content-section.active {
+  display: block;
+}
+
+/* ===== ESTILOS PARA LOADING E ESTADOS ===== */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+  background-color: var(--light-bg);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.loading::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--table-border);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== HISTÓRICO DETALHADO ===== */
+.historico-detalhado {
+  padding: 40px;
+  background-color: white;
+  border-radius: 12px;
+  margin: 30px 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.historico-detalhado::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+.historico-detalhado h2 {
+  font-family: "Tan Pearl", cursive;
+  color: var(--secondary-color);
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.historico-detalhado h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  border-radius: 3px;
+}
+
+/* ===== MODAL PARA CROP DE IMAGEM ===== */
+#modal-crop .modal-content {
+  max-width: 500px;
+}
+
+#crop-container {
+  text-align: center;
+  margin: 20px 0;
+  background-color: var(--light-bg);
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px dashed var(--table-border);
+}
+
+#crop-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+}
+
+.crop-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.crop-actions button {
+  min-width: 120px;
+}
+
+/* ===== MELHORIAS PARA INPUTS READONLY ===== */
+input[readonly] {
+  background-color: var(--light-bg);
+  color: #666;
+  cursor: not-allowed;
+}
+
+input[readonly]:focus {
+  border-color: var(--table-border);
+  box-shadow: none;
+}
+
+/* ===== ESTADOS DE SUCESSO, AVISO E ERRO ===== */
+.success {
+  background-color: #e8f5e8;
+  color: var(--success-color);
+  border-left: 4px solid var(--success-color);
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.warning {
+  background-color: #fff3e0;
+  color: var(--warning-color);
+  border-left: 4px solid var(--warning-color);
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.error {
+  background-color: #ffebee;
+  color: var(--error-color);
+  border-left: 4px solid var(--error-color);
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+/* ===== ESTILOS PARA DIFERENTES STATUS DE CONSULTA ===== */
+.status-confirmada {
+  background-color: #e8f5e8;
+  color: var(--success-color);
+}
+
+.status-pendente {
+  background-color: #fff3e0;
+  color: var(--warning-color);
+}
+
+.status-cancelada {
+  background-color: #ffebee;
+  color: var(--error-color);
+}
+
+.status-realizada {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+/* ===== MELHORIAS PARA TRANSIÇÕES E ANIMAÇÕES ===== */
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+.bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== MELHORIAS PARA TOOLTIPS ===== */
+.tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 117%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #333;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.tooltip:hover::after,
+.tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===== ESTILOS PARA BADGES E INDICADORES ===== */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.badge-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.badge-warning {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.badge-error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+/* ===== MELHORIAS PARA ACESSIBILIDADE ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== MELHORIAS PARA FOCUS E NAVEGAÇÃO POR TECLADO ===== */
+*:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+button:focus,
+.nav-item:focus,
+.btn-primary:focus,
+.btn-secondary:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ===== ESTILOS PARA ESTADOS VAZIOS ===== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+.empty-state h3 {
+  color: var(--secondary-color);
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.empty-state p {
+  color: #888;
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ===== RESPONSIVIDADE ADICIONAL ===== */
+@media (max-width: 992px) {
+  .perfil-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .perfil-foto {
+    order: -1;
+  }
+  
+  .dicas-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-content {
+    margin: 10px;
+    padding: 20px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .crop-actions {
+    flex-direction: column;
+  }
+  
+  .historico-item {
+    flex-direction: column;
+    text-align: left;
+  }
+  
+  .historico-data {
+    flex: none;
+    margin-bottom: 10px;
+  }
+  
+  .historico-info {
+    padding-left: 0;
+  }
+  
+  .historico-status {
+    margin-left: 0;
+    align-self: flex-start;
+    margin-top: 10px;
+  }
+}
+
+/* ===== MELHORIAS PARA IMPRESSÃO ===== */
+@media print {
+  .usuario-header,
+  .usuario-nav,
+  .logout-link,
+  .btn-primary,
+  .btn-secondary,
+  .btn-foto,
+  #agendar {
+    display: none;
+  }
+  
+  .modal {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .content-section {
+    display: block !important;
+  }
+  
+  .perfil,
+  .historico-detalhado,
+  .dicas {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+
+
+/* ===== SCROLL CUSTOMIZADO ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--light-bg);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--button-hover);
+}
+
+/* ===== MELHORIAS PARA SELECTION ===== */
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--primary-color);
+  color: white;
+}
