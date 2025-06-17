@@ -17,6 +17,10 @@ app.use(bodyParser.json());
 app.use('/api/usuario', usuarioRoutes);
 app.use('/', dicasRoutes);
 
+const express = require('express');
+const path = require('path');
+// Servir arquivos estáticos da pasta uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Rota para listar pacientes (para o combo box)

@@ -209,7 +209,6 @@ router.get('/ficha/:id_ficha', (req, res) => {
     );
 });
 
-// Rota para buscar dados completos do usuário logado (incluindo se é paciente ou admin)
 router.get('/dados/:id', (req, res) => {
     const { id } = req.params;
 
@@ -272,12 +271,13 @@ router.get('/dados/:id', (req, res) => {
             );
         }
     );
+});
 
-    // Configuração do upload da foto
+// Configuração do upload da foto (DEVE estar FORA de qualquer função)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dir = path.join(__dirname, '..', 'uploads');
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         cb(null, dir);
     },
     filename: function (req, file, cb) {
@@ -286,34 +286,256 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+    storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB máximo
+    },
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas arquivos de imagem são permitidos!'));
+        }
+    }
+});
 
-// Rota PUT para atualizar dados do paciente (inclui foto)
+// 2. CORRIGIR A ROTA DE ATUALIZAÇÃO DO PERFIL DO PACIENTE
 router.put('/paciente/perfil/:id', upload.single('foto'), (req, res) => {
     const id = req.params.id;
     const { nome, telefone, endereco, data_nascimento } = req.body;
     const foto_perfil = req.file ? `/uploads/${req.file.filename}` : null;
 
-    let sql = `
-        UPDATE paciente 
+    // Primeiro, atualizar a tabela Usuario
+    let sqlUsuario = `
+        UPDATE Usuario 
         SET nome = ?, telefone = ?, endereco = ?, data_nascimento = ?
         ${foto_perfil ? ', foto_perfil = ?' : ''}
-        WHERE id_paciente = ?
+        WHERE id_usuario = (SELECT id_usuario FROM Paciente WHERE id_paciente = ?)
     `;
 
-    const params = foto_perfil
+    const paramsUsuario = foto_perfil
         ? [nome, telefone, endereco, data_nascimento, foto_perfil, id]
         : [nome, telefone, endereco, data_nascimento, id];
 
-    db.query(sql, params, (err, results) => {
+    connection.query(sqlUsuario, paramsUsuario, (err, results) => {
         if (err) {
-            console.error('Erro ao atualizar perfil do paciente:', err);
+            console.error('Erro ao atualizar perfil do usuário:', err);
             return res.status(500).json({ mensagem: 'Erro ao atualizar perfil' });
         }
+        
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ mensagem: 'Paciente não encontrado' });
+        }
+        
         res.json({ mensagem: 'Perfil atualizado com sucesso!' });
     });
 });
 
 module.exports = router;
+// CORREÇÕES PARA O ARQUIVO backend/routes/usuario.js
+
+// 1. CORRIGIR A CONFIGURAÇÃO DO MULTER (mover para fora da função)
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configuração do upload da foto (DEVE estar FORA de qualquer função)
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, `foto_${Date.now()}${ext}`);
+    }
 });
 
+const upload = multer({ 
+    storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB máximo
+    },
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas arquivos de imagem são permitidos!'));
+        }
+    }
+});
+
+// 2. CORRIGIR A ROTA DE ATUALIZAÇÃO DO PERFIL DO PACIENTE
+router.put('/paciente/perfil/:id', upload.single('foto'), (req, res) => {
+    const id = req.params.id;
+    const { nome, telefone, endereco, data_nascimento } = req.body;
+    const foto_perfil = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Primeiro, atualizar a tabela Usuario
+    let sqlUsuario = `
+        UPDATE Usuario 
+        SET nome = ?, telefone = ?, endereco = ?, data_nascimento = ?
+        ${foto_perfil ? ', foto_perfil = ?' : ''}
+        WHERE id_usuario = (SELECT id_usuario FROM Paciente WHERE id_paciente = ?)
+    `;
+
+    const paramsUsuario = foto_perfil
+        ? [nome, telefone, endereco, data_nascimento, foto_perfil, id]
+        : [nome, telefone, endereco, data_nascimento, id];
+
+    connection.query(sqlUsuario, paramsUsuario, (err, results) => {
+        if (err) {
+            console.error('Erro ao atualizar perfil do usuário:', err);
+            return res.status(500).json({ mensagem: 'Erro ao atualizar perfil' });
+        }
+        
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ mensagem: 'Paciente não encontrado' });
+        }
+        
+        res.json({ mensagem: 'Perfil atualizado com sucesso!' });
+    });
+});
+
+// 3. ADICIONAR ROTA PARA SERVIR ARQUIVOS ESTÁTICOS (adicionar ao app.js principal)
+// No arquivo principal do servidor (app.js ou server.js), adicionar:
+/*
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// Servir arquivos estáticos da pasta uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+*/
+
+// 4. ADICIONAR ROTA PARA DICAS (se não existir)
+router.get('/dicas', (req, res) => {
+    // Se você tem uma tabela de dicas
+    connection.query(
+        'SELECT * FROM Dicas ORDER BY id_dica DESC',
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar dicas:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar dicas' });
+            }
+            res.json(results);
+        }
+    );
+    
+    // OU se não tem tabela de dicas, retornar dicas estáticas:
+    /*
+    const dicasEstaticas = [
+        {
+            id: 1,
+            titulo: "Hidratação",
+            descricao: "Beba pelo menos 2 litros de água por dia para manter-se hidratado."
+        },
+        {
+            id: 2,
+            titulo: "Exercícios",
+            descricao: "Pratique pelo menos 30 minutos de atividade física por dia."
+        },
+        {
+            id: 3,
+            titulo: "Alimentação",
+            descricao: "Mantenha uma dieta equilibrada com frutas e vegetais."
+        }
+    ];
+    res.json(dicasEstaticas);
+    */
+});
+
+// 5. CORRIGIR A ROTA DE DADOS DO USUÁRIO (remover código mal posicionado)
+router.get('/dados/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Primeiro buscar os dados do usuário
+    connection.query(
+        'SELECT id_usuario, nome, email, telefone, endereco, data_nascimento, foto_perfil FROM Usuario WHERE id_usuario = ?',
+        [id],
+        (err, userResults) => {
+            if (err) {
+                console.error('Erro ao buscar usuário:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar dados do usuário' });
+            }
+
+            if (userResults.length === 0) {
+                return res.status(404).json({ mensagem: 'Usuário não encontrado' });
+            }
+
+            const usuario = userResults[0];
+
+            // Verificar se é paciente
+            connection.query(
+                'SELECT id_paciente FROM Paciente WHERE id_usuario = ?',
+                [id],
+                (err, pacienteResults) => {
+                    if (err) {
+                        console.error('Erro ao verificar paciente:', err);
+                        return res.status(500).json({ mensagem: 'Erro ao verificar tipo de usuário' });
+                    }
+
+                    if (pacienteResults.length > 0) {
+                        // É um paciente
+                        usuario.tipo = 'paciente';
+                        usuario.id_paciente = pacienteResults[0].id_paciente;
+                        return res.json(usuario);
+                    }
+
+                    // Verificar se é administrador
+                    connection.query(
+                        'SELECT id_administrador FROM Administrador WHERE id_usuario = ?',
+                        [id],
+                        (err, adminResults) => {
+                            if (err) {
+                                console.error('Erro ao verificar administrador:', err);
+                                return res.status(500).json({ mensagem: 'Erro ao verificar tipo de usuário' });
+                            }
+
+                            if (adminResults.length > 0) {
+                                // É um administrador
+                                usuario.tipo = 'admin';
+                                usuario.id_administrador = adminResults[0].id_administrador;
+                            } else {
+                                // Usuário sem tipo específico
+                                usuario.tipo = 'usuario';
+                            }
+
+                            res.json(usuario);
+                        }
+                    );
+                }
+            );
+        }
+    );
+});
+
+// 6. ADICIONAR MIDDLEWARE DE ERRO PARA MULTER
+router.use((error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ mensagem: 'Arquivo muito grande. Máximo 5MB.' });
+        }
+    }
+    if (error.message === 'Apenas arquivos de imagem são permitidos!') {
+        return res.status(400).json({ mensagem: error.message });
+    }
+    next(error);
+});
+
+module.exports = router;
+router.get('/dicas', (req, res) => {
+    // Se você tem uma tabela de dicas
+    connection.query(
+        'SELECT * FROM Dica ORDER BY id DESC',
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar dicas:', err);
+                return res.status(500).json({ mensagem: 'Erro ao buscar dicas' });
+            }
+            res.json(results);
+        }
+    );
+});
