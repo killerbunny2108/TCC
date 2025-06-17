@@ -26,88 +26,77 @@
       <span class="status-badge">Cliente Ativo</span>
     </div>
     <a href="inicio.html" class="logout-link">Sair</a>
-    
-    <div class="usuario-nav">
-      <a href="#" class="nav-item active" data-section="dashboard">Dashboard</a>
-      <a href="#" class="nav-item" data-section="perfil">Perfil</a>
-      <a href="#" class="nav-item" data-section="historico">Histórico</a>
-    </div>
   </header>
 
   <main>
-    <!-- Dashboard Section -->
-    <div id="dashboard-section" class="content-section active">
-      <section class="boas-vindas">
-        <h2>Área do Cliente</h2>
-        <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
-      </section>
+    <!-- Seção Principal -->
+    <section class="boas-vindas">
+      <h2>Área do Cliente</h2>
+      <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
+    </section>
 
-      <section class="agendamento">
-        <h2>Agende sua próxima consulta</h2>
-        <p>Escolha o melhor horário para sua consulta através do nosso calendário online.</p>
-        <button id="agendar">Agendar Consulta</button>
-      </section>
+    <section class="agendamento">
+      <h2>Agende sua próxima consulta</h2>
+      <p>Escolha o melhor horário para sua consulta através do nosso calendário online.</p>
+      <button id="agendar">Agendar Consulta</button>
+    </section>
 
-      <section class="dicas">
-        <h2>Dicas Personalizadas</h2>
-        <div class="dicas-container" id="lista-dicas-clientes">
-          <!-- As dicas serão carregadas aqui -->
-          <p id="loading-dicas">Carregando dicas...</p>
-        </div>
-      </section>
-      
+    <section class="dicas">
+      <h2>Dicas Personalizadas</h2>
+      <div class="dicas-container" id="lista-dicas-clientes">
+        <!-- As dicas serão carregadas aqui -->
+        <p id="loading-dicas">Carregando dicas...</p>
+      </div>
+    </section>
 
-    <!-- Perfil Section -->
-    <div id="perfil-section" class="content-section">
-      <section class="perfil">
-        <h2>Meu Perfil</h2>
-        <div class="perfil-container">
-          <div class="perfil-foto">
-            <div class="foto-preview" id="foto-preview">
-              <span class="foto-placeholder">👤</span>
-            </div>
-            <button class="btn-foto" onclick="alterarFoto()">Alterar Foto</button>
-            <input type="file" id="input-foto" accept="image/*" style="display: none;">
+    <!-- Seção do Perfil -->
+    <section class="perfil">
+      <h2>Meu Perfil</h2>
+      <div class="perfil-container">
+        <div class="perfil-foto">
+          <div class="foto-preview" id="foto-preview">
+            <span class="foto-placeholder">👤</span>
           </div>
-          <div class="perfil-form">
-            <div class="form-group">
-              <label for="nome">Nome Completo</label>
-              <input type="text" id="nome" name="nome" readonly>
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" id="email" name="email" readonly>
-            </div>
-            <div class="form-group">
-              <label for="telefone">Telefone</label>
-              <input type="tel" id="telefone" name="telefone" readonly>
-            </div>
-            <div class="form-group">
-              <label for="endereco">Endereço</label>
-              <input type="text" id="endereco" name="endereco" readonly>
-            </div>
-            <div class="form-group">
-              <label for="data_nascimento">Data de Nascimento</label>
-              <input type="date" id="data_nascimento" name="data_nascimento" readonly>
-            </div>
-            <div class="form-actions">
-              <button class="btn-primary" id="btn-editar" onclick="toggleEdicao()">Editar Perfil</button>
-              <button class="btn-secondary" id="btn-cancelar" onclick="cancelarEdicao()" style="display: none;">Cancelar</button>
-            </div>
+          <button class="btn-foto" onclick="alterarFoto()">Alterar Foto</button>
+          <input type="file" id="input-foto" accept="image/*" style="display: none;">
+        </div>
+        <div class="perfil-form">
+          <div class="form-group">
+            <label for="nome">Nome Completo</label>
+            <input type="text" id="nome" name="nome" readonly>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" readonly>
+          </div>
+          <div class="form-group">
+            <label for="telefone">Telefone</label>
+            <input type="tel" id="telefone" name="telefone" readonly>
+          </div>
+          <div class="form-group">
+            <label for="endereco">Endereço</label>
+            <input type="text" id="endereco" name="endereco" readonly>
+          </div>
+          <div class="form-group">
+            <label for="data_nascimento">Data de Nascimento</label>
+            <input type="date" id="data_nascimento" name="data_nascimento" readonly>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="btn-editar" onclick="toggleEdicao()">Editar Perfil</button>
+            <button class="btn-secondary" id="btn-cancelar" onclick="cancelarEdicao()"
+              style="display: none;">Cancelar</button>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
 
-    <!-- Histórico Section -->
-    <div id="historico-section" class="content-section">
-      <section class="historico-detalhado">
-        <h2>Histórico Completo de Consultas</h2>
-        <div class="historico-container" id="historico-completo">
-          <div class="loading">Carregando histórico...</div>
-        </div>
-      </section>
-    </div>
+    <!-- Seção do Histórico -->
+    <section class="historico-detalhado">
+      <h2>Histórico Completo de Consultas</h2>
+      <div class="historico-container" id="historico-completo">
+        <div class="loading">Carregando histórico...</div>
+      </div>
+    </section>
   </main>
 
   <!-- Modal para detalhes da consulta -->
@@ -144,20 +133,12 @@
 
   <footer>
     <div class="footer-content">
-      <div class="footer-nav">
-        <a href="#">Início</a>
-        <a href="#">Sobre</a>
-        <a href="#">Contato</a>
-        <a href="#">Privacidade</a>
-      </div>
+      <p class="copyright">&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados</p>
       <div class="social-links">
-        <a href="#"><span>FB</span></a>
-        <a href="#"><span>IG</span></a>
-        <a href="#"><span>WA</span></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-whatsapp"></i></a>
       </div>
-      <p>Cléo Nunes Terapeuta</p>
-      <p>contato@cleonunes.com.br</p>
-      <p class="copyright">&copy; 2025 Cléo Nunes Terapeuta. Todos os direitos reservados.</p>
     </div>
   </footer>
 
@@ -210,9 +191,54 @@
       }
     }
 
-    // Carregar dicas quando a página for carregada
-    document.addEventListener('DOMContentLoaded', function() {
+    // Carregar histórico de consultas
+    async function carregarHistoricoConsultas() {
+      const container = document.getElementById('historico-completo');
+
+      try {
+        const response = await fetch('http://localhost:3000/api/consultas/historico');
+
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status}`);
+        }
+
+        const consultas = await response.json();
+
+        if (consultas.length === 0) {
+          container.innerHTML = '<p>Nenhuma consulta encontrada no histórico.</p>';
+          return;
+        }
+
+        container.innerHTML = '';
+
+        consultas.forEach(consulta => {
+          const div = document.createElement('div');
+          div.className = 'consulta-item';
+          div.innerHTML = `
+            <div class="consulta-header">
+              <h3>Consulta - ${new Date(consulta.data).toLocaleDateString('pt-BR')}</h3>
+              <span class="consulta-status ${consulta.status}">${consulta.status}</span>
+            </div>
+            <div class="consulta-info">
+              <p><strong>Horário:</strong> ${consulta.horario}</p>
+              <p><strong>Tipo:</strong> ${consulta.tipo}</p>
+              ${consulta.observacoes ? `<p><strong>Observações:</strong> ${consulta.observacoes}</p>` : ''}
+            </div>
+          `;
+          container.appendChild(div);
+        });
+
+        console.log("Histórico carregado com sucesso:", consultas);
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        container.innerHTML = `<p class="erro">Não foi possível carregar o histórico. Tente novamente mais tarde.</p>`;
+      }
+    }
+
+    // Carregar dados quando a página for carregada
+    document.addEventListener('DOMContentLoaded', function () {
       carregarDicasCliente();
+      carregarHistoricoConsultas();
     });
   </script>
   <script src="js/usuario.js"></script>
