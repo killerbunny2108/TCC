@@ -28,7 +28,6 @@
       <a href="#" class="nav-item active" data-section="dashboard">Dashboard</a>
       <a href="#" class="nav-item" data-section="perfil">Perfil</a>
       <a href="#" class="nav-item" data-section="historico">Histórico</a>
-      <a href="#" class="nav-item" data-section="ajuda">Ajuda</a>
     </div>
   </header>
 
@@ -113,31 +112,6 @@
         </div>
       </section>
     </div>
-
-    <!-- Ajuda Section -->
-    <div id="ajuda-section" class="content-section">
-      <section class="ajuda">
-        <h2>Central de Ajuda</h2>
-        <div class="ajuda-container">
-          <div class="ajuda-item">
-            <h3>Como agendar uma consulta?</h3>
-            <p>Para agendar uma consulta, clique no botão "Agendar Consulta" na dashboard ou entre em contato através dos nossos canais de atendimento.</p>
-          </div>
-          <div class="ajuda-item">
-            <h3>Como alterar meus dados?</h3>
-            <p>Vá até a seção "Perfil" e clique em "Editar Perfil" para alterar suas informações.</p>
-          </div>
-          <div class="ajuda-item">
-            <h3>Como visualizar meu histórico?</h3>
-            <p>Na seção "Histórico" você pode ver todas as suas consultas anteriores com detalhes.</p>
-          </div>
-          <div class="ajuda-item">
-            <h3>Problemas com o sistema?</h3>
-            <p>Se você encontrar algum problema, entre em contato conosco através do email: contato@cleonunes.com.br</p>
-          </div>
-        </div>
-      </section>
-    </div>
   </main>
 
   <!-- Modal para detalhes da consulta -->
@@ -149,6 +123,25 @@
       </div>
       <div class="modal-body" id="modal-body-consulta">
         <!-- Conteúdo será preenchido dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para cropar imagem -->
+  <div id="modal-crop" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Ajustar Foto de Perfil</h3>
+        <span class="close" onclick="fecharModalCrop()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="crop-container">
+          <img id="crop-image" style="max-width: 100%;">
+        </div>
+        <div class="crop-actions">
+          <button class="btn-primary" onclick="salvarFotoCropada()">Salvar Foto</button>
+          <button class="btn-secondary" onclick="fecharModalCrop()">Cancelar</button>
+        </div>
       </div>
     </div>
   </div>
