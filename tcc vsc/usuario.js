@@ -7,6 +7,16 @@ let dadosOriginais = {};
 
 // Configuração da API
 const API_BASE_URL = 'http://localhost:3000/api/usuario';
+const DICAS_API_URL = 'http://localhost:3000/api/dicas';
+
+// Definir funções globais imediatamente
+window.toggleEdicao = toggleEdicao;
+window.cancelarEdicao = cancelarEdicao;
+window.alterarFoto = alterarFoto;
+window.abrirModalConsulta = abrirModalConsulta;
+window.fecharModal = fecharModal;
+window.fecharModalCrop = fecharModalCrop;
+window.salvarFotoCropada = salvarFotoCropada;
 
 // Inicializar página
 document.addEventListener('DOMContentLoaded', function() {
@@ -35,7 +45,7 @@ async function inicializarPagina() {
             atualizarInterface(),
             carregarPerfilUsuario(),
             carregarHistoricoCompleto(),
-            carregarDicas()
+            inicializarDicas()
         ]);
         
         configurarEventos();
@@ -311,7 +321,7 @@ async function salvarPerfil() {
     }
 }
 
-// Carregar histórico de consultas - CORRIGIDO
+// Carregar histórico de consultas
 async function carregarHistoricoCompleto() {
     const container = document.getElementById('historico-completo');
     if (!container || !usuarioLogado?.id_usuario) return;
@@ -431,83 +441,209 @@ function fecharModal() {
     }
 }
 
-// Carregar dicas de saúde - CORRIGIDO
+// Carregar dicas de saúde - CORRIGIDO para buscar do admin
+// Função principal para carregar dicas com múltiplas tentativas
 async function carregarDicas() {
     const container = document.getElementById('lista-dicas-clientes');
     const loading = document.getElementById('loading-dicas');
     
-    if (!container) return;
+    if (!container) {
+        console.log('Container lista-dicas-clientes não encontrado');
+        return;
+    }
     
-    console.log('Carregando dicas...');
+    console.log('Iniciando carregamento de dicas...');
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/dicas`);
+    if (loading) loading.style.display = 'block';
+    
+    // Array de URLs para tentar em ordem
+    const urlsTentar = [
+        'http://localhost:3000/api/dicas',           // Rota do admin
+        'http://localhost:3000/api/usuario/dicas',   // Rota específica do usuário
+        '/api/dicas',                                // Rota relativa 1
+        '/api/usuario/dicas'                         // Rota relativa 2
+    ];
+    
+    let dicasCarregadas = false;
+    
+    // Tentar cada URL até conseguir
+    for (let i = 0; i < urlsTentar.length; i++) {
+        const url = urlsTentar[i];
+        console.log(`Tentativa ${i + 1}: Tentando carregar dicas de: ${url}`);
         
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Adicionar headers para CORS se necessário
+                    'Accept': 'application/json'
+                },
+                // Timeout de 10 segundos
+                signal: AbortSignal.timeout(10000)
+            });
+            
+            console.log(`Status da resposta para ${url}:`, response.status);
+            
+            if (response.ok) {
+                const dicas = await response.json();
+                console.log(`Dicas carregadas com sucesso de ${url}:`, dicas);
+                
+                if (loading) loading.style.display = 'none';
+                renderizarDicas(dicas, container);
+                dicasCarregadas = true;
+                break; // Sucesso! Sair do loop
+                
+            } else {
+                console.log(`Falha na URL ${url}:`, response.status, response.statusText);
+                continue; // Tentar próxima URL
+            }
+            
+        } catch (error) {
+            console.log(`Erro ao tentar ${url}:`, error.message);
+            continue; // Tentar próxima URL
         }
-        
-        const dicas = await response.json();
-        console.log('Dicas carregadas:', dicas);
-        
-        if (loading) loading.style.display = 'none';
-        
-        renderizarDicas(dicas, container);
-        
-    } catch (error) {
-        console.error('Erro ao carregar dicas:', error);
+    }
+    
+    // Se nenhuma URL funcionou, mostrar dicas estáticas
+    if (!dicasCarregadas) {
+        console.log('Todas as tentativas falharam, carregando dicas estáticas');
         if (loading) loading.style.display = 'none';
         mostrarDicasEstaticas(container);
     }
 }
 
-// Renderizar dicas na interface
+// Função para verificar se o servidor está rodando
+async function verificarServidor() {
+    const urlsTestar = [
+        'http://localhost:3000/api/dicas',
+        'http://localhost:3000/api/usuario/dicas'
+    ];
+    
+    console.log('Verificando conectividade com o servidor...');
+    
+    for (const url of urlsTestar) {
+        try {
+            const response = await fetch(url, { 
+                method: 'HEAD',  // Apenas verificar se a rota existe
+                signal: AbortSignal.timeout(5000) 
+            });
+            console.log(`✅ Servidor respondeu para ${url}:`, response.status);
+            return true;
+        } catch (error) {
+            console.log(`❌ Servidor não respondeu para ${url}:`, error.message);
+        }
+    }
+    
+    console.log('⚠️ Servidor não está respondendo em nenhuma das rotas testadas');
+    return false;
+}
+
+// Função melhorada para renderizar dicas
 function renderizarDicas(dicas, container) {
-    if (!Array.isArray(dicas) || dicas.length === 0) {
-        container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
+    if (!container) {
+        console.error('Container não fornecido para renderizarDicas');
         return;
     }
     
+    if (!Array.isArray(dicas)) {
+        console.log('Dicas não é um array:', dicas);
+        mostrarDicasEstaticas(container);
+        return;
+    }
+    
+    if (dicas.length === 0) {
+        container.innerHTML = `
+            <div class="no-data">
+                <p>📝 Nenhuma dica disponível no momento.</p>
+                <p>O administrador ainda não adicionou dicas.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    console.log(`Renderizando ${dicas.length} dicas`);
     container.innerHTML = '';
     
-    dicas.forEach(dica => {
+    dicas.forEach((dica, index) => {
         const div = document.createElement('div');
         div.className = 'dicas-item';
+        
+        // Garantir que os campos existam
+        const titulo = dica.titulo || dica.title || `Dica ${index + 1}`;
+        const descricao = dica.descricao || dica.description || 'Descrição não disponível';
+        
         div.innerHTML = `
             <span class="dica-icon">💡</span>
-            <h3>${dica.titulo}</h3>
-            <p>${dica.descricao}</p>
+            <h3>${titulo}</h3>
+            <p>${descricao}</p>
         `;
         container.appendChild(div);
     });
+    
+    console.log('Dicas renderizadas com sucesso');
 }
 
-// Mostrar dicas estáticas como fallback
+// Dicas estáticas melhoradas como fallback
 function mostrarDicasEstaticas(container) {
+    console.log('Carregando dicas estáticas como fallback');
+    
     const dicasEstaticas = [
         {
-            titulo: "Hidratação",
-            descricao: "Beba pelo menos 2 litros de água por dia para manter-se hidratado e auxiliar no funcionamento do organismo."
+            titulo: "💧 Hidratação Adequada",
+            descricao: "Beba pelo menos 2 litros de água por dia para manter seu corpo hidratado e auxiliar no bom funcionamento dos órgãos."
         },
         {
-            titulo: "Exercícios Regulares",
-            descricao: "Pratique pelo menos 30 minutos de atividade física por dia para manter sua saúde física e mental."
+            titulo: "🏃 Exercícios Regulares",
+            descricao: "Pratique pelo menos 30 minutos de atividade física por dia para manter sua saúde física e mental em dia."
         },
         {
-            titulo: "Alimentação Equilibrada",
-            descricao: "Mantenha uma dieta rica em frutas, vegetais, proteínas magras e grãos integrais."
+            titulo: "🥗 Alimentação Equilibrada",
+            descricao: "Mantenha uma dieta rica em frutas, vegetais, proteínas magras e grãos integrais para nutrir seu corpo adequadamente."
         },
         {
-            titulo: "Sono Reparador",
-            descricao: "Durma de 7 a 8 horas por noite para permitir a recuperação adequada do corpo e mente."
+            titulo: "😴 Sono Reparador",
+            descricao: "Durma entre 7 a 8 horas por noite para permitir que seu corpo e mente se recuperem adequadamente."
         },
         {
-            titulo: "Gerenciamento do Estresse",
-            descricao: "Pratique técnicas de relaxamento como meditação, respiração profunda ou yoga para reduzir o estresse."
+            titulo: "🧘 Gerenciamento do Estresse",
+            descricao: "Pratique técnicas de relaxamento como meditação, respiração profunda ou yoga para reduzir o estresse diário."
+        },
+        {
+            titulo: "☀️ Exposição Solar Moderada",
+            descricao: "Tome sol por 15-20 minutos diários para produção de vitamina D, sempre com proteção adequada."
         }
     ];
     
+    // Adicionar aviso de que são dicas padrão
+    container.innerHTML = `
+        <div class="dicas-fallback-notice">
+            <p><i>⚠️ Conectando com o servidor... Exibindo dicas padrão por enquanto.</i></p>
+        </div>
+    `;
+    
     renderizarDicas(dicasEstaticas, container);
+}
+
+// Função de inicialização melhorada
+async function inicializarDicas() {
+    console.log('=== INICIANDO CARREGAMENTO DE DICAS ===');
+    
+    // Primeiro verificar se o servidor está rodando
+    const servidorOK = await verificarServidor();
+    
+    if (servidorOK) {
+        console.log('✅ Servidor está online, carregando dicas...');
+        await carregarDicas();
+    } else {
+        console.log('❌ Servidor offline, mostrando dicas estáticas');
+        const container = document.getElementById('lista-dicas-clientes');
+        if (container) {
+            mostrarDicasEstaticas(container);
+        }
+    }
+    
+    console.log('=== CARREGAMENTO DE DICAS FINALIZADO ===');
 }
 
 // Handler para seleção de arquivo de foto
@@ -551,6 +687,20 @@ function alterarFoto() {
     if (inputFoto) {
         inputFoto.click();
     }
+}
+
+// Funções para modal de crop (se necessário)
+function fecharModalCrop() {
+    const modal = document.getElementById('modal-crop');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function salvarFotoCropada() {
+    // Implementar se necessário
+    console.log('Salvar foto cropada não implementado');
+    fecharModalCrop();
 }
 
 // Mostrar alertas personalizados
@@ -636,10 +786,3 @@ function redirecionarParaLogin() {
     alert('Você precisa fazer login para acessar esta página.');
     window.location.href = 'inicio.html';
 }
-
-// Funções globais para serem chamadas do HTML
-window.toggleEdicao = toggleEdicao;
-window.cancelarEdicao = cancelarEdicao;
-window.alterarFoto = alterarFoto;
-window.abrirModalConsulta = abrirModalConsulta;
-window.fecharModal = fecharModal;

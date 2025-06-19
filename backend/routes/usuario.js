@@ -343,7 +343,7 @@ router.get('/dicas', (req, res) => {
                 
                 // Se não existir tabela Dica, tentar tabela Dicas
                 connection.query(
-                    'SELECT * FROM Dicas ORDER BY id_dica DESC LIMIT 10',
+                    'SELECT * FROM Dica ORDER BY id_dica DESC LIMIT 10',
                     (err2, results2) => {
                         if (err2) {
                             console.error('Erro ao buscar dicas da tabela Dicas:', err2);
