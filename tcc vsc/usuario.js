@@ -1,8 +1,12 @@
-// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - VERSÃO CORRIGIDA
+// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - VERSÃO OTIMIZADA
 
 // Variáveis globais
 let usuarioLogado = null;
 let perfilEditando = false;
+let dadosOriginais = {};
+
+// Configuração da API
+const API_BASE_URL = 'http://localhost:3000/api/usuario';
 
 // Inicializar página
 document.addEventListener('DOMContentLoaded', function() {
@@ -11,187 +15,192 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Função para inicializar a página
-function inicializarPagina() {
-    // Verificar se há usuário logado no localStorage
-    const usuarioStorage = localStorage.getItem('usuarioLogado');
-    console.log('Usuário no localStorage:', usuarioStorage);
-    
-    if (usuarioStorage) {
-        try {
-            usuarioLogado = JSON.parse(usuarioStorage);
-            console.log('Usuário logado:', usuarioLogado);
-            
-            atualizarBemVindo();
-            atualizarHeaderUsuario();
-            carregarPerfilUsuario();
-            carregarHistoricoCompleto();
-            configurarEventos();
-            
-            // Carregar dicas se o container existir
-            if (document.getElementById('lista-dicas-clientes')) {
-                carregarDicas();
-            }
-        } catch (error) {
-            console.error('Erro ao parsear usuário do localStorage:', error);
+async function inicializarPagina() {
+    try {
+        // Verificar se há usuário logado no localStorage
+        const usuarioStorage = localStorage.getItem('usuarioLogado');
+        console.log('Usuário no localStorage:', usuarioStorage);
+        
+        if (!usuarioStorage) {
+            console.log('Nenhum usuário logado encontrado');
             redirecionarParaLogin();
+            return;
         }
-    } else {
-        console.log('Nenhum usuário logado encontrado');
-        redirecionarParaLogin();
+
+        usuarioLogado = JSON.parse(usuarioStorage);
+        console.log('Usuário logado:', usuarioLogado);
+        
+        // Inicializar componentes da página
+        await Promise.all([
+            atualizarInterface(),
+            carregarPerfilUsuario(),
+            carregarHistoricoCompleto(),
+            carregarDicas()
+        ]);
+        
+        configurarEventos();
+        
+    } catch (error) {
+        console.error('Erro ao inicializar página:', error);
+        mostrarAlerta('Erro ao carregar dados da página', 'error');
     }
 }
 
-// Função para redirecionar para login
-function redirecionarParaLogin() {
-    alert('Você precisa fazer login para acessar esta página.');
-    window.location.href = 'inicio.html';
+// Atualizar interface com dados do usuário
+function atualizarInterface() {
+    if (!usuarioLogado) return;
+    
+    // Atualizar mensagem de boas-vindas
+    const welcomeElement = document.getElementById('welcome-message');
+    if (welcomeElement && usuarioLogado.nome) {
+        welcomeElement.textContent = `Bem-vindo, ${usuarioLogado.nome}!`;
+    }
+    
+    // Atualizar foto do header
+    const fotoHeader = document.getElementById('header-foto');
+    if (fotoHeader) {
+        if (usuarioLogado.foto_perfil) {
+            fotoHeader.src = `${API_BASE_URL.replace('/api/usuario', '')}${usuarioLogado.foto_perfil}`;
+            fotoHeader.onerror = () => {
+                fotoHeader.src = 'images/user-placeholder.jpg';
+            };
+        } else {
+            fotoHeader.src = 'images/user-placeholder.jpg';
+        }
+    }
 }
 
 // Configurar todos os eventos
 function configurarEventos() {
     console.log('Configurando eventos...');
     
-    // Configurar input de foto
+    // Input de foto
     const inputFoto = document.getElementById('input-foto');
     if (inputFoto) {
         inputFoto.addEventListener('change', handleFileSelect);
-        console.log('Event listener para input-foto configurado');
     }
 
-    // Configurar botão de alterar foto
-    const btnFoto = document.querySelector('.btn-foto');
-    if (btnFoto) {
-        btnFoto.addEventListener('click', alterarFoto);
-        console.log('Event listener para btn-foto configurado');
-    }
-
-    // Configurar botões do perfil
+    // Botões do perfil
     const btnEditar = document.getElementById('btn-editar');
     const btnCancelar = document.getElementById('btn-cancelar');
     
     if (btnEditar) {
         btnEditar.addEventListener('click', toggleEdicao);
-        console.log('Event listener para btn-editar configurado');
     }
     if (btnCancelar) {
         btnCancelar.addEventListener('click', cancelarEdicao);
-        console.log('Event listener para btn-cancelar configurado');
     }
 
-    // Fechar modal ao clicar fora
-    window.addEventListener('click', function(event) {
-        const modal = document.getElementById('modal-consulta');
-        if (event.target === modal) {
-            modal.style.display = 'none';
+    // Modal de consulta
+    const modal = document.getElementById('modal-consulta');
+    if (modal) {
+        // Fechar modal ao clicar no X
+        const closeBtn = modal.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', fecharModal);
         }
-    });
+        
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                fecharModal();
+            }
+        });
+    }
 
-    // Configurar botão de agendamento se existir
+    // Botão de agendamento Calendly
     const btnAgendar = document.getElementById('agendar');
     if (btnAgendar && typeof Calendly !== 'undefined') {
         btnAgendar.addEventListener('click', function() {
-            Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
+            try {
+                Calendly.initPopupWidget({ url: 'https://calendly.com/julianunesteixeira4' });
+            } catch (error) {
+                console.error('Erro ao abrir Calendly:', error);
+                mostrarAlerta('Erro ao abrir agendamento. Tente novamente.', 'error');
+            }
             return false;
         });
-        console.log('Event listener para agendamento configurado');
     }
+    
+    console.log('Eventos configurados com sucesso');
 }
 
-// Atualizar mensagem de boas-vindas com nome do usuário
-function atualizarBemVindo() {
-    if (usuarioLogado && usuarioLogado.nome) {
-        const welcomeElement = document.getElementById('welcome-message');
-        if (welcomeElement) {
-            welcomeElement.textContent = `Bem-vindo, ${usuarioLogado.nome}!`;
-            console.log('Mensagem de boas-vindas atualizada');
-        }
-    }
-}
-
-// Atualizar header com dados do usuário
-function atualizarHeaderUsuario() {
-    if (usuarioLogado) {
-        // Atualizar foto se existir
-        const fotoProfile = document.getElementById('header-foto');
-        if (fotoProfile && usuarioLogado.foto_perfil) {
-            fotoProfile.src = `http://localhost:3000${usuarioLogado.foto_perfil}`;
-            fotoProfile.onerror = function() {
-                this.src = 'images/user-placeholder.jpg';
-            };
-            console.log('Foto do header atualizada');
-        }
-    }
-}
-
-// Carregar dados do perfil
+// Carregar dados do perfil do usuário
 async function carregarPerfilUsuario() {
-    if (!usuarioLogado) {
-        console.error('Usuário não logado');
+    if (!usuarioLogado?.id_usuario) {
+        console.error('ID do usuário não encontrado');
         return;
     }
     
     console.log('Carregando perfil do usuário:', usuarioLogado.id_usuario);
     
     try {
-        const response = await fetch(`http://localhost:3000/api/usuario/dados/${usuarioLogado.id_usuario}`);
+        const response = await fetch(`${API_BASE_URL}/dados/${usuarioLogado.id_usuario}`);
         
         if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+            throw new Error(`Erro HTTP: ${response.status}`);
         }
         
         const perfil = await response.json();
         console.log('Perfil carregado:', perfil);
         
-        // Preencher campos do formulário
-        preencherCamposPerfil(perfil);
+        // Armazenar dados originais para cancelar edição
+        dadosOriginais = { ...perfil };
+        
+        // Preencher formulário
+        preencherFormularioPerfil(perfil);
         
         // Atualizar foto de perfil
         atualizarFotoPerfil(perfil.foto_perfil);
         
-        // Atualizar usuarioLogado com dados mais recentes
+        // Atualizar dados do usuário logado
         usuarioLogado = { ...usuarioLogado, ...perfil };
         localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
         
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
-        mostrarAlerta('Erro ao carregar dados do perfil: ' + error.message, 'error');
+        mostrarAlerta('Erro ao carregar dados do perfil', 'error');
     }
 }
 
-// Função auxiliar para preencher campos do perfil
-function preencherCamposPerfil(perfil) {
+// Preencher formulário do perfil
+function preencherFormularioPerfil(dados) {
     const campos = [
-        { id: 'nome', valor: perfil.nome },
-        { id: 'email', valor: perfil.email },
-        { id: 'telefone', valor: perfil.telefone },
-        { id: 'endereco', valor: perfil.endereco },
-        { id: 'data_nascimento', valor: perfil.data_nascimento ? perfil.data_nascimento.split('T')[0] : '' }
+        { id: 'nome', valor: dados.nome || '' },
+        { id: 'email', valor: dados.email || '' },
+        { id: 'telefone', valor: dados.telefone || '' },
+        { id: 'endereco', valor: dados.endereco || '' },
+        { id: 'data_nascimento', valor: dados.data_nascimento ? dados.data_nascimento.split('T')[0] : '' }
     ];
 
     campos.forEach(campo => {
         const elemento = document.getElementById(campo.id);
         if (elemento) {
-            elemento.value = campo.valor || '';
+            elemento.value = campo.valor;
         }
     });
 }
 
-// Função auxiliar para atualizar foto de perfil
+// Atualizar foto de perfil
 function atualizarFotoPerfil(fotoPerfil) {
     const fotoPreview = document.getElementById('foto-preview');
-    if (fotoPreview) {
-        if (fotoPerfil) {
-            fotoPreview.innerHTML = `<img src="http://localhost:3000${fotoPerfil}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.parentElement.innerHTML='<span class=\\'foto-placeholder\\'>👤</span>'">`;
-        } else {
-            fotoPreview.innerHTML = '<span class="foto-placeholder">👤</span>';
-        }
+    if (!fotoPreview) return;
+    
+    if (fotoPerfil) {
+        const imgUrl = `${API_BASE_URL.replace('/api/usuario', '')}${fotoPerfil}`;
+        fotoPreview.innerHTML = `
+            <img src="${imgUrl}" 
+                 alt="Foto de perfil" 
+                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+                 onerror="this.parentElement.innerHTML='<span class=\\'foto-placeholder\\'>👤</span>'">
+        `;
+    } else {
+        fotoPreview.innerHTML = '<span class="foto-placeholder">👤</span>';
     }
 }
 
-// Toggle edição do perfil
+// Toggle entre modo de edição e visualização
 function toggleEdicao() {
-    console.log('Toggle edição, estado atual:', perfilEditando);
-    
     if (!perfilEditando) {
         iniciarEdicao();
     } else {
@@ -201,24 +210,20 @@ function toggleEdicao() {
 
 // Iniciar modo de edição
 function iniciarEdicao() {
-    const inputs = document.querySelectorAll('.perfil-form input');
+    const inputs = document.querySelectorAll('.perfil-form input:not(#email)');
     const btnEditar = document.getElementById('btn-editar');
     const btnCancelar = document.getElementById('btn-cancelar');
     
+    // Habilitar inputs (exceto email)
     inputs.forEach(input => {
-        if (input.id !== 'email') { // Email não pode ser editado
-            input.removeAttribute('readonly');
-            input.style.backgroundColor = 'white';
-            input.style.border = '1px solid #ddd';
-        }
+        input.removeAttribute('readonly');
+        input.style.backgroundColor = 'white';
+        input.style.border = '1px solid #ddd';
     });
     
-    if (btnEditar) {
-        btnEditar.textContent = 'Salvar Alterações';
-    }
-    if (btnCancelar) {
-        btnCancelar.style.display = 'inline-block';
-    }
+    // Atualizar botões
+    if (btnEditar) btnEditar.textContent = 'Salvar Alterações';
+    if (btnCancelar) btnCancelar.style.display = 'inline-block';
     
     perfilEditando = true;
     console.log('Modo de edição ativado');
@@ -228,8 +233,15 @@ function iniciarEdicao() {
 function cancelarEdicao() {
     console.log('Cancelando edição...');
     
-    // Recarregar dados originais
-    carregarPerfilUsuario();
+    // Restaurar dados originais
+    preencherFormularioPerfil(dadosOriginais);
+    
+    // Restaurar foto original
+    atualizarFotoPerfil(dadosOriginais.foto_perfil);
+    
+    // Limpar input de arquivo
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) inputFoto.value = '';
     
     // Sair do modo de edição
     finalizarEdicao();
@@ -241,54 +253,49 @@ function finalizarEdicao() {
     const btnEditar = document.getElementById('btn-editar');
     const btnCancelar = document.getElementById('btn-cancelar');
     
+    // Desabilitar inputs
     inputs.forEach(input => {
         input.setAttribute('readonly', true);
         input.style.backgroundColor = '#f5f5f5';
         input.style.border = '1px solid #ccc';
     });
     
-    if (btnEditar) {
-        btnEditar.textContent = 'Editar Perfil';
-    }
-    if (btnCancelar) {
-        btnCancelar.style.display = 'none';
-    }
+    // Restaurar botões
+    if (btnEditar) btnEditar.textContent = 'Editar Perfil';
+    if (btnCancelar) btnCancelar.style.display = 'none';
     
     perfilEditando = false;
     console.log('Modo de edição desativado');
 }
 
-// Salvar perfil
+// Salvar alterações do perfil
 async function salvarPerfil() {
-    if (!usuarioLogado) {
-        console.error('Usuário não logado');
+    if (!usuarioLogado?.id_usuario) {
+        console.error('Usuário não identificado');
         return;
     }
 
     console.log('Salvando perfil...');
     
-    const formData = new FormData();
-    formData.append('nome', document.getElementById('nome').value);
-    formData.append('telefone', document.getElementById('telefone').value);
-    formData.append('endereco', document.getElementById('endereco').value);
-    formData.append('data_nascimento', document.getElementById('data_nascimento').value);
-
-    const file = document.getElementById('input-foto').files[0];
-    if (file) {
-        formData.append('foto', file);
-        console.log('Arquivo de foto adicionado ao FormData');
-    }
-
     try {
-        // Determinar endpoint correto
-        let endpoint;
-        if (usuarioLogado.tipo === 'paciente' && usuarioLogado.id_paciente) {
-            endpoint = `http://localhost:3000/api/usuario/paciente/perfil/${usuarioLogado.id_paciente}`;
-        } else {
-            endpoint = `http://localhost:3000/api/usuario/perfil/${usuarioLogado.id_usuario}`;
+        const formData = new FormData();
+        formData.append('nome', document.getElementById('nome').value.trim());
+        formData.append('telefone', document.getElementById('telefone').value.trim());
+        formData.append('endereco', document.getElementById('endereco').value.trim());
+        formData.append('data_nascimento', document.getElementById('data_nascimento').value);
+
+        // Adicionar foto se selecionada
+        const inputFoto = document.getElementById('input-foto');
+        if (inputFoto?.files[0]) {
+            formData.append('foto', inputFoto.files[0]);
         }
 
-        console.log('Enviando para endpoint:', endpoint);
+        // Determinar endpoint correto
+        const endpoint = usuarioLogado.tipo === 'paciente' && usuarioLogado.id_paciente
+            ? `${API_BASE_URL}/paciente/perfil/${usuarioLogado.id_paciente}`
+            : `${API_BASE_URL}/perfil/${usuarioLogado.id_usuario}`;
+
+        console.log('Enviando para:', endpoint);
 
         const response = await fetch(endpoint, {
             method: 'PUT',
@@ -296,24 +303,18 @@ async function salvarPerfil() {
         });
 
         const resultado = await response.json();
-        console.log('Resposta do servidor:', resultado);
 
         if (response.ok) {
             mostrarAlerta('Perfil atualizado com sucesso!', 'success');
             
-            // Atualizar dados locais
-            usuarioLogado.nome = document.getElementById('nome').value;
-            localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
-            
-            // Recarregar perfil e atualizar interface
+            // Recarregar dados atualizados
             await carregarPerfilUsuario();
-            atualizarBemVindo();
-            atualizarHeaderUsuario();
+            atualizarInterface();
             
-            // Sair do modo de edição
+            // Finalizar edição
             finalizarEdicao();
         } else {
-            mostrarAlerta(resultado.mensagem || 'Erro ao salvar perfil', 'error');
+            throw new Error(resultado.mensagem || 'Erro ao salvar perfil');
         }
     } catch (error) {
         console.error('Erro ao salvar perfil:', error);
@@ -321,110 +322,116 @@ async function salvarPerfil() {
     }
 }
 
-// Carregar histórico completo de consultas
+// Carregar histórico de consultas
 async function carregarHistoricoCompleto() {
-    if (!usuarioLogado) {
-        console.error('Usuário não logado');
-        return;
-    }
-    
     const container = document.getElementById('historico-completo');
-    if (!container) {
-        console.log('Container historico-completo não encontrado');
-        return;
-    }
+    if (!container || !usuarioLogado?.id_usuario) return;
     
     console.log('Carregando histórico de consultas...');
     container.innerHTML = '<div class="loading">Carregando histórico...</div>';
 
     try {
-        const response = await fetch(`http://localhost:3000/api/usuario/fichas/${usuarioLogado.id_usuario}`);
+        const response = await fetch(`${API_BASE_URL}/fichas/${usuarioLogado.id_usuario}`);
         
         if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+            throw new Error(`Erro HTTP: ${response.status}`);
         }
         
         const historico = await response.json();
         console.log('Histórico carregado:', historico);
 
         if (Array.isArray(historico) && historico.length > 0) {
-            let html = '<div class="historico-lista">';
-            historico.forEach(ficha => {
-                const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString('pt-BR');
-                html += `
-                    <div class="historico-item" onclick="abrirModalConsulta(${ficha.id_ficha})">
-                        <div class="historico-header">
-                            <h3>Consulta - ${dataConsulta}</h3>
-                            <span class="historico-status">Concluída</span>
-                        </div>
-                        <div class="historico-info">
-                            <p><strong>Queixa:</strong> ${ficha.queixa_principal || 'Não informada'}</p>
-                            <p class="click-detail">Clique para ver detalhes completos</p>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
+            renderizarHistorico(historico, container);
         } else {
             container.innerHTML = '<div class="no-data"><p>Não há consultas anteriores registradas.</p></div>';
         }
     } catch (error) {
         console.error('Erro ao carregar histórico:', error);
-        container.innerHTML = '<div class="error"><p>Erro ao carregar histórico de consultas: ' + error.message + '</p></div>';
+        container.innerHTML = '<div class="error"><p>Erro ao carregar histórico de consultas</p></div>';
     }
+}
+
+// Renderizar histórico de consultas
+function renderizarHistorico(historico, container) {
+    let html = '<div class="historico-lista">';
+    
+    historico.forEach(ficha => {
+        const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString('pt-BR');
+        html += `
+            <div class="historico-item" onclick="abrirModalConsulta(${ficha.id_ficha})">
+                <div class="historico-header">
+                    <h3>Consulta - ${dataConsulta}</h3>
+                    <span class="historico-status">Concluída</span>
+                </div>
+                <div class="historico-info">
+                    <p><strong>Queixa:</strong> ${ficha.queixa_principal || 'Não informada'}</p>
+                    <p class="click-detail">Clique para ver detalhes completos</p>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 // Abrir modal com detalhes da consulta
 async function abrirModalConsulta(idFicha) {
-    console.log('Abrindo modal para ficha:', idFicha);
-    
     const modal = document.getElementById('modal-consulta');
     const modalBody = document.getElementById('modal-body-consulta');
     
     if (!modal || !modalBody) {
-        console.error('Modal ou modal-body não encontrado');
+        console.error('Elementos do modal não encontrados');
         return;
     }
+    
+    console.log('Abrindo modal para ficha:', idFicha);
     
     modalBody.innerHTML = '<p>Carregando detalhes da consulta...</p>';
     modal.style.display = 'block';
 
     try {
-        const response = await fetch(`http://localhost:3000/api/usuario/ficha/${idFicha}`);
+        const response = await fetch(`${API_BASE_URL}/ficha/${idFicha}`);
         
         if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+            throw new Error(`Erro HTTP: ${response.status}`);
         }
         
         const detalhes = await response.json();
         console.log('Detalhes da consulta:', detalhes);
 
-        const dataFormatada = new Date(detalhes.data_consulta).toLocaleDateString('pt-BR');
-        modalBody.innerHTML = `
-            <div class="consulta-detalhes">
-                <div class="detalhe-item">
-                    <strong>📅 Data da Consulta:</strong>
-                    <span>${dataFormatada}</span>
-                </div>
-                <div class="detalhe-item">
-                    <strong>🩺 Queixa Principal:</strong>
-                    <span>${detalhes.queixa_principal || 'Não informado'}</span>
-                </div>
-                <div class="detalhe-item">
-                    <strong>📋 Histórico Médico:</strong>
-                    <span>${detalhes.historico_medico || 'Não informado'}</span>
-                </div>
-                <div class="detalhe-item">
-                    <strong>📝 Observações:</strong>
-                    <span>${detalhes.observacoes || 'Nenhuma observação registrada'}</span>
-                </div>
-            </div>
-        `;
+        renderizarDetalhesConsulta(detalhes, modalBody);
+        
     } catch (error) {
         console.error('Erro ao carregar detalhes:', error);
-        modalBody.innerHTML = '<div class="error"><p>Erro ao carregar detalhes da consulta: ' + error.message + '</p></div>';
+        modalBody.innerHTML = '<div class="error"><p>Erro ao carregar detalhes da consulta</p></div>';
     }
+}
+
+// Renderizar detalhes da consulta no modal
+function renderizarDetalhesConsulta(detalhes, container) {
+    const dataFormatada = new Date(detalhes.data_consulta).toLocaleDateString('pt-BR');
+    
+    container.innerHTML = `
+        <div class="consulta-detalhes">
+            <div class="detalhe-item">
+                <strong>📅 Data da Consulta:</strong>
+                <span>${dataFormatada}</span>
+            </div>
+            <div class="detalhe-item">
+                <strong>🩺 Queixa Principal:</strong>
+                <span>${detalhes.queixa_principal || 'Não informado'}</span>
+            </div>
+            <div class="detalhe-item">
+                <strong>📋 Histórico Médico:</strong>
+                <span>${detalhes.historico_medico || 'Não informado'}</span>
+            </div>
+            <div class="detalhe-item">
+                <strong>📝 Observações:</strong>
+                <span>${detalhes.observacoes || 'Nenhuma observação registrada'}</span>
+            </div>
+        </div>
+    `;
 }
 
 // Fechar modal de consulta
@@ -435,142 +442,59 @@ function fecharModal() {
     }
 }
 
-// Função para mostrar alertas
-function mostrarAlerta(mensagem, tipo = 'info') {
-    console.log(`Alerta ${tipo}:`, mensagem);
-    
-    // Remover alertas existentes
-    const alertasExistentes = document.querySelectorAll('.custom-alert');
-    alertasExistentes.forEach(alerta => alerta.remove());
-    
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `custom-alert alert-${tipo}`;
-    alertDiv.innerHTML = `
-        <div class="alert-content">
-            <span class="alert-icon">${tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : 'ℹ️'}</span>
-            <span class="alert-message">${mensagem}</span>
-        </div>
-    `;
-    
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 5px;
-        color: white;
-        font-weight: bold;
-        z-index: 10000;
-        max-width: 400px;
-        background-color: ${tipo === 'success' ? '#4CAF50' : tipo === 'error' ? '#f44336' : '#2196F3'};
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    `;
-    
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.parentNode.removeChild(alertDiv);
-        }
-    }, 4000);
-}
-
-// Função para alterar foto
-function alterarFoto() {
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.click();
-    } else {
-        console.error('Input de foto não encontrado');
-    }
-}
-
-// Handler para seleção de arquivo
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file) {
-        console.log('Arquivo selecionado:', file.name, file.size, file.type);
-        
-        // Validar tipo de arquivo
-        if (!file.type.startsWith('image/')) {
-            mostrarAlerta('Por favor, selecione apenas arquivos de imagem', 'error');
-            return;
-        }
-        
-        // Validar tamanho (máximo 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            mostrarAlerta('A imagem deve ter no máximo 5MB', 'error');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fotoPreview = document.getElementById('foto-preview');
-            if (fotoPreview) {
-                fotoPreview.innerHTML = `<img src="${e.target.result}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-                console.log('Preview da foto atualizado');
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-// Função para carregar dicas
+// Carregar dicas de saúde
 async function carregarDicas() {
     const container = document.getElementById('lista-dicas-clientes');
     const loading = document.getElementById('loading-dicas');
     
-    if (!container) {
-        console.log('Container de dicas não encontrado');
-        return;
-    }
+    if (!container) return;
     
     console.log('Carregando dicas...');
     
     try {
-        const response = await fetch('http://localhost:3000/api/usuario/dicas');
+        const response = await fetch(`${API_BASE_URL}/dicas`);
         
         if (!response.ok) {
-            // Se a rota não existir, mostrar dicas estáticas
-            if (response.status === 404) {
-                mostrarDicasEstaticas(container, loading);
-                return;
-            }
-            throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+            throw new Error(`Erro HTTP: ${response.status}`);
         }
         
         const dicas = await response.json();
         console.log('Dicas carregadas:', dicas);
         
         if (loading) loading.style.display = 'none';
-
-        if (Array.isArray(dicas) && dicas.length > 0) {
-            container.innerHTML = '';
-            dicas.forEach(dica => {
-                const div = document.createElement('div');
-                div.className = 'dicas-item';
-                div.innerHTML = `
-                    <span class="dica-icon">💡</span>
-                    <h3>${dica.titulo}</h3>
-                    <p>${dica.descricao}</p>
-                `;
-                container.appendChild(div);
-            });
-        } else {
-            container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
-        }
+        
+        renderizarDicas(dicas, container);
+        
     } catch (error) {
         console.error('Erro ao carregar dicas:', error);
-        mostrarDicasEstaticas(container, loading);
+        if (loading) loading.style.display = 'none';
+        mostrarDicasEstaticas(container);
     }
 }
 
-// Função para mostrar dicas estáticas como fallback
-function mostrarDicasEstaticas(container, loading) {
-    console.log('Mostrando dicas estáticas como fallback');
+// Renderizar dicas na interface
+function renderizarDicas(dicas, container) {
+    if (!Array.isArray(dicas) || dicas.length === 0) {
+        container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
+        return;
+    }
     
-    if (loading) loading.style.display = 'none';
+    container.innerHTML = '';
     
+    dicas.forEach(dica => {
+        const div = document.createElement('div');
+        div.className = 'dicas-item';
+        div.innerHTML = `
+            <span class="dica-icon">💡</span>
+            <h3>${dica.titulo}</h3>
+            <p>${dica.descricao}</p>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// Mostrar dicas estáticas como fallback
+function mostrarDicasEstaticas(container) {
     const dicasEstaticas = [
         {
             titulo: "Hidratação",
@@ -587,35 +511,146 @@ function mostrarDicasEstaticas(container, loading) {
         {
             titulo: "Sono Reparador",
             descricao: "Durma de 7 a 8 horas por noite para permitir a recuperação adequada do corpo e mente."
+        },
+        {
+            titulo: "Gerenciamento do Estresse",
+            descricao: "Pratique técnicas de relaxamento como meditação, respiração profunda ou yoga para reduzir o estresse."
         }
     ];
     
-    container.innerHTML = '';
-    dicasEstaticas.forEach(dica => {
-        const div = document.createElement('div');
-        div.className = 'dicas-item';
-        div.innerHTML = `
-            <span class="dica-icon">💡</span>
-            <h3>${dica.titulo}</h3>
-            <p>${dica.descricao}</p>
-        `;
-        container.appendChild(div);
-    });
+    renderizarDicas(dicasEstaticas, container);
 }
 
-// Adicionar estilos para o alert se não existirem
-if (!document.querySelector('style[data-usuario-alerts]')) {
-    const style = document.createElement('style');
-    style.setAttribute('data-usuario-alerts', 'true');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
+// Handler para seleção de arquivo de foto
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    console.log('Arquivo selecionado:', file.name, file.size, file.type);
+    
+    // Validações
+    if (!file.type.startsWith('image/')) {
+        mostrarAlerta('Por favor, selecione apenas arquivos de imagem', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+        mostrarAlerta('A imagem deve ter no máximo 5MB', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Criar preview da imagem
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const fotoPreview = document.getElementById('foto-preview');
+        if (fotoPreview) {
+            fotoPreview.innerHTML = `
+                <img src="${e.target.result}" 
+                     alt="Foto de perfil" 
+                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            `;
         }
-        
-        .custom-alert {
-            animation: slideIn 0.3s ease-out;
-        }
-    `;
-    document.head.appendChild(style);
+    };
+    reader.readAsDataURL(file);
 }
+
+// Função para alterar foto (chamada pelo botão)
+function alterarFoto() {
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) {
+        inputFoto.click();
+    }
+}
+
+// Mostrar alertas personalizados
+function mostrarAlerta(mensagem, tipo = 'info') {
+    console.log(`Alerta ${tipo}:`, mensagem);
+    
+    // Remover alertas existentes
+    document.querySelectorAll('.custom-alert').forEach(alert => alert.remove());
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert alert-${tipo}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800',
+        info: '#2196F3'
+    };
+    
+    alertDiv.innerHTML = `
+        <div class="alert-content">
+            <span class="alert-icon">${icons[tipo] || icons.info}</span>
+            <span class="alert-message">${mensagem}</span>
+        </div>
+    `;
+    
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        max-width: 400px;
+        background-color: ${colors[tipo] || colors.info};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideInRight 0.3s ease-out;
+        cursor: pointer;
+    `;
+    
+    // Adicionar animação CSS se não existir
+    if (!document.querySelector('#alert-styles')) {
+        const style = document.createElement('style');
+        style.id = 'alert-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            .custom-alert:hover {
+                transform: translateX(-5px);
+                transition: transform 0.2s ease;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(alertDiv);
+    
+    // Remover após 5 segundos ou ao clicar
+    const removeAlert = () => {
+        if (alertDiv.parentNode) {
+            alertDiv.style.animation = 'slideInRight 0.3s ease-out reverse';
+            setTimeout(() => alertDiv.remove(), 300);
+        }
+    };
+    
+    alertDiv.addEventListener('click', removeAlert);
+    setTimeout(removeAlert, 5000);
+}
+
+// Redirecionar para página de login
+function redirecionarParaLogin() {
+    alert('Você precisa fazer login para acessar esta página.');
+    window.location.href = 'inicio.html';
+}
+
+// Funções globais para serem chamadas do HTML
+window.toggleEdicao = toggleEdicao;
+window.cancelarEdicao = cancelarEdicao;
+window.alterarFoto = alterarFoto;
+window.abrirModalConsulta = abrirModalConsulta;
+window.fecharModal = fecharModal;
