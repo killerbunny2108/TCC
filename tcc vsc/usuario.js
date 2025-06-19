@@ -1,4 +1,4 @@
-// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - VERSÃO OTIMIZADA
+// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - VERSÃO CORRIGIDA
 
 // Variáveis globais
 let usuarioLogado = null;
@@ -60,7 +60,7 @@ function atualizarInterface() {
     const fotoHeader = document.getElementById('header-foto');
     if (fotoHeader) {
         if (usuarioLogado.foto_perfil) {
-            fotoHeader.src = `${API_BASE_URL.replace('/api/usuario', '')}${usuarioLogado.foto_perfil}`;
+            fotoHeader.src = `http://localhost:3000${usuarioLogado.foto_perfil}`;
             fotoHeader.onerror = () => {
                 fotoHeader.src = 'images/user-placeholder.jpg';
             };
@@ -78,17 +78,6 @@ function configurarEventos() {
     const inputFoto = document.getElementById('input-foto');
     if (inputFoto) {
         inputFoto.addEventListener('change', handleFileSelect);
-    }
-
-    // Botões do perfil
-    const btnEditar = document.getElementById('btn-editar');
-    const btnCancelar = document.getElementById('btn-cancelar');
-    
-    if (btnEditar) {
-        btnEditar.addEventListener('click', toggleEdicao);
-    }
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', cancelarEdicao);
     }
 
     // Modal de consulta
@@ -187,7 +176,7 @@ function atualizarFotoPerfil(fotoPerfil) {
     if (!fotoPreview) return;
     
     if (fotoPerfil) {
-        const imgUrl = `${API_BASE_URL.replace('/api/usuario', '')}${fotoPerfil}`;
+        const imgUrl = `http://localhost:3000${fotoPerfil}`;
         fotoPreview.innerHTML = `
             <img src="${imgUrl}" 
                  alt="Foto de perfil" 
@@ -322,7 +311,7 @@ async function salvarPerfil() {
     }
 }
 
-// Carregar histórico de consultas
+// Carregar histórico de consultas - CORRIGIDO
 async function carregarHistoricoCompleto() {
     const container = document.getElementById('historico-completo');
     if (!container || !usuarioLogado?.id_usuario) return;
@@ -442,7 +431,7 @@ function fecharModal() {
     }
 }
 
-// Carregar dicas de saúde
+// Carregar dicas de saúde - CORRIGIDO
 async function carregarDicas() {
     const container = document.getElementById('lista-dicas-clientes');
     const loading = document.getElementById('loading-dicas');
