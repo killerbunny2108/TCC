@@ -403,7 +403,7 @@ h1, .terapias h1{
     max-width: 700px;
     height: 500px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.95);
+    background: #cfaee4;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
@@ -456,7 +456,7 @@ h1, .terapias h1{
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(74, 43, 99, 0.8);
+    background: #cfaee4;
     color: white;
     border: none;
     width: 50px;
@@ -569,7 +569,7 @@ h1, .terapias h1{
     min-height: 100vh;
     padding: 80px 20px 60px;
     background: linear-gradient(135deg, var(--primary-color), var(--button-hover));
-    color: white;
+    color: #cfaee4;
     position: relative;
     overflow: hidden;
 }
@@ -743,7 +743,7 @@ h1, .terapias h1{
     position: relative;
     width: 100%;
     height: 600px;
-    background: rgba(255, 255, 255, 0.95);
+    background-color: #cfaee4;
     border-radius: 25px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -760,7 +760,7 @@ h1, .terapias h1{
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #fafafa, #f0f0f0);
+    background: #cfaee4; /* COR DA DIV QUE TEM ATRÁS DO CARROSSEL*/
 }
 
 .carousel-slide.active {
