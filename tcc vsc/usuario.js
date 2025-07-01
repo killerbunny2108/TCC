@@ -1,4 +1,4 @@
-// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - VERSÃO CORRIGIDA
+// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - PARTE 1: INICIALIZAÇÃO E CONFIGURAÇÃO
 
 // Variáveis globais
 let usuarioLogado = null;
@@ -40,19 +40,31 @@ async function inicializarPagina() {
         usuarioLogado = JSON.parse(usuarioStorage);
         console.log('Usuário logado:', usuarioLogado);
         
-        // Inicializar componentes da página
-        await Promise.all([
-            atualizarInterface(),
-            carregarPerfilUsuario(),
-            carregarHistoricoCompleto(),
-            inicializarDicas()
-        ]);
+        // Verificar se temos ID do usuário
+        if (!usuarioLogado.id_usuario && !usuarioLogado.id) {
+            console.error('ID do usuário não encontrado no localStorage');
+            redirecionarParaLogin();
+            return;
+        }
+
+        // Garantir que temos o ID correto
+        if (!usuarioLogado.id_usuario && usuarioLogado.id) {
+            usuarioLogado.id_usuario = usuarioLogado.id;
+        }
+        
+        // Inicializar componentes da página em sequência para melhor controle
+        await atualizarInterface();
+        await carregarPerfilUsuario();
+        await carregarHistoricoCompleto();
+        await inicializarDicas();
         
         configurarEventos();
         
+        console.log('Página inicializada com sucesso');
+        
     } catch (error) {
         console.error('Erro ao inicializar página:', error);
-        mostrarAlerta('Erro ao carregar dados da página', 'error');
+        mostrarAlerta('Erro ao carregar dados da página: ' + error.message, 'error');
     }
 }
 
@@ -77,6 +89,12 @@ function atualizarInterface() {
         } else {
             fotoHeader.src = 'images/user-placeholder.jpg';
         }
+    }
+
+    // Garantir que o email seja exibido corretamente
+    const emailInput = document.getElementById('email');
+    if (emailInput && usuarioLogado.email) {
+        emailInput.value = usuarioLogado.email;
     }
 }
 
@@ -124,24 +142,67 @@ function configurarEventos() {
     console.log('Eventos configurados com sucesso');
 }
 
-// Carregar dados do perfil do usuário
+// Carregar dados do perfil do usuário - CORRIGIDO
 async function carregarPerfilUsuario() {
     if (!usuarioLogado?.id_usuario) {
         console.error('ID do usuário não encontrado');
+        mostrarAlerta('Erro: ID do usuário não encontrado', 'error');
         return;
     }
     
     console.log('Carregando perfil do usuário:', usuarioLogado.id_usuario);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/dados/${usuarioLogado.id_usuario}`);
+        // Tentar diferentes endpoints para garantir compatibilidade
+        let response;
+        let perfil;
         
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        // Primeira tentativa: endpoint específico para dados
+        try {
+            response = await fetch(`${API_BASE_URL}/dados/${usuarioLogado.id_usuario}`);
+            if (response.ok) {
+                perfil = await response.json();
+                console.log('Perfil carregado via /dados:', perfil);
+            }
+        } catch (error) {
+            console.log('Erro no endpoint /dados:', error.message);
         }
         
-        const perfil = await response.json();
-        console.log('Perfil carregado:', perfil);
+        // Segunda tentativa: endpoint de perfil
+        if (!perfil) {
+            try {
+                response = await fetch(`${API_BASE_URL}/perfil/${usuarioLogado.id_usuario}`);
+                if (response.ok) {
+                    perfil = await response.json();
+                    console.log('Perfil carregado via /perfil:', perfil);
+                }
+            } catch (error) {
+                console.log('Erro no endpoint /perfil:', error.message);
+            }
+        }
+        
+        // Terceira tentativa: buscar por ID de paciente se existir
+        if (!perfil && usuarioLogado.id_paciente) {
+            try {
+                response = await fetch(`${API_BASE_URL}/paciente/${usuarioLogado.id_paciente}`);
+                if (response.ok) {
+                    perfil = await response.json();
+                    console.log('Perfil carregado via /paciente:', perfil);
+                }
+            } catch (error) {
+                console.log('Erro no endpoint /paciente:', error.message);
+            }
+        }
+        
+        if (!perfil || !response.ok) {
+            throw new Error(`Erro ao carregar perfil: ${response?.status || 'Servidor indisponível'}`);
+        }
+        
+        // Garantir que o email do login seja preservado
+        if (!perfil.email && usuarioLogado.email) {
+            perfil.email = usuarioLogado.email;
+            console.log('Email do login preservado:', perfil.email);
+        }
         
         // Armazenar dados originais para cancelar edição
         dadosOriginais = { ...perfil };
@@ -156,19 +217,30 @@ async function carregarPerfilUsuario() {
         usuarioLogado = { ...usuarioLogado, ...perfil };
         localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
         
+        console.log('Perfil carregado e interface atualizada com sucesso');
+        
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
-        mostrarAlerta('Erro ao carregar dados do perfil', 'error');
+        mostrarAlerta('Erro ao carregar dados do perfil: ' + error.message, 'error');
+        
+        // Fallback: usar dados do localStorage se disponível
+        if (usuarioLogado.email) {
+            console.log('Usando dados do localStorage como fallback');
+            preencherFormularioPerfil(usuarioLogado);
+            dadosOriginais = { ...usuarioLogado };
+        }
     }
 }
 
-// Preencher formulário do perfil
+// Preencher formulário do perfil - CORRIGIDO
 function preencherFormularioPerfil(dados) {
+    console.log('Preenchendo formulário com dados:', dados);
+    
     const campos = [
-        { id: 'nome', valor: dados.nome || '' },
+        { id: 'nome', valor: dados.nome || dados.username || '' },
         { id: 'email', valor: dados.email || '' },
-        { id: 'telefone', valor: dados.telefone || '' },
-        { id: 'endereco', valor: dados.endereco || '' },
+        { id: 'telefone', valor: dados.telefone || dados.phone || '' },
+        { id: 'endereco', valor: dados.endereco || dados.address || '' },
         { id: 'data_nascimento', valor: dados.data_nascimento ? dados.data_nascimento.split('T')[0] : '' }
     ];
 
@@ -176,8 +248,19 @@ function preencherFormularioPerfil(dados) {
         const elemento = document.getElementById(campo.id);
         if (elemento) {
             elemento.value = campo.valor;
+            console.log(`Campo ${campo.id} preenchido com: ${campo.valor}`);
+        } else {
+            console.warn(`Elemento com ID ${campo.id} não encontrado`);
         }
     });
+    
+    // Garantir que o email seja readonly
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        emailInput.setAttribute('readonly', true);
+        emailInput.style.backgroundColor = '#f5f5f5';
+        emailInput.style.border = '1px solid #ccc';
+    }
 }
 
 // Atualizar foto de perfil
@@ -186,7 +269,7 @@ function atualizarFotoPerfil(fotoPerfil) {
     if (!fotoPreview) return;
     
     if (fotoPerfil) {
-        const imgUrl = `http://localhost:3000${fotoPerfil}`;
+        const imgUrl = fotoPerfil.startsWith('http') ? fotoPerfil : `http://localhost:3000${fotoPerfil}`;
         fotoPreview.innerHTML = `
             <img src="${imgUrl}" 
                  alt="Foto de perfil" 
@@ -197,6 +280,14 @@ function atualizarFotoPerfil(fotoPerfil) {
         fotoPreview.innerHTML = '<span class="foto-placeholder">👤</span>';
     }
 }
+
+// Redirecionar para página de login
+function redirecionarParaLogin() {
+    alert('Você precisa fazer login para acessar esta página.');
+    window.location.href = 'inicio.html';
+}
+
+// FUNCIONALIDADES DA PÁGINA DO USUÁRIO - PARTE 2: EDIÇÃO DE PERFIL E HISTÓRICO
 
 // Toggle entre modo de edição e visualização
 function toggleEdicao() {
@@ -254,7 +345,9 @@ function finalizarEdicao() {
     
     // Desabilitar inputs
     inputs.forEach(input => {
-        input.setAttribute('readonly', true);
+        if (input.id !== 'email') { // Email sempre readonly
+            input.setAttribute('readonly', true);
+        }
         input.style.backgroundColor = '#f5f5f5';
         input.style.border = '1px solid #ccc';
     });
@@ -321,116 +414,258 @@ async function salvarPerfil() {
     }
 }
 
-// Carregar histórico de consultas
+// Carregar histórico de consultas - CORRIGIDO
 async function carregarHistoricoCompleto() {
     const container = document.getElementById('historico-completo');
-    if (!container || !usuarioLogado?.id_usuario) return;
+    if (!container) {
+        console.log('Container historico-completo não encontrado');
+        return;
+    }
     
-    console.log('Carregando histórico de consultas...');
+    if (!usuarioLogado?.id_usuario) {
+        console.error('ID do usuário não encontrado para carregar histórico');
+        container.innerHTML = '<div class="error"><p>Erro: usuário não identificado</p></div>';
+        return;
+    }
+    
+    console.log('Carregando histórico de consultas para usuário:', usuarioLogado.id_usuario);
     container.innerHTML = '<div class="loading">Carregando histórico...</div>';
 
     try {
-        const response = await fetch(`${API_BASE_URL}/fichas/${usuarioLogado.id_usuario}`);
+        // Tentar múltiplos endpoints para carregar o histórico
+        let response;
+        let historico = null;
         
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        const endpointsParaTentar = [
+            `${API_BASE_URL}/fichas/${usuarioLogado.id_usuario}`,
+            `${API_BASE_URL}/historico/${usuarioLogado.id_usuario}`,
+            `${API_BASE_URL}/consultas/${usuarioLogado.id_usuario}`
+        ];
+        
+        // Se tiver ID de paciente, adicionar endpoint específico
+        if (usuarioLogado.id_paciente) {
+            endpointsParaTentar.unshift(`${API_BASE_URL}/paciente/fichas/${usuarioLogado.id_paciente}`);
         }
         
-        const historico = await response.json();
-        console.log('Histórico carregado:', historico);
+        for (const endpoint of endpointsParaTentar) {
+            try {
+                console.log('Tentando endpoint:', endpoint);
+                response = await fetch(endpoint);
+                
+                if (response.ok) {
+                    historico = await response.json();
+                    console.log('Histórico carregado de:', endpoint, historico);
+                    break;
+                } else {
+                    console.log('Endpoint falhou:', endpoint, 'Status:', response.status);
+                }
+            } catch (error) {
+                console.log('Erro no endpoint:', endpoint, error.message);
+                continue;
+            }
+        }
+        
+        if (!historico) {
+            throw new Error('Nenhum endpoint de histórico respondeu');
+        }
 
+        // Verificar se o histórico tem dados
         if (Array.isArray(historico) && historico.length > 0) {
+            console.log(`Renderizando ${historico.length} consultas do histórico`);
             renderizarHistorico(historico, container);
+        } else if (historico && historico.fichas && Array.isArray(historico.fichas)) {
+            // Caso o histórico venha encapsulado
+            console.log(`Renderizando ${historico.fichas.length} consultas do histórico (encapsulado)`);
+            renderizarHistorico(historico.fichas, container);
         } else {
-            container.innerHTML = '<div class="no-data"><p>Não há consultas anteriores registradas.</p></div>';
+            console.log('Nenhuma consulta encontrada no histórico');
+            container.innerHTML = `
+                <div class="no-data">
+                    <h3>📋 Histórico de Consultas</h3>
+                    <p>Você ainda não possui consultas registradas.</p>
+                    <p>Após suas consultas, elas aparecerão aqui para que você possa acompanhar seu histórico médico.</p>
+                </div>
+            `;
         }
     } catch (error) {
         console.error('Erro ao carregar histórico:', error);
-        container.innerHTML = '<div class="error"><p>Erro ao carregar histórico de consultas</p></div>';
+        container.innerHTML = `
+            <div class="error">
+                <h3>❌ Erro ao Carregar Histórico</h3>
+                <p>Não foi possível carregar seu histórico de consultas.</p>
+                <p>Detalhes: ${error.message}</p>
+                <button onclick="carregarHistoricoCompleto()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    🔄 Tentar Novamente
+                </button>
+            </div>
+        `;
     }
 }
 
-// Renderizar histórico de consultas
+// Renderizar histórico de consultas - MELHORADO
 function renderizarHistorico(historico, container) {
-    let html = '<div class="historico-lista">';
+    if (!Array.isArray(historico) || historico.length === 0) {
+        container.innerHTML = '<div class="no-data"><p>Nenhuma consulta encontrada no histórico.</p></div>';
+        return;
+    }
     
-    historico.forEach(ficha => {
-        const dataConsulta = new Date(ficha.data_consulta).toLocaleDateString('pt-BR');
-        html += `
-            <div class="historico-item" onclick="abrirModalConsulta(${ficha.id_ficha})">
-                <div class="historico-header">
-                    <h3>Consulta - ${dataConsulta}</h3>
-                    <span class="historico-status">Concluída</span>
+    let html = '<div class="historico-lista"><h3>📋 Seu Histórico de Consultas</h3>';
+    
+    // Ordenar por data mais recente primeiro
+    const historicoOrdenado = historico.sort((a, b) => new Date(b.data_consulta) - new Date(a.data_consulta));
+    
+    historicoOrdenado.forEach((ficha, index) => {
+        try {
+            const dataConsulta = new Date(ficha.data_consulta);
+            const dataFormatada = dataConsulta.toLocaleDateString('pt-BR');
+            const horaFormatada = dataConsulta.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const idFicha = ficha.id_ficha || ficha.id || index;
+            const queixa = ficha.queixa_principal || ficha.queixa || 'Não informada';
+            
+            html += `
+                <div class="historico-item" onclick="abrirModalConsulta(${idFicha})" style="cursor: pointer; margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                    <div class="historico-header" style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0; color: #333;">🩺 Consulta - ${dataFormatada}</h4>
+                        <span class="historico-status" style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">Concluída</span>
+                    </div>
+                    <div class="historico-info">
+                        <p style="margin: 5px 0;"><strong>⏰ Horário:</strong> ${horaFormatada}</p>
+                        <p style="margin: 5px 0;"><strong>🗣️ Queixa:</strong> ${queixa}</p>
+                        <p class="click-detail" style="margin: 10px 0 0 0; font-size: 12px; color: #666; font-style: italic;">👆 Clique para ver detalhes completos</p>
+                    </div>
                 </div>
-                <div class="historico-info">
-                    <p><strong>Queixa:</strong> ${ficha.queixa_principal || 'Não informada'}</p>
-                    <p class="click-detail">Clique para ver detalhes completos</p>
-                </div>
-            </div>
-        `;
+            `;
+        } catch (error) {
+            console.error('Erro ao renderizar ficha:', ficha, error);
+        }
     });
     
     html += '</div>';
     container.innerHTML = html;
+    
+    console.log(`Histórico renderizado com ${historicoOrdenado.length} consultas`);
 }
 
-// Abrir modal com detalhes da consulta
+// Abrir modal com detalhes da consulta - CORRIGIDO
 async function abrirModalConsulta(idFicha) {
     const modal = document.getElementById('modal-consulta');
     const modalBody = document.getElementById('modal-body-consulta');
     
     if (!modal || !modalBody) {
         console.error('Elementos do modal não encontrados');
+        mostrarAlerta('Erro: modal não encontrado na página', 'error');
         return;
     }
     
     console.log('Abrindo modal para ficha:', idFicha);
     
-    modalBody.innerHTML = '<p>Carregando detalhes da consulta...</p>';
+    modalBody.innerHTML = '<div style="text-align: center; padding: 20px;"><p>🔄 Carregando detalhes da consulta...</p></div>';
     modal.style.display = 'block';
 
     try {
-        const response = await fetch(`${API_BASE_URL}/ficha/${idFicha}`);
+        // Tentar diferentes endpoints para buscar os detalhes
+        let response;
+        let detalhes = null;
         
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        const endpointsParaTentar = [
+            `${API_BASE_URL}/ficha/${idFicha}`,
+            `${API_BASE_URL}/consulta/${idFicha}`,
+            `${API_BASE_URL}/fichas/detalhes/${idFicha}`
+        ];
+        
+        for (const endpoint of endpointsParaTentar) {
+            try {
+                console.log('Tentando buscar detalhes em:', endpoint);
+                response = await fetch(endpoint);
+                
+                if (response.ok) {
+                    detalhes = await response.json();
+                    console.log('Detalhes carregados de:', endpoint, detalhes);
+                    break;
+                }
+            } catch (error) {
+                console.log('Erro no endpoint:', endpoint, error.message);
+                continue;
+            }
         }
         
-        const detalhes = await response.json();
-        console.log('Detalhes da consulta:', detalhes);
+        if (!detalhes) {
+            throw new Error('Não foi possível carregar os detalhes da consulta');
+        }
 
         renderizarDetalhesConsulta(detalhes, modalBody);
         
     } catch (error) {
         console.error('Erro ao carregar detalhes:', error);
-        modalBody.innerHTML = '<div class="error"><p>Erro ao carregar detalhes da consulta</p></div>';
+        modalBody.innerHTML = `
+            <div class="error" style="text-align: center; padding: 20px;">
+                <h3>❌ Erro ao Carregar Detalhes</h3>
+                <p>Não foi possível carregar os detalhes desta consulta.</p>
+                <p style="font-size: 12px; color: #666;">Detalhes: ${error.message}</p>
+                <button onclick="fecharModal()" style="margin-top: 15px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    ✖️ Fechar
+                </button>
+            </div>
+        `;
     }
 }
 
 // Renderizar detalhes da consulta no modal
 function renderizarDetalhesConsulta(detalhes, container) {
-    const dataFormatada = new Date(detalhes.data_consulta).toLocaleDateString('pt-BR');
-    
-    container.innerHTML = `
-        <div class="consulta-detalhes">
-            <div class="detalhe-item">
-                <strong>📅 Data da Consulta:</strong>
-                <span>${dataFormatada}</span>
+    try {
+        const dataFormatada = new Date(detalhes.data_consulta).toLocaleDateString('pt-BR');
+        const horaFormatada = new Date(detalhes.data_consulta).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        container.innerHTML = `
+            <div class="consulta-detalhes" style="padding: 20px;">
+                <h3 style="text-align: center; color: #333; margin-bottom: 20px;">📋 Detalhes da Consulta</h3>
+                
+                <div class="detalhe-item" style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    <strong>📅 Data da Consulta:</strong>
+                    <span style="margin-left: 10px;">${dataFormatada} às ${horaFormatada}</span>
+                </div>
+                
+                <div class="detalhe-item" style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    <strong>🩺 Queixa Principal:</strong>
+                    <span style="margin-left: 10px;">${detalhes.queixa_principal || detalhes.queixa || 'Não informado'}</span>
+                </div>
+                
+                <div class="detalhe-item" style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    <strong>📋 Histórico Médico:</strong>
+                    <span style="margin-left: 10px;">${detalhes.historico_medico || detalhes.historico || 'Não informado'}</span>
+                </div>
+                
+                <div class="detalhe-item" style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    <strong>📝 Observações:</strong>
+                    <span style="margin-left: 10px;">${detalhes.observacoes || detalhes.observacao || 'Nenhuma observação registrada'}</span>
+                </div>
+                
+                ${detalhes.prescricao ? `
+                <div class="detalhe-item" style="margin-bottom: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+                    <strong>💊 Prescrição:</strong>
+                    <span style="margin-left: 10px;">${detalhes.prescricao}</span>
+                </div>
+                ` : ''}
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="fecharModal()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        ✖️ Fechar
+                    </button>
+                </div>
             </div>
-            <div class="detalhe-item">
-                <strong>🩺 Queixa Principal:</strong>
-                <span>${detalhes.queixa_principal || 'Não informado'}</span>
+        `;
+    } catch (error) {
+        console.error('Erro ao renderizar detalhes:', error);
+        container.innerHTML = `
+            <div class="error" style="text-align: center; padding: 20px;">
+                <p>Erro ao exibir detalhes da consulta</p>
+                <button onclick="fecharModal()" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Fechar
+                </button>
             </div>
-            <div class="detalhe-item">
-                <strong>📋 Histórico Médico:</strong>
-                <span>${detalhes.historico_medico || 'Não informado'}</span>
-            </div>
-            <div class="detalhe-item">
-                <strong>📝 Observações:</strong>
-                <span>${detalhes.observacoes || 'Nenhuma observação registrada'}</span>
-            </div>
-        </div>
-    `;
+        `;
+    }
 }
 
 // Fechar modal de consulta
@@ -439,350 +674,4 @@ function fecharModal() {
     if (modal) {
         modal.style.display = 'none';
     }
-}
-
-// Carregar dicas de saúde - CORRIGIDO para buscar do admin
-// Função principal para carregar dicas com múltiplas tentativas
-async function carregarDicas() {
-    const container = document.getElementById('lista-dicas-clientes');
-    const loading = document.getElementById('loading-dicas');
-    
-    if (!container) {
-        console.log('Container lista-dicas-clientes não encontrado');
-        return;
-    }
-    
-    console.log('Iniciando carregamento de dicas...');
-    
-    if (loading) loading.style.display = 'block';
-    
-    // Array de URLs para tentar em ordem
-    const urlsTentar = [
-        'http://localhost:3000/api/dicas',           // Rota do admin
-        'http://localhost:3000/api/usuario/dicas',   // Rota específica do usuário
-        '/api/dicas',                                // Rota relativa 1
-        '/api/usuario/dicas'                         // Rota relativa 2
-    ];
-    
-    let dicasCarregadas = false;
-    
-    // Tentar cada URL até conseguir
-    for (let i = 0; i < urlsTentar.length; i++) {
-        const url = urlsTentar[i];
-        console.log(`Tentativa ${i + 1}: Tentando carregar dicas de: ${url}`);
-        
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Adicionar headers para CORS se necessário
-                    'Accept': 'application/json'
-                },
-                // Timeout de 10 segundos
-                signal: AbortSignal.timeout(10000)
-            });
-            
-            console.log(`Status da resposta para ${url}:`, response.status);
-            
-            if (response.ok) {
-                const dicas = await response.json();
-                console.log(`Dicas carregadas com sucesso de ${url}:`, dicas);
-                
-                if (loading) loading.style.display = 'none';
-                renderizarDicas(dicas, container);
-                dicasCarregadas = true;
-                break; // Sucesso! Sair do loop
-                
-            } else {
-                console.log(`Falha na URL ${url}:`, response.status, response.statusText);
-                continue; // Tentar próxima URL
-            }
-            
-        } catch (error) {
-            console.log(`Erro ao tentar ${url}:`, error.message);
-            continue; // Tentar próxima URL
-        }
-    }
-    
-    // Se nenhuma URL funcionou, mostrar dicas estáticas
-    if (!dicasCarregadas) {
-        console.log('Todas as tentativas falharam, carregando dicas estáticas');
-        if (loading) loading.style.display = 'none';
-        mostrarDicasEstaticas(container);
-    }
-}
-
-// Função para verificar se o servidor está rodando
-async function verificarServidor() {
-    const urlsTestar = [
-        'http://localhost:3000/api/dicas',
-        'http://localhost:3000/api/usuario/dicas'
-    ];
-    
-    console.log('Verificando conectividade com o servidor...');
-    
-    for (const url of urlsTestar) {
-        try {
-            const response = await fetch(url, { 
-                method: 'HEAD',  // Apenas verificar se a rota existe
-                signal: AbortSignal.timeout(5000) 
-            });
-            console.log(`✅ Servidor respondeu para ${url}:`, response.status);
-            return true;
-        } catch (error) {
-            console.log(`❌ Servidor não respondeu para ${url}:`, error.message);
-        }
-    }
-    
-    console.log('⚠️ Servidor não está respondendo em nenhuma das rotas testadas');
-    return false;
-}
-
-// Função melhorada para renderizar dicas
-function renderizarDicas(dicas, container) {
-    if (!container) {
-        console.error('Container não fornecido para renderizarDicas');
-        return;
-    }
-    
-    if (!Array.isArray(dicas)) {
-        console.log('Dicas não é um array:', dicas);
-        mostrarDicasEstaticas(container);
-        return;
-    }
-    
-    if (dicas.length === 0) {
-        container.innerHTML = `
-            <div class="no-data">
-                <p>📝 Nenhuma dica disponível no momento.</p>
-                <p>O administrador ainda não adicionou dicas.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    console.log(`Renderizando ${dicas.length} dicas`);
-    container.innerHTML = '';
-    
-    dicas.forEach((dica, index) => {
-        const div = document.createElement('div');
-        div.className = 'dicas-item';
-        
-        // Garantir que os campos existam
-        const titulo = dica.titulo || dica.title || `Dica ${index + 1}`;
-        const descricao = dica.descricao || dica.description || 'Descrição não disponível';
-        
-        div.innerHTML = `
-            <span class="dica-icon">💡</span>
-            <h3>${titulo}</h3>
-            <p>${descricao}</p>
-        `;
-        container.appendChild(div);
-    });
-    
-    console.log('Dicas renderizadas com sucesso');
-}
-
-// Dicas estáticas melhoradas como fallback
-function mostrarDicasEstaticas(container) {
-    console.log('Carregando dicas estáticas como fallback');
-    
-    const dicasEstaticas = [
-        {
-            titulo: "💧 Hidratação Adequada",
-            descricao: "Beba pelo menos 2 litros de água por dia para manter seu corpo hidratado e auxiliar no bom funcionamento dos órgãos."
-        },
-        {
-            titulo: "🏃 Exercícios Regulares",
-            descricao: "Pratique pelo menos 30 minutos de atividade física por dia para manter sua saúde física e mental em dia."
-        },
-        {
-            titulo: "🥗 Alimentação Equilibrada",
-            descricao: "Mantenha uma dieta rica em frutas, vegetais, proteínas magras e grãos integrais para nutrir seu corpo adequadamente."
-        },
-        {
-            titulo: "😴 Sono Reparador",
-            descricao: "Durma entre 7 a 8 horas por noite para permitir que seu corpo e mente se recuperem adequadamente."
-        },
-        {
-            titulo: "🧘 Gerenciamento do Estresse",
-            descricao: "Pratique técnicas de relaxamento como meditação, respiração profunda ou yoga para reduzir o estresse diário."
-        },
-        {
-            titulo: "☀️ Exposição Solar Moderada",
-            descricao: "Tome sol por 15-20 minutos diários para produção de vitamina D, sempre com proteção adequada."
-        }
-    ];
-    
-    // Adicionar aviso de que são dicas padrão
-    container.innerHTML = `
-        <div class="dicas-fallback-notice">
-            <p><i>⚠️ Conectando com o servidor... Exibindo dicas padrão por enquanto.</i></p>
-        </div>
-    `;
-    
-    renderizarDicas(dicasEstaticas, container);
-}
-
-// Função de inicialização melhorada
-async function inicializarDicas() {
-    console.log('=== INICIANDO CARREGAMENTO DE DICAS ===');
-    
-    // Primeiro verificar se o servidor está rodando
-    const servidorOK = await verificarServidor();
-    
-    if (servidorOK) {
-        console.log('✅ Servidor está online, carregando dicas...');
-        await carregarDicas();
-    } else {
-        console.log('❌ Servidor offline, mostrando dicas estáticas');
-        const container = document.getElementById('lista-dicas-clientes');
-        if (container) {
-            mostrarDicasEstaticas(container);
-        }
-    }
-    
-    console.log('=== CARREGAMENTO DE DICAS FINALIZADO ===');
-}
-
-// Handler para seleção de arquivo de foto
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    console.log('Arquivo selecionado:', file.name, file.size, file.type);
-    
-    // Validações
-    if (!file.type.startsWith('image/')) {
-        mostrarAlerta('Por favor, selecione apenas arquivos de imagem', 'error');
-        event.target.value = '';
-        return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) { // 5MB
-        mostrarAlerta('A imagem deve ter no máximo 5MB', 'error');
-        event.target.value = '';
-        return;
-    }
-    
-    // Criar preview da imagem
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const fotoPreview = document.getElementById('foto-preview');
-        if (fotoPreview) {
-            fotoPreview.innerHTML = `
-                <img src="${e.target.result}" 
-                     alt="Foto de perfil" 
-                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-            `;
-        }
-    };
-    reader.readAsDataURL(file);
-}
-
-// Função para alterar foto (chamada pelo botão)
-function alterarFoto() {
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.click();
-    }
-}
-
-// Funções para modal de crop (se necessário)
-function fecharModalCrop() {
-    const modal = document.getElementById('modal-crop');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function salvarFotoCropada() {
-    // Implementar se necessário
-    console.log('Salvar foto cropada não implementado');
-    fecharModalCrop();
-}
-
-// Mostrar alertas personalizados
-function mostrarAlerta(mensagem, tipo = 'info') {
-    console.log(`Alerta ${tipo}:`, mensagem);
-    
-    // Remover alertas existentes
-    document.querySelectorAll('.custom-alert').forEach(alert => alert.remove());
-    
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `custom-alert alert-${tipo}`;
-    
-    const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-    
-    const colors = {
-        success: '#4CAF50',
-        error: '#f44336',
-        warning: '#ff9800',
-        info: '#2196F3'
-    };
-    
-    alertDiv.innerHTML = `
-        <div class="alert-content">
-            <span class="alert-icon">${icons[tipo] || icons.info}</span>
-            <span class="alert-message">${mensagem}</span>
-        </div>
-    `;
-    
-    alertDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 10000;
-        max-width: 400px;
-        background-color: ${colors[tipo] || colors.info};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: slideInRight 0.3s ease-out;
-        cursor: pointer;
-    `;
-    
-    // Adicionar animação CSS se não existir
-    if (!document.querySelector('#alert-styles')) {
-        const style = document.createElement('style');
-        style.id = 'alert-styles';
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            .custom-alert:hover {
-                transform: translateX(-5px);
-                transition: transform 0.2s ease;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(alertDiv);
-    
-    // Remover após 5 segundos ou ao clicar
-    const removeAlert = () => {
-        if (alertDiv.parentNode) {
-            alertDiv.style.animation = 'slideInRight 0.3s ease-out reverse';
-            setTimeout(() => alertDiv.remove(), 300);
-        }
-    };
-    
-    alertDiv.addEventListener('click', removeAlert);
-    setTimeout(removeAlert, 5000);
-}
-
-// Redirecionar para página de login
-function redirecionarParaLogin() {
-    alert('Você precisa fazer login para acessar esta página.');
-    window.location.href = 'inicio.html';
 }

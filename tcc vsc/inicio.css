@@ -123,35 +123,6 @@ header nav ul li {
     padding: 0; /* Remover padding para o título */
     margin: 3;
   }
-
-  .sobre{
-    height: 100vh;
-    display: flex;
-    justify-content: space-between; /* uma vai pra esquerda, outra pra direita */
-    align-items: center; /* alinha verticalmente */
-  }
-  
-  .sobre_terapeuta {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 0 20px;
-  }
-  
-  .titulo_sobre {
-    font-size: 1.5rem;
-    background-color: #ede4f3;
-    border-radius: 10px;
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #3d3d3d;
-    border: 1px solid #cfaee4;
-  }
-  
-  .icon {
-    font-size: 1.3rem;
-  }
   
   .div_toda {
     padding: 10px;
@@ -159,19 +130,6 @@ header nav ul li {
     flex-wrap: wrap;
     gap: 20px;
     margin-top: 30px;
-  }
-  
-  .foto {
-    background-image: url(imagens/fotoCleo1.jpg);
-    width: 300px;
-    height: 400px;
-    border: 2px solid #cfaee4;
-    border-radius: 12px;
-    overflow: hidden;
-    padding: 10px;
-    width: 300px;
-    background-size: cover;        /* Preenche sem deformar */
-    background-position: center;   /* Centraliza a imagem */
   }
   
   .photo img {    
@@ -291,72 +249,317 @@ button:hover {
 h1, .terapias h1{
   text-align: center;
 }
-.terapias {
-  font-family: 'Tan Pearl';
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  background:var(--primary-color);
-} 
 
-.carousel-container {
-  display: flex;
-  justify-content: center; /* centraliza na horizontal */
-  align-items: center;     /* centraliza na vertical */
-  position: relative;
-  width: 600px;
-  height: 450px;
-  overflow: hidden;
-  background: var(--background-color);
-  padding: 20px;
-  border-radius: 16px;
-  text-align: center;
+/* SEÇÃO SOBRE - Melhorias */
+.sobre {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px 40px;
+    background-color: var(--background-color);
 }
 
+.sobre_terapeuta {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.titulo_sobre {
+    font-size: 2rem;
+    background: linear-gradient(135deg, #ede4f3, #f8f4fc);
+    border-radius: 15px;
+    padding: 20px 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #4a2b63;
+    border: 2px solid #cfaee4;
+    box-shadow: 0 6px 20px rgba(174, 137, 250, 0.15);
+    margin-bottom: 40px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.titulo_sobre:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(174, 137, 250, 0.25);
+}
+
+.icon {
+    font-size: 1.8rem;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.div_toda {
+    padding: 10px;;
+    display: flex;
+    gap: 40px;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+.foto {
+    background-image: url(imagens/fotoCleo1.jpg);
+    width: 350px;
+    height: 450px;
+    border: 3px solid #cfaee4;
+    border-radius: 20px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex-shrink: 0;
+}
+
+.foto:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.texto {
+    flex: 1;
+    min-width: 400px;
+    background: linear-gradient(135deg, #f5f1fa, #faf8fc);
+    padding: 30px;
+    border-radius: 20px;
+    border: 2px solid #d1bae9;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.texto:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+}
+
+.texto h2 {
+    color: #4a2b63;
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.texto h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(45deg, var(--primary-color), var(--button-hover));
+    border-radius: 2px;
+}
+
+.texto p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+    text-align: justify;
+}
+
+/* SEÇÃO TERAPIAS - Completamente refeita */
+.terapias {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px 40px;
+    background: linear-gradient(135deg, var(--primary-color), var(--button-hover));
+    color: white;
+}
+
+.terapias-content {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+}
+
+.titulo_terapia {
+    font-family: "Tan Pearl", Arial, sans-serif;
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 50px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Container do Carousel */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    height: 500px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* Slides do Carousel */
 .carousel-slide {
-  display: flex;
-  height: 100%;
-  width: 100%;
+    display: none;
+    width: 100%;
+    height: 100%;
+    padding: 30px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.carousel-slide.active {
+    display: flex;
 }
 
 .carousel-slide img {
-  width: 100%;
-  height: 320px;
-  object-fit: cover; /*preenche o espaço sem distorcer*/
-  border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.carousel-slide img:hover {
+    transform: scale(1.05);
 }
 
 .carousel-slide p {
-  margin-top: 10px;
-  font-size: 16px;
-  color: white;
+    margin-top: 25px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--button-hover);
+    text-align: center;
+    font-family: "Lovelace", Arial, sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-button.prev,
-button.next {
-  width: 100%;
-  padding: 10px;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 5px;
-  transition: background 0.3s ease, transform 0.3s ease;
-  font-family: "Lovelace", Arial, sans-serif; /* Aplicando a fonte Lovelace nos botões */
-  position: absolute;
-  top: 94%;
-  transform: translateY(-50%);
-  background-color: var(--button-hover);
-  z-index: 10;
+/* Botões de Navegação do Carousel */
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(74, 43, 99, 0.8);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
 }
 
-button.prev {
-    left: 10px;
+.carousel-nav:hover {
+    background: var(--button-hover);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-button.next {
-    right: 10px;
+.prev {
+    left: 20px;
+}
+
+.next {
+    right: 20px;
+}
+
+/* Indicadores do Carousel */
+.carousel-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background: var(--button-hover);
+    transform: scale(1.2);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .div_toda {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .foto {
+        width: 300px;
+        height: 400px;
+    }
+    
+    .texto {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .titulo_sobre {
+        font-size: 1.5rem;
+        padding: 15px 20px;
+    }
+    
+    .titulo_terapia {
+        font-size: 2.2rem;
+    }
+    
+    .carousel-container {
+        height: 450px;
+        margin: 0 10px;
+    }
+    
+    .carousel-slide {
+        padding: 20px;
+    }
+    
+    .carousel-slide img {
+        height: 250px;
+    }
+    
+    .carousel-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .prev {
+        left: 10px;
+    }
+    
+    .next {
+        right: 10px;
+    }
 }

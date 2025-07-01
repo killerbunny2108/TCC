@@ -69,50 +69,58 @@
     </div>
   </section>
 
-  <section class="terapias" id="terapias">
+  
+<section class="terapias" id="terapias">
     <div class="terapias-content">
-      <h1 class="titulo_terapia">Minhas Terapias</h1>
-      <div class="carousel-container">
-        <button class="prev">&#10094;</button>
-
-          <div class="carousel-container">
-          <button class="prev">&#10094;</button>
-
-          <div class="carousel-slide">
-            <img src="imagens/fotoCleo3.jpg" alt="Imagem 1">
-            <p> Reflexologia podal comportamental</p>
-          </div>
-
-          <div class="carousel-slide">
-            <img src="imagens/analise-corporal.jpg" alt="Imagem 2">
-            <p> Análise corporal</p>
-          </div>
-
-          <div class="carousel-slide">
-            <img src="imagens/nova-medicina-germanica.jpg" alt="Imagem 3">
-            <p> Nova medicina germânica</p>
-          </div>
-
-          <div class="carousel-slide">
-            <img src="imagens/aromaterapia.jpg" alt="Imagem 4">
-            <p> Aromaterapia</p>
-          </div>
-
-          <div class="carousel-slide">
-            <img src="imagens/massagem_craniana-tailandesa.jpg" alt="Imagem 5">
-            <p> Massagem craniana Tailandesa</p>
-          </div>
-
-          <div class="carousel-slide">
-            <img src="imagens/inteligencia_emocional.jpg" alt="Imagem 6">
-            <p> Inteligência emocional</p>
-          </div>
-
-          <button class="next">&#10095;</button>
-        </div>
+        <h1 class="titulo_terapia">Minhas Terapias</h1>
         
+        <div class="carousel-container">
+            <button class="carousel-nav prev" onclick="changeSlide(-1)">&#10094;</button>
+            
+            <div class="carousel-slide active">
+                <img src="imagens/fotoCleo3.jpg" alt="Reflexologia podal comportamental">
+                <p>Reflexologia podal comportamental</p>
+            </div>
 
-  </section>
+            <div class="carousel-slide">
+                <img src="imagens/analise-corporal.jpg" alt="Análise corporal">
+                <p>Análise corporal</p>
+            </div>
+
+            <div class="carousel-slide">
+                <img src="imagens/nova-medicina-germanica.jpg" alt="Nova medicina germânica">
+                <p>Nova medicina germânica</p>
+            </div>
+
+            <div class="carousel-slide">
+                <img src="imagens/aromaterapia.jpg" alt="Aromaterapia">
+                <p>Aromaterapia</p>
+            </div>
+
+            <div class="carousel-slide">
+                <img src="imagens/massagem_craniana-tailandesa.jpg" alt="Massagem craniana Tailandesa">
+                <p>Massagem craniana Tailandesa</p>
+            </div>
+
+            <div class="carousel-slide">
+                <img src="imagens/inteligencia_emocional.jpg" alt="Inteligência emocional">
+                <p>Inteligência emocional</p>
+            </div>
+
+            <button class="carousel-nav next" onclick="changeSlide(1)">&#10095;</button>
+            
+            <!-- Indicadores opcionais -->
+            <div class="carousel-indicators">
+                <span class="indicator active" onclick="currentSlide(1)"></span>
+                <span class="indicator" onclick="currentSlide(2)"></span>
+                <span class="indicator" onclick="currentSlide(3)"></span>
+                <span class="indicator" onclick="currentSlide(4)"></span>
+                <span class="indicator" onclick="currentSlide(5)"></span>
+                <span class="indicator" onclick="currentSlide(6)"></span>
+            </div>
+        </div>
+    </div>
+</section>
 
   <!-- Ícone do WhatsApp no canto inferior direito -->
   <a href="https://wa.me/5547999207008" target="_blank" class="whatsapp-icon">
