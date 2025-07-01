@@ -675,3 +675,371 @@ function fecharModal() {
         modal.style.display = 'none';
     }
 }
+// CORREÇÕES PARA HISTÓRICO E EMAIL - ADICIONAR AO FINAL DO ARQUIVO usuario.js
+
+// Função corrigida para inicializar dados do usuário
+async function inicializarDadosUsuario() {
+    try {
+        const usuarioStorage = localStorage.getItem('usuarioLogado');
+        if (!usuarioStorage) {
+            console.log('Nenhum usuário logado encontrado');
+            redirecionarParaLogin();
+            return false;
+        }
+
+        usuarioLogado = JSON.parse(usuarioStorage);
+        console.log('Dados do usuário do localStorage:', usuarioLogado);
+        
+        // Garantir que temos o email do login
+        if (!usuarioLogado.email && usuarioLogado.username) {
+            usuarioLogado.email = usuarioLogado.username;
+        }
+        
+        // Garantir que temos o ID correto
+        if (!usuarioLogado.id_usuario) {
+            if (usuarioLogado.id) {
+                usuarioLogado.id_usuario = usuarioLogado.id;
+            } else {
+                console.error('ID do usuário não encontrado');
+                redirecionarParaLogin();
+                return false;
+            }
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Erro ao inicializar dados do usuário:', error);
+        redirecionarParaLogin();
+        return false;
+    }
+}
+
+// Função corrigida para carregar dados do perfil com preservação do email
+async function carregarDadosPerfilCorrigido() {
+    if (!usuarioLogado?.id_usuario) {
+        console.error('ID do usuário não encontrado');
+        return;
+    }
+    
+    console.log('Carregando dados do perfil para usuário:', usuarioLogado.id_usuario);
+    
+    try {
+        // Preservar email do login
+        const emailOriginal = usuarioLogado.email;
+        
+        let response;
+        let perfil = null;
+        
+        // Tentar endpoint de dados do usuário
+        try {
+            response = await fetch(`${API_BASE_URL}/${usuarioLogado.id_usuario}`);
+            if (response.ok) {
+                perfil = await response.json();
+                console.log('Perfil carregado:', perfil);
+            }
+        } catch (error) {
+            console.log('Erro ao carregar perfil:', error.message);
+        }
+        
+        // Se não conseguiu carregar, usar dados do localStorage
+        if (!perfil) {
+            console.log('Usando dados do localStorage como fallback');
+            perfil = { ...usuarioLogado };
+        }
+        
+        // Garantir que o email do login seja mantido
+        if (emailOriginal && !perfil.email) {
+            perfil.email = emailOriginal;
+            console.log('Email do login preservado:', emailOriginal);
+        }
+        
+        // Atualizar dados globais
+        usuarioLogado = { ...usuarioLogado, ...perfil };
+        dadosOriginais = { ...perfil };
+        
+        // Preencher formulário
+        preencherFormularioCorrigido(perfil);
+        
+        // Atualizar foto
+        atualizarFotoPerfil(perfil.foto_perfil);
+        
+        console.log('Dados do perfil carregados com sucesso');
+        
+    } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+        // Usar dados do localStorage mesmo com erro
+        preencherFormularioCorrigido(usuarioLogado);
+        dadosOriginais = { ...usuarioLogado };
+    }
+}
+
+// Função corrigida para preencher formulário garantindo que email apareça
+function preencherFormularioCorrigido(dados) {
+    console.log('Preenchendo formulário com dados corrigidos:', dados);
+    
+    // Lista de campos com suas possíveis origens
+    const campos = [
+        { id: 'nome', valor: dados.nome || dados.username || dados.name || '' },
+        { id: 'email', valor: dados.email || dados.username || '' },
+        { id: 'telefone', valor: dados.telefone || dados.phone || dados.tel || '' },
+        { id: 'endereco', valor: dados.endereco || dados.address || dados.addr || '' },
+        { id: 'data_nascimento', valor: dados.data_nascimento ? dados.data_nascimento.split('T')[0] : (dados.birth_date ? dados.birth_date.split('T')[0] : '') }
+    ];
+
+    campos.forEach(campo => {
+        const elemento = document.getElementById(campo.id);
+        if (elemento) {
+            elemento.value = campo.valor;
+            console.log(`✓ Campo ${campo.id} preenchido: "${campo.valor}"`);
+            
+            // Configurar email como readonly
+            if (campo.id === 'email') {
+                elemento.setAttribute('readonly', true);
+                elemento.style.backgroundColor = '#f8f9fa';
+                elemento.style.border = '1px solid #ced4da';
+                elemento.style.color = '#495057';
+            }
+        } else {
+            console.warn(`⚠️ Elemento ${campo.id} não encontrado no DOM`);
+        }
+    });
+}
+
+// Função corrigida para carregar histórico com debug detalhado
+async function carregarHistoricoCorrigido() {
+    const container = document.getElementById('historico-completo');
+    if (!container) {
+        console.error('Container historico-completo não encontrado no DOM');
+        return;
+    }
+    
+    if (!usuarioLogado?.id_usuario) {
+        console.error('ID do usuário não encontrado para carregar histórico');
+        container.innerHTML = '<div class="error"><p>❌ Erro: usuário não identificado</p></div>';
+        return;
+    }
+    
+    console.log('🔄 Carregando histórico para usuário ID:', usuarioLogado.id_usuario);
+    container.innerHTML = '<div class="loading" style="text-align: center; padding: 20px;"><p>🔄 Carregando histórico de consultas...</p></div>';
+
+    try {
+        const endpoints = [
+            `${API_BASE_URL}/historico/${usuarioLogado.id_usuario}`,
+            `${API_BASE_URL}/consultas/${usuarioLogado.id_usuario}`,
+            `${API_BASE_URL}/fichas/${usuarioLogado.id_usuario}`,
+            `http://localhost:3000/api/consultas/usuario/${usuarioLogado.id_usuario}`,
+            `http://localhost:3000/api/fichas/usuario/${usuarioLogado.id_usuario}`
+        ];
+        
+        let historico = null;
+        let endpointUsado = null;
+        
+        for (const endpoint of endpoints) {
+            try {
+                console.log(`🔍 Tentando endpoint: ${endpoint}`);
+                const response = await fetch(endpoint);
+                console.log(`📡 Response status: ${response.status} para ${endpoint}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`✅ Dados recebidos de ${endpoint}:`, data);
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        historico = data;
+                        endpointUsado = endpoint;
+                        break;
+                    } else if (data && data.historico && Array.isArray(data.historico)) {
+                        historico = data.historico;
+                        endpointUsado = endpoint;
+                        break;
+                    } else if (data && data.consultas && Array.isArray(data.consultas)) {
+                        historico = data.consultas;
+                        endpointUsado = endpoint;
+                        break;
+                    } else {
+                        console.log(`📄 Endpoint ${endpoint} retornou dados vazios ou inválidos`);
+                    }
+                } else {
+                    console.log(`❌ Endpoint ${endpoint} falhou com status: ${response.status}`);
+                }
+            } catch (error) {
+                console.log(`💥 Erro no endpoint ${endpoint}:`, error.message);
+                continue;
+            }
+        }
+        
+        if (historico && historico.length > 0) {
+            console.log(`✅ Histórico carregado com sucesso de ${endpointUsado}:`, historico.length, 'consultas');
+            renderizarHistoricoCorrigido(historico, container);
+        } else {
+            console.log('📋 Nenhuma consulta encontrada no histórico');
+            container.innerHTML = `
+                <div class="no-data" style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <h3 style="color: #6c757d; margin-bottom: 15px;">📋 Histórico de Consultas</h3>
+                    <p style="color: #6c757d; margin-bottom: 10px;">Você ainda não possui consultas registradas.</p>
+                    <p style="color: #6c757d; font-size: 14px;">Após suas primeiras consultas, elas aparecerão aqui para acompanhamento.</p>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('💥 Erro geral ao carregar histórico:', error);
+        container.innerHTML = `
+            <div class="error" style="text-align: center; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; color: #721c24;">
+                <h3>❌ Erro ao Carregar Histórico</h3>
+                <p>Não foi possível carregar seu histórico de consultas.</p>
+                <p style="font-size: 12px; margin-top: 10px;">Detalhes técnicos: ${error.message}</p>
+                <button onclick="carregarHistoricoCorrigido()" style="margin-top: 15px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    🔄 Tentar Novamente
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Função corrigida para renderizar histórico com melhor formatação
+function renderizarHistoricoCorrigido(historico, container) {
+    if (!Array.isArray(historico) || historico.length === 0) {
+        container.innerHTML = '<div class="no-data"><p>Nenhuma consulta encontrada.</p></div>';
+        return;
+    }
+    
+    console.log(`🎨 Renderizando ${historico.length} consultas do histórico`);
+    
+    let html = `
+        <div class="historico-lista" style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="text-align: center; color: #333; margin-bottom: 25px; font-size: 24px;">📋 Seu Histórico de Consultas</h3>
+    `;
+    
+    // Ordenar por data mais recente
+    const historicoOrdenado = historico.sort((a, b) => {
+        const dataA = new Date(a.data_consulta || a.data || a.created_at);
+        const dataB = new Date(b.data_consulta || b.data || b.created_at);
+        return dataB - dataA;
+    });
+    
+    historicoOrdenado.forEach((consulta, index) => {
+        try {
+            const dataConsulta = new Date(consulta.data_consulta || consulta.data || consulta.created_at);
+            const dataFormatada = dataConsulta.toLocaleDateString('pt-BR');
+            const horaFormatada = dataConsulta.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const idConsulta = consulta.id_ficha || consulta.id_consulta || consulta.id || index;
+            const queixa = consulta.queixa_principal || consulta.queixa || consulta.motivo || 'Consulta de rotina';
+            const status = consulta.status || 'Concluída';
+            
+            html += `
+                <div class="historico-item" onclick="abrirModalConsulta(${idConsulta})" 
+                     style="cursor: pointer; margin-bottom: 15px; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; transition: all 0.3s ease; hover: background-color: #e9ecef;">
+                    <div class="historico-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="margin: 0; color: #495057; font-size: 18px;">🩺 Consulta - ${dataFormatada}</h4>
+                        <span class="status-badge" style="background: #28a745; color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                            ${status}
+                        </span>
+                    </div>
+                    <div class="historico-info">
+                        <p style="margin: 8px 0; color: #6c757d;"><strong>⏰ Horário:</strong> ${horaFormatada}</p>
+                        <p style="margin: 8px 0; color: #6c757d;"><strong>🗣️ Motivo:</strong> ${queixa}</p>
+                        <p class="click-hint" style="margin: 12px 0 0 0; font-size: 13px; color: #007bff; font-style: italic;">
+                            👆 Clique para ver detalhes completos da consulta
+                        </p>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Erro ao renderizar consulta:', consulta, error);
+        }
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    console.log(`✅ Histórico renderizado com sucesso: ${historicoOrdenado.length} consultas`);
+}
+
+// Função para atualizar interface com email garantido
+function atualizarInterfaceCorrigida() {
+    if (!usuarioLogado) return;
+    
+    console.log('🔄 Atualizando interface com dados:', usuarioLogado);
+    
+    // Atualizar mensagem de boas-vindas
+    const welcomeElement = document.getElementById('welcome-message');
+    if (welcomeElement) {
+        const nome = usuarioLogado.nome || usuarioLogado.username || 'Usuário';
+        welcomeElement.textContent = `Bem-vindo, ${nome}!`;
+        console.log('✅ Welcome message atualizada');
+    }
+    
+    // Atualizar foto do header
+    const fotoHeader = document.getElementById('header-foto');
+    if (fotoHeader) {
+        if (usuarioLogado.foto_perfil) {
+            const fotoUrl = usuarioLogado.foto_perfil.startsWith('http') 
+                ? usuarioLogado.foto_perfil 
+                : `http://localhost:3000${usuarioLogado.foto_perfil}`;
+            fotoHeader.src = fotoUrl;
+            fotoHeader.onerror = () => {
+                fotoHeader.src = 'images/user-placeholder.jpg';
+            };
+        } else {
+            fotoHeader.src = 'images/user-placeholder.jpg';
+        }
+        console.log('✅ Foto do header atualizada');
+    }
+
+    // Garantir que o email seja exibido no campo
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+        const email = usuarioLogado.email || usuarioLogado.username || '';
+        emailInput.value = email;
+        emailInput.setAttribute('readonly', true);
+        emailInput.style.backgroundColor = '#f8f9fa';
+        emailInput.style.border = '1px solid #ced4da';
+        console.log('✅ Email atualizado no campo:', email);
+    }
+}
+
+// Substituir a função de inicialização original
+async function inicializarPaginaCorrigida() {
+    try {
+        console.log('🚀 Iniciando carregamento da página...');
+        
+        // 1. Inicializar dados do usuário
+        const usuarioValido = await inicializarDadosUsuario();
+        if (!usuarioValido) return;
+        
+        // 2. Atualizar interface básica
+        atualizarInterfaceCorrigida();
+        
+        // 3. Carregar dados do perfil (com email preservado)
+        await carregarDadosPerfilCorrigido();
+        
+        // 4. Carregar histórico corrigido
+        await carregarHistoricoCorrigido();
+        
+        // 5. Carregar dicas se função existir
+        if (typeof inicializarDicas === 'function') {
+            await inicializarDicas();
+        }
+        
+        // 6. Configurar eventos
+        configurarEventos();
+        
+        console.log('✅ Página inicializada com sucesso!');
+        
+    } catch (error) {
+        console.error('💥 Erro ao inicializar página:', error);
+        mostrarAlerta('Erro ao carregar dados da página: ' + error.message, 'error');
+    }
+}
+
+// Tornar funções globais
+window.carregarHistoricoCorrigido = carregarHistoricoCorrigido;
+window.inicializarPaginaCorrigida = inicializarPaginaCorrigida;
+
+// Substituir o evento de inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado, iniciando página corrigida...');
+    inicializarPaginaCorrigida();
+});
