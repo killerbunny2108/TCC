@@ -68,6 +68,8 @@
           <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" name="email" readonly>
+            <!-- Debug: mostrar se o email está sendo carregado -->
+            <small id="email-debug" style="color: #666; font-size: 0.8em; display: block; margin-top: 5px;"></small>
           </div>
           <div class="form-group">
             <label for="telefone">Telefone</label>
@@ -93,8 +95,18 @@
     <!-- Seção do Histórico -->
     <section class="historico-detalhado">
       <h2>Histórico Completo de Consultas</h2>
+      <!-- Debug: mostrar informações sobre o carregamento -->
+      <div id="historico-debug" style="margin-bottom: 10px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-size: 0.9em; color: #666;">
+        Status: <span id="historico-status">Iniciando...</span>
+      </div>
       <div class="historico-container" id="historico-completo">
-        <div class="loading">Carregando histórico...</div>
+        <div class="loading" id="historico-loading">Carregando histórico...</div>
+        <!-- Container para as consultas -->
+        <div id="consultas-container" style="display: none;"></div>
+        <!-- Mensagem quando não há consultas -->
+        <div id="sem-consultas" style="display: none;">
+          <p>Nenhuma consulta encontrada.</p>
+        </div>
       </div>
     </section>
   </main>
@@ -142,8 +154,69 @@
     </div>
   </footer>
 
-  <!-- Carregar primeiro o usuario.js que tem as funções principais -->
+  <!-- Carregar o JavaScript quando o DOM estiver pronto -->
+  <script>
+    // Aguardar o DOM estar completamente carregado
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar múltiplas possibilidades de como o email pode estar salvo
+      const email = localStorage.getItem('emailUsuario') || 
+                   localStorage.getItem('email') || 
+                   localStorage.getItem('userEmail') ||
+                   sessionStorage.getItem('emailUsuario') ||
+                   sessionStorage.getItem('email');
+      
+      const emailDebug = document.getElementById('email-debug');
+      const historicoStatus = document.getElementById('historico-status');
+      
+      // Debug: mostrar todos os itens do localStorage
+      console.log('Todos os itens do localStorage:', localStorage);
+      console.log('Todos os itens do sessionStorage:', sessionStorage);
+      
+      if (email) {
+        document.getElementById('email').value = email;
+        emailDebug.textContent = `Email carregado: ${email}`;
+        historicoStatus.textContent = 'Email encontrado, carregando histórico...';
+        
+        // Também buscar outros dados do usuário se disponíveis
+        const nome = localStorage.getItem('nomeUsuario') || localStorage.getItem('nome');
+        if (nome) {
+          document.getElementById('nome').value = nome;
+        }
+        
+      } else {
+        emailDebug.textContent = 'Email não encontrado no storage';
+        historicoStatus.textContent = 'Email não encontrado - histórico não pode ser carregado';
+        
+        // Listar todas as chaves disponíveis para debug
+        const keys = Object.keys(localStorage);
+        emailDebug.textContent += ` | Chaves disponíveis: ${keys.join(', ')}`;
+      }
+      
+      // Verificar se o script usuario.js está carregado
+      if (typeof carregarHistorico === 'function') {
+        historicoStatus.textContent = 'Script carregado, iniciando carregamento do histórico...';
+      } else {
+        historicoStatus.textContent = 'Erro: Script usuario.js não foi carregado corretamente';
+      }
+    });
+  </script>
+  
+  <!-- Carregar o usuario.js -->
   <script src="./usuario.js"></script>
+  
+  <!-- Script adicional para debug -->
+  <script>
+    // Verificar se as funções foram carregadas
+    window.addEventListener('load', function() {
+      const historicoStatus = document.getElementById('historico-status');
+      
+      if (typeof carregarHistorico === 'function') {
+        historicoStatus.textContent = 'Todas as funções carregadas com sucesso';
+      } else {
+        historicoStatus.textContent = 'Erro: Funções não foram carregadas';
+      }
+    });
+  </script>
 </body>
 
 </html>

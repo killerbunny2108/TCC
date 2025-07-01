@@ -72,43 +72,239 @@
   
 <section class="terapias" id="terapias">
     <div class="terapias-content">
+        <!-- Título e subtítulo -->
         <h1 class="titulo_terapia">Minhas Terapias</h1>
-        
-        <div class="carousel-container">
-            <button class="carousel-nav prev" onclick="changeSlide(-1)">&#10094;</button>
-            
-            <div class="carousel-slide active">
-                <img src="imagens/fotoCleo3.jpg" alt="Reflexologia podal comportamental">
-                <p>Reflexologia podal comportamental</p>
+        <p class="subtitulo_terapia">
+            Transforme sua vida através de terapias integrativas personalizadas. 
+            Cada sessão é uma jornada única de autodescoberta e cura.
+        </p>
+
+        <!-- Estatísticas -->
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-number">200+</span>
+                <span class="stat-label">Clientes Atendidas</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">4+</span>
+                <span class="stat-label">Anos de Experiência</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">6</span>
+                <span class="stat-label">Especialidades</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">95%</span>
+                <span class="stat-label">Satisfação</span>
+            </div>
+        </div>
+
+        <!-- Container principal -->
+        <div class="terapias-main">
+            <!-- Lista lateral de terapias -->
+            <div class="terapias-list">
+                <h3>Especialidades</h3>
+                <div class="terapia-item active" onclick="showTherapy(1)">
+                    <div class="terapia-icon">🦶</div>
+                    <span class="terapia-name">Reflexologia Podal</span>
+                </div>
+                <div class="terapia-item" onclick="showTherapy(2)">
+                    <div class="terapia-icon">👤</div>
+                    <span class="terapia-name">Análise Corporal</span>
+                </div>
+                <div class="terapia-item" onclick="showTherapy(3)">
+                    <div class="terapia-icon">🧬</div>
+                    <span class="terapia-name">Nova Medicina Germânica</span>
+                </div>
+                <div class="terapia-item" onclick="showTherapy(4)">
+                    <div class="terapia-icon">🌿</div>
+                    <span class="terapia-name">Aromaterapia</span>
+                </div>
+                <div class="terapia-item" onclick="showTherapy(5)">
+                    <div class="terapia-icon">💆</div>
+                    <span class="terapia-name">Massagem Craniana</span>
+                </div>
+                <div class="terapia-item" onclick="showTherapy(6)">
+                    <div class="terapia-icon">🧠</div>
+                    <span class="terapia-name">Inteligência Emocional</span>
+                </div>
             </div>
 
-            <div class="carousel-slide">
-                <img src="imagens/analise-corporal.jpg" alt="Análise corporal">
-                <p>Análise corporal</p>
-            </div>
+            <!-- Carousel de terapias -->
+            <div class="carousel-container">
+                <button class="carousel-nav prev" onclick="changeSlide(-1)">&#10094;</button>
+                
+                <div class="carousel-slide active">
+                    <div class="slide-content">
+                        <img src="imagens/fotoCleo3.jpg" alt="Reflexologia podal comportamental">
+                        <div class="slide-info">
+                            <h3 class="slide-title">Reflexologia Podal Comportamental</h3>
+                            <p class="slide-description">
+                                Técnica que utiliza pontos reflexos nos pés para identificar e tratar 
+                                desequilíbrios emocionais e físicos, promovendo bem-estar integral.
+                            </p>
+                            <button class="slide-cta" onclick="window.location.href='login.html'">Agendar Sessão</button>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="carousel-slide">
-                <img src="imagens/nova-medicina-germanica.jpg" alt="Nova medicina germânica">
-                <p>Nova medicina germânica</p>
-            </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <img src="imagens/analise-corporal.jpg" alt="Análise corporal">
+                        <div class="slide-info">
+                            <h3 class="slide-title">Análise Corporal</h3>
+                            <p class="slide-description">
+                                Avaliação completa que identifica tensões, bloqueios e padrões corporais 
+                                para desenvolver um plano terapêutico personalizado.
+                            </p>
+                            <div class="slide-benefits">
+                                <span class="benefit-tag">Autoconhecimento</span>
+                                <span class="benefit-tag">Postura</span>
+                                <span class="benefit-tag">Consciência Corporal</span>
+                                <span class="benefit-tag">Prevenção</span>
+                            </div>
+                            <button class="slide-cta" onclick="window.location.href='login.html'">Agendar Sessão</button>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="carousel-slide">
-                <img src="imagens/aromaterapia.jpg" alt="Aromaterapia">
-                <p>Aromaterapia</p>
-            </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <img src="imagens/nova-medicina-germanica.jpg" alt="Nova medicina germânica">
+                        <div class="slide-info">
+                            <h3 class="slide-title">Nova Medicina Germânica</h3>
+                            <p class="slide-description">
+                                Abordagem que compreende as doenças como programas biológicos, 
+                                buscando identificar e resolver conflitos emocionais na raiz.
+                            </p>
+                            <div class="slide-benefits">
+                                <span class="benefit-tag">Cura Profunda</span>
+                                <span class="benefit-tag">Resolução de Conflitos</span>
+                                <span class="benefit-tag">Medicina Integrativa</span>
+                                <span class="benefit-tag">Abordagem Holística</span>
+                            </div>
+                            <button class="slide-cta" onclick="window.location.href='login.html'">Agendar Sessão</button>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="carousel-slide">
-                <img src="imagens/massagem_craniana-tailandesa.jpg" alt="Massagem craniana Tailandesa">
-                <p>Massagem craniana Tailandesa</p>
-            </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <img src="imagens/aromaterapia.jpg" alt="Aromaterapia">
+                        <div class="slide-info">
+                            <h3 class="slide-title">Aromaterapia</h3>
+                            <p class="slide-description">
+                                Uso terapêutico de óleos essenciais naturais para promover 
+                                equilíbrio físico, mental e emocional através do olfato.
+                            </p>
+                            <div class="slide-benefits">
+                                <span class="benefit-tag">Relaxamento</span>
+                                <span class="benefit-tag">Ansiedade</span>
+                                <span class="benefit-tag">Sono Reparador</span>
+                                <span class="benefit-tag">Energia Vital</span>
+                            </div>
+                            <button class="slide-cta" onclick="window.location.href='login.html'">Agendar Sessão</button>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="carousel-slide">
-                <img src="imagens/inteligencia_emocional.jpg" alt="Inteligência emocional">
-                <p>Inteligência emocional</p>
-            </div>
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <img src="imagens/massagem_craniana-tailandesa.jpg" alt="Massagem craniana Tailandesa">
+                        <div class="slide-info">
+                            <h3 class="slide-title">Massagem Craniana Tailandesa</h3>
+                            <p class="slide-description">
+                                Técnica ancestral que combina pressão e movimentos suaves 
+                                para liberar tensões e promover relaxamento profundo.
+                            </p>
+                            <div class="slide-benefits">
+                                <span class="benefit-tag">Alívio de Dores</span>
+                                <span class="benefit-tag">Relaxamento</span>
+                                <span class="benefit-tag">Melhora Sono</span>
+                                <span class="benefit-tag">Reduz Enxaqueca</span>
+                            </div>
+                            <button class="slide-cta" onclick="window.location.href='login.html'">Agendar Sessão</button>
+                        </div>
+                    </div>
+                </div>
 
-            <button class="carousel-nav next" onclick="changeSlide(1)">&#10095;</button>
-            
+                <div class="carousel-slide">
+                    <div class="slide-content">
+                        <img src="imagens/inteligencia_emocional.jpg" alt="Inteligência emocional">
+                        <div class="slide-info">
+                            <h3 class="slide-title">Inteligência Emocional</h3>
+                            <p class="slide-description">
+                                Desenvolvimento de habilidades para reconhecer, compreender 
+                                e gerenciar emoções de forma saudável e equilibrada.
+                            </p>
+                            <div class="slide-benefits">
+                                <span class="benefit-tag">Autocontrole</span>
+                                <span class="benefit-tag">Relacionamentos</span>
+                                <span class="benefit-tag">Resiliência</span>
+                                <span class="benefit-tag">Bem-estar</span>
+                            </div>
+                            <button class="slide-cta" onclick="window.location.href='login.html'">Agendar Sessão</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="carousel-nav next" onclick="changeSlide(1)">&#10095;</button>
+                
+                <!-- Indicadores -->
+                <div class="carousel-indicators">
+                    <span class="indicator active" onclick="currentSlide(1)"></span>
+                    <span class="indicator" onclick="currentSlide(2)"></span>
+                    <span class="indicator" onclick="currentSlide(3)"></span>
+                    <span class="indicator" onclick="currentSlide(4)"></span>
+                    <span class="indicator" onclick="currentSlide(5)"></span>
+                    <span class="indicator" onclick="currentSlide(6)"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de depoimentos -->
+        <div class="depoimentos-section">
+            <h2 class="depoimentos-title">O que dizem minhas clientes</h2>
+            <div class="depoimentos-grid">
+                <div class="depoimento-card">
+                    <p class="depoimento-text">
+                        "A terapia com Cléo transformou minha vida. Encontrei paz interior e aprendi a lidar 
+                        com minhas emoções de forma muito mais saudável."
+                    </p>
+                    <span class="depoimento-author">— Maria Silva</span>
+                </div>
+                <div class="depoimento-card">
+                    <p class="depoimento-text">
+                        "Profissional incrível! A reflexologia podal me ajudou muito com minha ansiedade 
+                        e problemas de sono. Recomendo de olhos fechados!"
+                    </p>
+                    <span class="depoimento-author">— Ana Costa</span>
+                </div>
+                <div class="depoimento-card">
+                    <p class="depoimento-text">
+                        "Cléo tem um dom especial para cuidar das pessoas. Suas terapias são verdadeiramente 
+                        transformadoras e o acolhimento é excepcional."
+                    </p>
+                    <span class="depoimento-author">— Juliana Santos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to action final -->
+        <div class="cta-final">
+            <h2 class="cta-title">Pronta para sua Transformação?</h2>
+            <p class="cta-subtitle">
+                Dê o primeiro passo em direção ao seu bem-estar. Agende sua consulta 
+                e descubra como posso ajudá-la a reencontrar seu equilíbrio.
+            </p>
+            <div class="cta-buttons">
+                <button class="cta-button" onclick="window.location.href='login.html'">
+                    Agendar Consulta
+                </button>
+                <button class="cta-button secondary" onclick="window.open('https://wa.me/5547999207008', '_blank')">
+                    Falar no WhatsApp
+                </button>
+            </div>
         </div>
     </div>
 </section>
