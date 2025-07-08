@@ -7,8 +7,8 @@
   <title>Área do Cliente</title>
   <link rel="stylesheet" href="usuario_estrutura.css">
   <link rel="stylesheet" href="usuario_footer.css">
-  <link rel="stylesheet" href="usuario_historico.css">
   <link rel="stylesheet" href="usuario_perfil.css">
+  <link rel="stylesheet" href="usuario_dicas.css">
 
   <!-- Calendly link widget -->
   <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
@@ -32,7 +32,7 @@
     <!-- Seção Principal -->
     <section class="boas-vindas">
       <h2>Área do Cliente</h2>
-      <p>Aqui você pode visualizar dicas personalizadas e os horários disponíveis para agendamento.</p>
+      <p>Aqui você pode visualizar dicas personalizadas e gerenciar seu perfil.</p>
     </section>
 
     <section class="agendamento">
@@ -68,8 +68,6 @@
           <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" name="email" readonly>
-            <!-- Debug: mostrar se o email está sendo carregado -->
-            <small id="email-debug" style="color: #666; font-size: 0.8em; display: block; margin-top: 5px;"></small>
           </div>
           <div class="form-group">
             <label for="telefone">Telefone</label>
@@ -91,38 +89,7 @@
         </div>
       </div>
     </section>
-
-    <!-- Seção do Histórico -->
-    <section class="historico-detalhado">
-      <h2>Histórico Completo de Consultas</h2>
-      <!-- Debug: mostrar informações sobre o carregamento -->
-      <div id="historico-debug" style="margin-bottom: 10px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-size: 0.9em; color: #666;">
-        Status: <span id="historico-status">Iniciando...</span>
-      </div>
-      <div class="historico-container" id="historico-completo">
-        <div class="loading" id="historico-loading">Carregando histórico...</div>
-        <!-- Container para as consultas -->
-        <div id="consultas-container" style="display: none;"></div>
-        <!-- Mensagem quando não há consultas -->
-        <div id="sem-consultas" style="display: none;">
-          <p>Nenhuma consulta encontrada.</p>
-        </div>
-      </div>
-    </section>
   </main>
-
-  <!-- Modal para detalhes da consulta -->
-  <div id="modal-consulta" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Detalhes da Consulta</h3>
-        <span class="close" onclick="fecharModal()">&times;</span>
-      </div>
-      <div class="modal-body" id="modal-body-consulta">
-        <!-- Conteúdo será preenchido dinamicamente -->
-      </div>
-    </div>
-  </div>
 
   <!-- Modal para cropar imagem -->
   <div id="modal-crop" class="modal" style="display: none;">
@@ -165,17 +132,8 @@
                    sessionStorage.getItem('emailUsuario') ||
                    sessionStorage.getItem('email');
       
-      const emailDebug = document.getElementById('email-debug');
-      const historicoStatus = document.getElementById('historico-status');
-      
-      // Debug: mostrar todos os itens do localStorage
-      console.log('Todos os itens do localStorage:', localStorage);
-      console.log('Todos os itens do sessionStorage:', sessionStorage);
-      
       if (email) {
         document.getElementById('email').value = email;
-        emailDebug.textContent = `Email carregado: ${email}`;
-        historicoStatus.textContent = 'Email encontrado, carregando histórico...';
         
         // Também buscar outros dados do usuário se disponíveis
         const nome = localStorage.getItem('nomeUsuario') || localStorage.getItem('nome');
@@ -183,40 +141,26 @@
           document.getElementById('nome').value = nome;
         }
         
-      } else {
-        emailDebug.textContent = 'Email não encontrado no storage';
-        historicoStatus.textContent = 'Email não encontrado - histórico não pode ser carregado';
+        const telefone = localStorage.getItem('telefoneUsuario') || localStorage.getItem('telefone');
+        if (telefone) {
+          document.getElementById('telefone').value = telefone;
+        }
         
-        // Listar todas as chaves disponíveis para debug
-        const keys = Object.keys(localStorage);
-        emailDebug.textContent += ` | Chaves disponíveis: ${keys.join(', ')}`;
-      }
-      
-      // Verificar se o script usuario.js está carregado
-      if (typeof carregarHistorico === 'function') {
-        historicoStatus.textContent = 'Script carregado, iniciando carregamento do histórico...';
-      } else {
-        historicoStatus.textContent = 'Erro: Script usuario.js não foi carregado corretamente';
+        const endereco = localStorage.getItem('enderecoUsuario') || localStorage.getItem('endereco');
+        if (endereco) {
+          document.getElementById('endereco').value = endereco;
+        }
+        
+        const dataNascimento = localStorage.getItem('dataNascimentoUsuario') || localStorage.getItem('data_nascimento');
+        if (dataNascimento) {
+          document.getElementById('data_nascimento').value = dataNascimento;
+        }
       }
     });
   </script>
   
   <!-- Carregar o usuario.js -->
   <script src="./usuario.js"></script>
-  
-  <!-- Script adicional para debug -->
-  <script>
-    // Verificar se as funções foram carregadas
-    window.addEventListener('load', function() {
-      const historicoStatus = document.getElementById('historico-status');
-      
-      if (typeof carregarHistorico === 'function') {
-        historicoStatus.textContent = 'Todas as funções carregadas com sucesso';
-      } else {
-        historicoStatus.textContent = 'Erro: Funções não foram carregadas';
-      }
-    });
-  </script>
 </body>
 
 </html>
