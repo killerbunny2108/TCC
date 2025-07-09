@@ -88,24 +88,27 @@
     </section>
   </main>
 
-  <!-- Modal para cropar imagem -->
-  <div id="modal-crop" class="modal" style="display: none;">
+<!-- Modal para cropar imagem - VERSÃO CORRIGIDA -->
+<div id="modal-crop" class="modal" style="display: none;">
     <div class="modal-content">
-      <div class="modal-header">
-        <h3>Ajustar Foto de Perfil</h3>
-        <span class="close" onclick="fecharModalCrop()">&times;</span>
-      </div>
-      <div class="modal-body">
-        <div id="crop-container">
-          <img id="crop-image" style="max-width: 100%;">
+        <div class="modal-header">
+            <h3>Ajustar Foto de Perfil</h3>
+            <span class="close" onclick="fecharModalCrop()">&times;</span>
         </div>
-        <div class="crop-actions">
-          <button class="btn-primary" onclick="salvarFotoCropada()">Salvar Foto</button>
-          <button class="btn-secondary" onclick="fecharModalCrop()">Cancelar</button>
+        <div class="modal-body">
+            <div id="crop-container" style="text-align: center; padding: 20px;">
+                <img id="crop-image" style="display: none; max-width: 100%; max-height: 400px; object-fit: contain;">
+                <div id="crop-loading" style="display: none;">
+                    <p>Carregando imagem...</p>
+                </div>
+            </div>
+            <div class="crop-actions" style="text-align: center; margin-top: 20px;">
+                <button class="btn-primary" onclick="salvarFotoCropada()">Salvar Foto</button>
+                <button class="btn-secondary" onclick="fecharModalCrop()">Cancelar</button>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 
   <footer>
     <div class="footer-content">
@@ -118,44 +121,6 @@
     </div>
   </footer>
 
-  <!-- Carregar o JavaScript quando o DOM estiver pronto -->
-  <script>
-    // Aguardar o DOM estar completamente carregado
-    document.addEventListener('DOMContentLoaded', function() {
-      // Verificar múltiplas possibilidades de como o email pode estar salvo
-      const email = localStorage.getItem('emailUsuario') || 
-                   localStorage.getItem('email') || 
-                   localStorage.getItem('userEmail') ||
-                   sessionStorage.getItem('emailUsuario') ||
-                   sessionStorage.getItem('email');
-      
-      if (email) {
-        document.getElementById('email').value = email;
-        
-        // Também buscar outros dados do usuário se disponíveis
-        const nome = localStorage.getItem('nomeUsuario') || localStorage.getItem('nome');
-        if (nome) {
-          document.getElementById('nome').value = nome;
-        }
-        
-        const telefone = localStorage.getItem('telefoneUsuario') || localStorage.getItem('telefone');
-        if (telefone) {
-          document.getElementById('telefone').value = telefone;
-        }
-        
-        const endereco = localStorage.getItem('enderecoUsuario') || localStorage.getItem('endereco');
-        if (endereco) {
-          document.getElementById('endereco').value = endereco;
-        }
-        
-        const dataNascimento = localStorage.getItem('dataNascimentoUsuario') || localStorage.getItem('data_nascimento');
-        if (dataNascimento) {
-          document.getElementById('data_nascimento').value = dataNascimento;
-        }
-      }
-    });
-  </script>
-  
   <!-- Carregar o usuario.js -->
   <script src="./usuario.js"></script>
 </body>

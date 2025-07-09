@@ -68,18 +68,12 @@ async function carregarDadosUsuario() {
 // Preencher dados do usuário na interface
 function preencherDadosUsuario(dados) {
     const nomeField = document.getElementById('nome');
-    const emailField = document.getElementById('email');
     const telefoneField = document.getElementById('telefone');
     const enderecoField = document.getElementById('endereco');
     const dataField = document.getElementById('data_nascimento');
     const welcomeMessage = document.getElementById('welcome-message');
     
     if (nomeField) nomeField.value = dados.nome || '';
-    if (emailField) {
-        emailField.value = dados.email || '';
-        emailField.readOnly = true;
-        emailField.classList.add('campo-fixo');
-    }
     if (telefoneField) telefoneField.value = dados.telefone || '';
     if (enderecoField) enderecoField.value = dados.endereco || '';
     if (dataField) dataField.value = dados.data_nascimento || '';
@@ -190,6 +184,13 @@ function configurarEventListeners() {
             }
         });
     }
+    
+    // Event listener para tecla ESC fechar modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            fecharModalCrop();
+        }
+    });
 }
 
 // Alternar modo de edição
@@ -208,12 +209,6 @@ function toggleEdicao() {
                 element.classList.add('editando');
             }
         });
-        
-        const emailField = document.getElementById('email');
-        if (emailField) {
-            emailField.readOnly = true;
-            emailField.classList.remove('editando');
-        }
         
         if (btnEditar) btnEditar.textContent = 'Salvar Alterações';
         if (btnCancelar) btnCancelar.style.display = 'inline-block';
@@ -239,13 +234,6 @@ function cancelarEdicao() {
         }
     });
     
-    const emailField = document.getElementById('email');
-    if (emailField) {
-        emailField.value = dadosOriginais.email || '';
-        emailField.readOnly = true;
-        emailField.classList.remove('editando');
-    }
-    
     if (btnEditar) btnEditar.textContent = 'Editar Perfil';
     if (btnCancelar) btnCancelar.style.display = 'none';
 }
@@ -253,14 +241,18 @@ function cancelarEdicao() {
 // Salvar alterações do perfil
 async function salvarAlteracoes() {
     try {
-        const emailField = document.getElementById('email');
+        const emailUsuario = localStorage.getItem('emailUsuario') || 
+                            localStorage.getItem('email') || 
+                            sessionStorage.getItem('emailUsuario') ||
+                            sessionStorage.getItem('email');
+        
         const nomeField = document.getElementById('nome');
         const telefoneField = document.getElementById('telefone');
         const enderecoField = document.getElementById('endereco');
         const dataField = document.getElementById('data_nascimento');
         
         const dadosAtualizados = {
-            email: emailField ? emailField.value : '',
+            email: emailUsuario,
             nome: nomeField ? nomeField.value : '',
             telefone: telefoneField ? telefoneField.value : '',
             endereco: enderecoField ? enderecoField.value : '',
@@ -287,12 +279,6 @@ async function salvarAlteracoes() {
                 }
             });
             
-            const emailField = document.getElementById('email');
-            if (emailField) {
-                emailField.readOnly = true;
-                emailField.classList.remove('editando');
-            }
-            
             const btnEditar = document.getElementById('btn-editar');
             const btnCancelar = document.getElementById('btn-cancelar');
             
@@ -307,6 +293,8 @@ async function salvarAlteracoes() {
             
             alert('Perfil atualizado com sucesso!');
         } else {
+            const errorText = await response.text();
+            console.error('Erro ao atualizar perfil:', errorText);
             alert('Erro ao atualizar perfil. Tente novamente.');
         }
     } catch (error) {
@@ -325,10 +313,12 @@ function alterarFoto() {
     }
 }
 
-// Processar imagem selecionada - FUNÇÃO CORRIGIDA
+// Processar imagem selecionada - VERSÃO CORRIGIDA
 function processarImagemSelecionada(file) {
-    // Validar tamanho do arquivo
-    if (file.size > 5 * 1024 * 1024) { // 5MB
+    console.log('Processando imagem:', file.name, file.size, file.type);
+    
+    // Validar tamanho do arquivo (5MB)
+    if (file.size > 5 * 1024 * 1024) {
         alert('A imagem deve ter no máximo 5MB');
         return;
     }
@@ -339,64 +329,90 @@ function processarImagemSelecionada(file) {
         return;
     }
     
-    // Criar FileReader para ler o arquivo
+    // Limpar estado anterior
+    imagemSelecionada = null;
+    
+    // Criar FileReader
     const reader = new FileReader();
     
     reader.onload = function(e) {
+        console.log('Imagem carregada pelo FileReader');
+        
+        const imageDataUrl = e.target.result;
         const cropImage = document.getElementById('crop-image');
         const modalCrop = document.getElementById('modal-crop');
         
         if (!cropImage || !modalCrop) {
             console.error('Elementos do modal não encontrados');
+            alert('Erro: elementos do modal não encontrados');
             return;
         }
         
-        // Definir a imagem no elemento
-        cropImage.src = e.target.result;
+        // Limpar imagem anterior
+        cropImage.src = '';
+        cropImage.style.display = 'none';
         
-        // Aguardar a imagem carregar antes de exibir o modal
+        // Configurar nova imagem
         cropImage.onload = function() {
-            // Exibir o modal
+            console.log('Imagem carregada no elemento img');
+            
+            // Mostrar a imagem
+            cropImage.style.display = 'block';
+            cropImage.style.maxWidth = '100%';
+            cropImage.style.maxHeight = '400px';
+            cropImage.style.objectFit = 'contain';
+            
+            // Armazenar dados da imagem
+            imagemSelecionada = {
+                dataUrl: imageDataUrl,
+                file: file
+            };
+            
+            // Mostrar modal
             modalCrop.style.display = 'block';
             
-            // Armazenar a imagem para uso posterior
-            imagemSelecionada = e.target.result;
-            
-            console.log('Imagem carregada no modal');
+            console.log('Modal exibido com sucesso');
         };
         
         cropImage.onerror = function() {
-            console.error('Erro ao carregar a imagem');
+            console.error('Erro ao carregar imagem no elemento img');
             alert('Erro ao carregar a imagem. Tente novamente.');
         };
+        
+        // Definir src da imagem
+        cropImage.src = imageDataUrl;
     };
     
     reader.onerror = function() {
-        console.error('Erro ao ler o arquivo');
+        console.error('Erro ao ler arquivo');
         alert('Erro ao ler o arquivo. Tente novamente.');
     };
     
-    // Iniciar a leitura do arquivo
+    // Iniciar leitura
     reader.readAsDataURL(file);
 }
 
-// Salvar foto cropada - FUNÇÃO CORRIGIDA
+// Salvar foto cropada - VERSÃO CORRIGIDA
 async function salvarFotoCropada() {
+    console.log('Iniciando salvamento da foto');
+    
+    if (!imagemSelecionada) {
+        alert('Nenhuma imagem selecionada');
+        return;
+    }
+    
+    const emailUsuario = localStorage.getItem('emailUsuario') || 
+                        localStorage.getItem('email') || 
+                        sessionStorage.getItem('emailUsuario') ||
+                        sessionStorage.getItem('email');
+    
+    if (!emailUsuario) {
+        alert('Erro: usuário não identificado');
+        return;
+    }
+    
     try {
-        const cropImage = document.getElementById('crop-image');
-        const emailField = document.getElementById('email');
-        
-        if (!cropImage || !emailField) {
-            alert('Erro: elementos não encontrados');
-            return;
-        }
-        
-        if (!imagemSelecionada) {
-            alert('Nenhuma imagem selecionada');
-            return;
-        }
-        
-        // Criar canvas para redimensionar/cropar a imagem
+        // Criar canvas para processar a imagem
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
@@ -405,43 +421,53 @@ async function salvarFotoCropada() {
         canvas.width = tamanho;
         canvas.height = tamanho;
         
-        // Criar uma nova imagem a partir da imagem selecionada
+        // Criar nova imagem
         const img = new Image();
-        img.onload = async function() {
-            // Calcular dimensões para manter proporção e criar um crop quadrado
+        
+        img.onload = function() {
+            console.log('Imagem carregada para processamento:', img.width, 'x', img.height);
+            
+            // Calcular crop quadrado centralizado
             const minDimension = Math.min(img.width, img.height);
             const sx = (img.width - minDimension) / 2;
             const sy = (img.height - minDimension) / 2;
             
-            // Desenhar a imagem no canvas (crop quadrado e redimensionado)
+            // Desenhar imagem no canvas
             ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, tamanho, tamanho);
             
-            // Converter canvas para blob
+            // Converter para blob
             canvas.toBlob(async (blob) => {
                 if (!blob) {
                     alert('Erro ao processar a imagem');
                     return;
                 }
                 
-                // Criar FormData para enviar a imagem
+                console.log('Blob criado:', blob.size, 'bytes');
+                
+                // Criar FormData
                 const formData = new FormData();
                 formData.append('foto', blob, 'foto-perfil.jpg');
-                formData.append('email', emailField.value);
+                formData.append('email', emailUsuario);
                 
                 try {
+                    console.log('Enviando foto para o servidor...');
+                    
                     const response = await fetch('/api/usuario/foto', {
                         method: 'POST',
                         body: formData
                     });
                     
+                    console.log('Resposta do servidor:', response.status);
+                    
                     if (response.ok) {
                         const resultado = await response.json();
+                        console.log('Foto salva com sucesso:', resultado);
                         
                         // Atualizar preview da foto
                         const fotoPreview = document.getElementById('foto-preview');
                         const headerFoto = document.getElementById('header-foto');
                         
-                        const novaImagemUrl = resultado.url + '?t=' + Date.now(); // Cache bust
+                        const novaImagemUrl = resultado.url + '?t=' + Date.now();
                         
                         if (fotoPreview) {
                             fotoPreview.innerHTML = `<img src="${novaImagemUrl}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
@@ -469,29 +495,40 @@ async function salvarFotoCropada() {
             alert('Erro ao processar a imagem. Tente novamente.');
         };
         
-        // Carregar a imagem
-        img.src = imagemSelecionada;
+        // Carregar imagem
+        img.src = imagemSelecionada.dataUrl;
         
     } catch (error) {
-        console.error('Erro ao salvar foto:', error);
-        alert('Erro ao salvar foto. Tente novamente.');
+        console.error('Erro ao processar foto:', error);
+        alert('Erro ao processar a imagem. Tente novamente.');
     }
 }
 
 // Fechar modal de crop
 function fecharModalCrop() {
+    console.log('Fechando modal de crop');
+    
     const modalCrop = document.getElementById('modal-crop');
     const inputFoto = document.getElementById('input-foto');
     const cropImage = document.getElementById('crop-image');
     
-    if (modalCrop) modalCrop.style.display = 'none';
-    if (inputFoto) inputFoto.value = '';
-    if (cropImage) cropImage.src = '';
+    if (modalCrop) {
+        modalCrop.style.display = 'none';
+    }
     
-    // Limpar imagem selecionada
+    if (inputFoto) {
+        inputFoto.value = '';
+    }
+    
+    if (cropImage) {
+        cropImage.src = '';
+        cropImage.style.display = 'none';
+    }
+    
+    // Limpar dados da imagem
     imagemSelecionada = null;
     
-    // Destruir cropper se existir
+    // Limpar cropper se existir
     if (cropper) {
         cropper.destroy();
         cropper = null;
@@ -503,8 +540,9 @@ function logout() {
     localStorage.removeItem('emailUsuario');
     localStorage.removeItem('email');
     localStorage.removeItem('nomeUsuario');
-    sessionStorage.removeItem('emailUsuario');
-    sessionStorage.removeItem('email');
+    localStorage.removeItem('telefoneUsuario');
+    localStorage.removeItem('enderecoUsuario');
+    localStorage.removeItem('dataNascimentoUsuario');
     sessionStorage.clear();
     window.location.href = 'inicio.html';
 }
@@ -519,5 +557,5 @@ function debugStorage() {
     console.log('===================');
 }
 
-// Chamar debug no carregamento (remover após teste)
+// Chamar debug no carregamento
 debugStorage();

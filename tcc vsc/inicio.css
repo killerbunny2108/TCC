@@ -139,24 +139,28 @@ header nav ul li {
     border-radius: 12px;
   }
   
-  .texto {
+  .div-texto {
     padding: 10px;
     flex: 2 1 500px;
-    background-color: #f5f1fa;
-    padding: 20px;
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
     border: 1px solid #d1bae9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    margin-top: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
   }
   
-  .texto h2 {
+  .div-texto h2 {
     color: #4a2b63;
     font-size: 1.3rem;
     margin-bottom: 15px;
     text-align: center;
   }
   
-  .texto p {
+  .div-texto p {
     font-size: 1rem;
     line-height: 1.6;
   }
@@ -764,9 +768,9 @@ h1, .terapias h1{
 .slide-description {
     font-family: "Tan Pearl";
     color: #555;
-    line-height: ;
-    max-width: 350px;
-    margin: 0 auto 20px;
+    line-height: 1.6;
+    max-width: 1350px;
+    margin: 0 auto 10px;
 }
 
 .slide-benefits {
