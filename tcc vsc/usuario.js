@@ -28,6 +28,8 @@ async function carregarDadosUsuario() {
         
         if (!emailUsuario) {
             console.error('Email não encontrado');
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = 'inicio.html';
             return;
         }
         
@@ -44,13 +46,23 @@ async function carregarDadosUsuario() {
         if (response.ok) {
             const dados = await response.json();
             console.log('Dados recebidos:', dados); // Debug
+            
+            // Garantir que o email seja sempre o do login
+            dados.email = emailUsuario;
+            
             preencherDadosUsuario(dados);
         } else {
             const errorText = await response.text();
             console.error('Erro ao carregar dados do usuário:', errorText);
+            
+            if (response.status === 404) {
+                alert('Usuário não encontrado. Faça login novamente.');
+                window.location.href = 'inicio.html';
+            }
         }
     } catch (error) {
         console.error('Erro na requisição:', error);
+        alert('Erro ao carregar dados do usuário. Tente novamente.');
     }
 }
 
@@ -64,7 +76,12 @@ function preencherDadosUsuario(dados) {
     const welcomeMessage = document.getElementById('welcome-message');
     
     if (nomeField) nomeField.value = dados.nome || '';
-    if (emailField) emailField.value = dados.email || '';
+    if (emailField) {
+        emailField.value = dados.email || '';
+        // Tornar o campo email sempre não editável
+        emailField.readOnly = true;
+        emailField.classList.add('campo-fixo'); // Adicionar classe para estilo diferenciado
+    }
     if (telefoneField) telefoneField.value = dados.telefone || '';
     if (enderecoField) enderecoField.value = dados.endereco || '';
     if (dataField) dataField.value = dados.data_nascimento || '';
@@ -174,12 +191,13 @@ function configurarEventListeners() {
 function toggleEdicao() {
     editandoPerfil = !editandoPerfil;
     
+    // Remover 'email' da lista de campos editáveis
     const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
     const btnEditar = document.getElementById('btn-editar');
     const btnCancelar = document.getElementById('btn-cancelar');
     
     if (editandoPerfil) {
-        // Ativar edição
+        // Ativar edição apenas nos campos permitidos
         campos.forEach(campo => {
             const element = document.getElementById(campo);
             if (element) {
@@ -187,6 +205,13 @@ function toggleEdicao() {
                 element.classList.add('editando');
             }
         });
+        
+        // Garantir que o email permaneça não editável
+        const emailField = document.getElementById('email');
+        if (emailField) {
+            emailField.readOnly = true;
+            emailField.classList.remove('editando');
+        }
         
         if (btnEditar) btnEditar.textContent = 'Salvar Alterações';
         if (btnCancelar) btnCancelar.style.display = 'inline-block';
@@ -200,11 +225,12 @@ function toggleEdicao() {
 function cancelarEdicao() {
     editandoPerfil = false;
     
+    // Remover 'email' da lista de campos editáveis
     const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
     const btnEditar = document.getElementById('btn-editar');
     const btnCancelar = document.getElementById('btn-cancelar');
     
-    // Restaurar dados originais
+    // Restaurar dados originais apenas nos campos editáveis
     campos.forEach(campo => {
         const element = document.getElementById(campo);
         if (element) {
@@ -213,6 +239,14 @@ function cancelarEdicao() {
             element.classList.remove('editando');
         }
     });
+    
+    // Garantir que o email permaneça não editável e com o valor correto
+    const emailField = document.getElementById('email');
+    if (emailField) {
+        emailField.value = dadosOriginais.email || '';
+        emailField.readOnly = true;
+        emailField.classList.remove('editando');
+    }
     
     if (btnEditar) btnEditar.textContent = 'Editar Perfil';
     if (btnCancelar) btnCancelar.style.display = 'none';
@@ -256,6 +290,13 @@ async function salvarAlteracoes() {
                     element.classList.remove('editando');
                 }
             });
+            
+            // Garantir que o email permaneça não editável
+            const emailField = document.getElementById('email');
+            if (emailField) {
+                emailField.readOnly = true;
+                emailField.classList.remove('editando');
+            }
             
             const btnEditar = document.getElementById('btn-editar');
             const btnCancelar = document.getElementById('btn-cancelar');
