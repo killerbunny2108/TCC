@@ -672,16 +672,7 @@ h1, .terapias h1{
     margin-bottom: 10px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
     border: 1px solid transparent;
-}
-
-.terapia-item:hover,
-.terapia-item.active {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateX(5px);
-    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .terapia-icon {
@@ -771,9 +762,9 @@ h1, .terapias h1{
 }
 
 .slide-description {
-    font-size: 1rem;
+    font-family: "Tan Pearl";
     color: #555;
-    line-height: 1.6;
+    line-height: ;
     max-width: 350px;
     margin: 0 auto 20px;
 }
