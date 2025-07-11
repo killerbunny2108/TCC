@@ -13,10 +13,11 @@ const db = mysql.createConnection({
     database: 'cleo_nunes'
 });
 
+
 // Configuração do multer para upload de imagens
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = 'uploads/perfil/';
+        const uploadDir = path.join(__dirname, '../uploads/perfil/');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -38,10 +39,13 @@ const upload = multer({
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Tipo de arquivo não permitido'), false);
+            cb(new Error('Tipo de arquivo não permitido. Use JPEG, PNG ou GIF.'), false);
         }
     }
 });
+
+// Middleware para servir arquivos estáticos
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Rota para buscar perfil do usuário
 router.post('/perfil', (req, res) => {
@@ -210,10 +214,14 @@ router.put('/atualizar', (req, res) => {
         });
     });
 });
-
-// Rota para upload de foto de perfil
+// Rota para upload de foto de perfil - VERSÃO CORRIGIDA
 router.post('/foto', upload.single('foto'), (req, res) => {
     const { email } = req.body;
+    
+    console.log('Recebido upload de foto:', {
+        email: email,
+        file: req.file ? req.file.filename : 'nenhum arquivo'
+    });
     
     if (!email) {
         return res.status(400).json({ 
@@ -274,7 +282,12 @@ router.post('/foto', upload.single('foto'), (req, res) => {
                 if (fotoAnterior) {
                     const caminhoAnterior = path.join(__dirname, '..', fotoAnterior);
                     if (fs.existsSync(caminhoAnterior)) {
-                        fs.unlinkSync(caminhoAnterior);
+                        try {
+                            fs.unlinkSync(caminhoAnterior);
+                            console.log('Foto anterior removida:', caminhoAnterior);
+                        } catch (unlinkError) {
+                            console.error('Erro ao remover foto anterior:', unlinkError);
+                        }
                     }
                 }
                 
@@ -282,12 +295,13 @@ router.post('/foto', upload.single('foto'), (req, res) => {
                 pacienteQuery = 'UPDATE paciente SET foto_perfil = ? WHERE id_usuario = ?';
                 pacienteParams = [fotoPath, id_usuario];
             } else {
-                // Inserir novo registro
+                // Inserir novo registro - incluindo nome do usuário
+                const nomeUsuario = req.body.nome || 'Usuário';
                 pacienteQuery = `
-                    INSERT INTO paciente (id_usuario, foto_perfil)
-                    VALUES (?, ?)
+                    INSERT INTO paciente (id_usuario, nome, foto_perfil)
+                    VALUES (?, ?, ?)
                 `;
-                pacienteParams = [id_usuario, fotoPath];
+                pacienteParams = [id_usuario, nomeUsuario, fotoPath];
             }
             
             db.query(pacienteQuery, pacienteParams, (err, result) => {
@@ -299,6 +313,8 @@ router.post('/foto', upload.single('foto'), (req, res) => {
                     });
                 }
                 
+                console.log('Foto salva com sucesso:', fotoPath);
+                
                 res.json({
                     success: true,
                     message: 'Foto atualizada com sucesso',
@@ -308,6 +324,7 @@ router.post('/foto', upload.single('foto'), (req, res) => {
         });
     });
 });
+
 
 // Rota para buscar dicas (tabela 'dica')
 router.get('/dicas', (req, res) => {
