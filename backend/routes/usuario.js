@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+
 // Configuração do banco de dados
 const db = mysql.createConnection({
     host: 'localhost',

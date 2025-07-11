@@ -343,6 +343,7 @@ function verificarAutenticacao() {
     
     return true;
 }
+
 // Carregar dicas do administrador
 async function carregarDicas() {
     try {

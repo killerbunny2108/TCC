@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const API_URL = "http://localhost:3000/api/usuario";
 
-    // Botão de login
     document.getElementById("loginBtn")?.addEventListener("click", function (event) {
         event.preventDefault();
 
@@ -18,10 +17,14 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, senha })
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
-            if (data.usuario) {
-                // Removido o alert de "Login bem-sucedido!"
+            if (data.usuario || data.sucesso) {
                 localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
 
                 if (email === "nunescleusa1974@gmail.com") {
@@ -34,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         })
         .catch(err => {
-            console.error(err);
+            console.error("Erro completo:", err);
             alert("Erro ao conectar com o servidor");
         });
     });

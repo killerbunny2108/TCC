@@ -506,7 +506,6 @@ app.post('/api/upload-foto', (req, res) => {
     );
 });
 
-// Adicione estas rotas ao seu backend/index.js
 
 // Rota para obter dados do perfil do paciente
 app.get('/api/perfil/:id_usuario', (req, res) => {
