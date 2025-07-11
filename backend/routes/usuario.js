@@ -13,7 +13,168 @@ const db = mysql.createConnection({
     database: 'cleo_nunes'
 });
 
+// Adicionar no arquivo backend/routes/usuario.js
 
+// Configuração do multer para upload de imagens
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '../uploads/fotos_perfil');
+        
+        // Criar diretório se não existir
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        // Gerar nome único para o arquivo
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const extension = path.extname(file.originalname);
+        cb(null, `foto_perfil_${uniqueSuffix}${extension}`);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    },
+    fileFilter: function (req, file, cb) {
+        // Verificar tipo de arquivo
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas arquivos de imagem são permitidos'));
+        }
+    }
+});
+
+// Rota para upload de foto de perfil
+router.post('/upload-foto', upload.single('foto'), (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório' 
+        });
+    }
+    
+    if (!req.file) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Nenhuma imagem foi enviada' 
+        });
+    }
+    
+    const caminhoFoto = `/uploads/fotos_perfil/${req.file.filename}`;
+    
+    // Iniciar transação
+    db.beginTransaction((err) => {
+        if (err) {
+            console.error('Erro ao iniciar transação:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        // Buscar id_usuario
+        const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+        
+        db.query(getUserIdQuery, [email], (err, userResult) => {
+            if (err || userResult.length === 0) {
+                return db.rollback(() => {
+                    console.error('Erro ao buscar usuário:', err);
+                    res.status(404).json({ 
+                        success: false, 
+                        message: 'Usuário não encontrado' 
+                    });
+                });
+            }
+            
+            const id_usuario = userResult[0].id_usuario;
+            
+            // Verificar se já existe registro na tabela paciente
+            const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM paciente WHERE id_usuario = ?';
+            
+            db.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.error('Erro ao verificar paciente:', err);
+                        res.status(500).json({ 
+                            success: false, 
+                            message: 'Erro ao verificar paciente' 
+                        });
+                    });
+                }
+                
+                let pacienteQuery;
+                let pacienteParams;
+                let fotoAnterior = null;
+                
+                if (pacienteResult.length > 0) {
+                    // Atualizar registro existente
+                    fotoAnterior = pacienteResult[0].foto_perfil;
+                    pacienteQuery = 'UPDATE paciente SET foto_perfil = ? WHERE id_usuario = ?';
+                    pacienteParams = [caminhoFoto, id_usuario];
+                } else {
+                    // Inserir novo registro
+                    pacienteQuery = 'INSERT INTO paciente (id_usuario, foto_perfil) VALUES (?, ?)';
+                    pacienteParams = [id_usuario, caminhoFoto];
+                }
+                
+                db.query(pacienteQuery, pacienteParams, (err, result) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error('Erro ao salvar foto:', err);
+                            res.status(500).json({ 
+                                success: false, 
+                                message: 'Erro ao salvar foto de perfil' 
+                            });
+                        });
+                    }
+                    
+                    // Commit da transação
+                    db.commit((err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                console.error('Erro ao fazer commit:', err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    message: 'Erro ao salvar alterações' 
+                                });
+                            });
+                        }
+                        
+                        // Remover foto anterior se existir
+                        if (fotoAnterior) {
+                            const caminhoFotoAnterior = path.join(__dirname, '..', fotoAnterior);
+                            if (fs.existsSync(caminhoFotoAnterior)) {
+                                fs.unlink(caminhoFotoAnterior, (err) => {
+                                    if (err) {
+                                        console.error('Erro ao remover foto anterior:', err);
+                                    }
+                                });
+                            }
+                        }
+                        
+                        res.json({
+                            success: true,
+                            message: 'Foto de perfil atualizada com sucesso',
+                            foto_perfil: caminhoFoto
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Rota para servir arquivos de imagem
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 
 // Rota para buscar perfil do usuário

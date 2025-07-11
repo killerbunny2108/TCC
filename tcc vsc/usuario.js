@@ -2,6 +2,9 @@
 let editandoPerfil = false;
 let dadosOriginais = {};
 let imagemSelecionada = null;
+let cropper;
+let imagemOriginal;
+
 
 // Aguardar o DOM estar completamente carregado
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,7 +18,6 @@ function inicializarPagina() {
     carregarDicas();
     configurarEventListeners();
 }
-
 
 
 // Carregar dados do usuário
@@ -85,25 +87,262 @@ function preencherDadosUsuario(dados) {
     if (welcomeMessage) {
         welcomeMessage.textContent = `Bem-vindo, ${nomeUsuario}!`;
     }
-    
-    // Carregar foto de perfil se existir
-    if (dados.foto_perfil) {
-        const fotoPreview = document.getElementById('foto-preview');
-        const headerFoto = document.getElementById('header-foto');
-        
-        const fotoUrl = dados.foto_perfil.startsWith('http') ? dados.foto_perfil : `/api${dados.foto_perfil}`;
-        
-        if (fotoPreview) {
-            fotoPreview.innerHTML = `<img src="${fotoUrl}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-        }
-        if (headerFoto) {
-            headerFoto.src = fotoUrl;
-        }
-    }
-    
-    dadosOriginais = { ...dados };
 }
 
+// Função para alterar foto de perfil
+function alterarFoto() {
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) {
+        inputFoto.click();
+    }
+}
+
+// Event listener para mudança de arquivo
+document.getElementById('input-foto').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Validar tipo de arquivo
+        const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!tiposPermitidos.includes(file.type)) {
+            alert('Apenas arquivos de imagem são permitidos (JPEG, PNG, GIF)');
+            return;
+        }
+        
+        // Validar tamanho do arquivo (máximo 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('O arquivo deve ter no máximo 5MB');
+            return;
+        }
+        
+        // Mostrar preview da imagem
+        mostrarPreviewImagem(file);
+    }
+});
+
+// Mostrar preview da imagem no modal
+function mostrarPreviewImagem(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        imagemOriginal = e.target.result;
+        abrirModalCrop();
+    };
+    reader.readAsDataURL(file);
+}
+
+// Abrir modal de crop
+function abrirModalCrop() {
+    const modal = document.getElementById('modal-crop');
+    const cropImage = document.getElementById('crop-image');
+    const cropLoading = document.getElementById('crop-loading');
+    
+    if (modal) {
+        modal.style.display = 'block';
+        cropLoading.style.display = 'block';
+        cropImage.style.display = 'none';
+        
+        // Aguardar um pouco para o modal aparecer
+        setTimeout(() => {
+            cropImage.src = imagemOriginal;
+            cropImage.style.display = 'block';
+            cropLoading.style.display = 'none';
+            
+            // Inicializar cropper se disponível
+            if (typeof Cropper !== 'undefined') {
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(cropImage, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    responsive: true,
+                    modal: true,
+                    guides: true,
+                    highlight: true,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false
+                });
+            }
+        }, 100);
+    }
+}
+
+// Fechar modal de crop
+function fecharModalCrop() {
+    const modal = document.getElementById('modal-crop');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    
+    // Limpar input
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) {
+        inputFoto.value = '';
+    }
+}
+
+// Salvar foto cropada
+async function salvarFotoCropada() {
+    try {
+        let imagemFinal;
+        
+        if (cropper) {
+            // Se o cropper estiver disponível, usar a imagem cropada
+            const canvas = cropper.getCroppedCanvas({
+                width: 200,
+                height: 200,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            imagemFinal = canvas.toDataURL('image/jpeg', 0.8);
+        } else {
+            // Se não houver cropper, usar a imagem original redimensionada
+            imagemFinal = await redimensionarImagem(imagemOriginal, 200, 200);
+        }
+        
+        // Fazer upload da imagem
+        await uploadFotoPerfil(imagemFinal);
+        
+    } catch (error) {
+        console.error('Erro ao salvar foto:', error);
+        alert('Erro ao salvar foto de perfil. Tente novamente.');
+    }
+}
+
+// Redimensionar imagem manualmente (fallback)
+function redimensionarImagem(imagemSrc, largura, altura) {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+            canvas.width = largura;
+            canvas.height = altura;
+            
+            // Calcular proporções para crop centralizado
+            const scale = Math.max(largura / img.width, altura / img.height);
+            const scaledWidth = img.width * scale;
+            const scaledHeight = img.height * scale;
+            const offsetX = (largura - scaledWidth) / 2;
+            const offsetY = (altura - scaledHeight) / 2;
+            
+            ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        
+        img.src = imagemSrc;
+    });
+}
+
+// Upload da foto de perfil
+async function uploadFotoPerfil(imagemDataURL) {
+    try {
+        const emailUsuario = localStorage.getItem('emailUsuario') || 
+                            localStorage.getItem('email') || 
+                            sessionStorage.getItem('emailUsuario') ||
+                            sessionStorage.getItem('email');
+        
+        // Converter data URL para Blob
+        const response = await fetch(imagemDataURL);
+        const blob = await response.blob();
+        
+        // Criar FormData
+        const formData = new FormData();
+        formData.append('foto', blob, 'foto_perfil.jpg');
+        formData.append('email', emailUsuario);
+        
+        const uploadResponse = await fetch('/api/usuario/upload-foto', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (uploadResponse.ok) {
+            const resultado = await uploadResponse.json();
+            
+            // Atualizar preview na interface
+            atualizarPreviewFoto(imagemDataURL);
+            
+            // Fechar modal
+            fecharModalCrop();
+            
+            alert('Foto de perfil atualizada com sucesso!');
+        } else {
+            const errorText = await uploadResponse.text();
+            console.error('Erro no upload:', errorText);
+            alert('Erro ao fazer upload da foto. Tente novamente.');
+        }
+        
+    } catch (error) {
+        console.error('Erro no upload da foto:', error);
+        alert('Erro ao fazer upload da foto. Tente novamente.');
+    }
+}
+
+// Atualizar preview da foto na interface
+function atualizarPreviewFoto(imagemSrc) {
+    const fotoPreview = document.getElementById('foto-preview');
+    const headerFoto = document.getElementById('header-foto');
+    
+    if (fotoPreview) {
+        fotoPreview.innerHTML = `<img src="${imagemSrc}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    }
+    
+    if (headerFoto) {
+        headerFoto.src = imagemSrc;
+    }
+}
+
+// Verificar se é necessário carregar a biblioteca Cropper.js
+function carregarCropperJS() {
+    if (typeof Cropper === 'undefined') {
+        // Carregar CSS do Cropper
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css';
+        document.head.appendChild(link);
+        
+        // Carregar JS do Cropper
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js';
+        document.head.appendChild(script);
+    }
+}
+
+// Carregar Cropper.js quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    carregarCropperJS();
+});
+
+// Event listener para fechar modal clicando fora
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('modal-crop');
+    if (event.target === modal) {
+        fecharModalCrop();
+    }
+});
+
+// Função de verificação de autenticação
+function verificarAutenticacao() {
+    const emailUsuario = localStorage.getItem('emailUsuario') || 
+                        localStorage.getItem('email') || 
+                        sessionStorage.getItem('emailUsuario') ||
+                        sessionStorage.getItem('email');
+    
+    if (!emailUsuario) {
+        alert('Você precisa estar logado para acessar esta página.');
+        window.location.href = 'inicio.html';
+        return false;
+    }
+    
+    return true;
+}
 // Carregar dicas do administrador
 async function carregarDicas() {
     try {
