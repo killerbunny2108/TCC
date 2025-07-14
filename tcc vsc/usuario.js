@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Inicializar a página
 function inicializarPagina() {
-    verificarAutenticacao();
     carregarDadosUsuario();
     carregarDicas();
     configurarEventListeners();
@@ -244,11 +243,7 @@ function redimensionarImagem(imagemSrc, largura, altura) {
 // Upload da foto de perfil
 async function uploadFotoPerfil(imagemDataURL) {
     try {
-        const emailUsuario = localStorage.getItem('emailUsuario') || 
-                            localStorage.getItem('email') || 
-                            sessionStorage.getItem('emailUsuario') ||
-                            sessionStorage.getItem('email');
-        
+    
         // Converter data URL para Blob
         const response = await fetch(imagemDataURL);
         const blob = await response.blob();
@@ -328,21 +323,6 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Função de verificação de autenticação
-function verificarAutenticacao() {
-    const emailUsuario = localStorage.getItem('emailUsuario') || 
-                        localStorage.getItem('email') || 
-                        sessionStorage.getItem('emailUsuario') ||
-                        sessionStorage.getItem('email');
-    
-    if (!emailUsuario) {
-        alert('Você precisa estar logado para acessar esta página.');
-        window.location.href = 'inicio.html';
-        return false;
-    }
-    
-    return true;
-}
 
 // Carregar dicas do administrador
 async function carregarDicas() {

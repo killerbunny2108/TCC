@@ -101,8 +101,6 @@ router.post('/cadastro', (req, res) => {
     );
 });
 
-// Adicionar no arquivo backend/routes/usuario.js
-
 // Configuração do multer para upload de imagens
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -139,9 +137,12 @@ const upload = multer({
     }
 });
 
-// Rota para upload de foto de perfil
+// Rota para upload de foto de perfil - CORRIGIDA
 router.post('/upload-foto', upload.single('foto'), (req, res) => {
     const { email } = req.body;
+    
+    console.log('Upload foto - Email:', email);
+    console.log('Upload foto - File:', req.file);
     
     if (!email) {
         return res.status(400).json({ 
@@ -159,8 +160,8 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
     
     const caminhoFoto = `/uploads/fotos_perfil/${req.file.filename}`;
     
-    // Iniciar transação
-    db.beginTransaction((err) => {
+    // Usar connection em vez de db para consistência
+    connection.beginTransaction((err) => {
         if (err) {
             console.error('Erro ao iniciar transação:', err);
             return res.status(500).json({ 
@@ -169,12 +170,12 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
             });
         }
         
-        // Buscar id_usuario
-        const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+        // Buscar id_usuario - CORRIGIDO nome da tabela
+        const getUserIdQuery = 'SELECT id_usuario FROM Usuario WHERE email = ?';
         
-        db.query(getUserIdQuery, [email], (err, userResult) => {
+        connection.query(getUserIdQuery, [email], (err, userResult) => {
             if (err || userResult.length === 0) {
-                return db.rollback(() => {
+                return connection.rollback(() => {
                     console.error('Erro ao buscar usuário:', err);
                     res.status(404).json({ 
                         success: false, 
@@ -185,12 +186,12 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
             
             const id_usuario = userResult[0].id_usuario;
             
-            // Verificar se já existe registro na tabela paciente
-            const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM paciente WHERE id_usuario = ?';
+            // Verificar se já existe registro na tabela paciente - CORRIGIDO nome da tabela
+            const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM Paciente WHERE id_usuario = ?';
             
-            db.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
+            connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
                 if (err) {
-                    return db.rollback(() => {
+                    return connection.rollback(() => {
                         console.error('Erro ao verificar paciente:', err);
                         res.status(500).json({ 
                             success: false, 
@@ -206,17 +207,17 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
                 if (pacienteResult.length > 0) {
                     // Atualizar registro existente
                     fotoAnterior = pacienteResult[0].foto_perfil;
-                    pacienteQuery = 'UPDATE paciente SET foto_perfil = ? WHERE id_usuario = ?';
+                    pacienteQuery = 'UPDATE Paciente SET foto_perfil = ? WHERE id_usuario = ?';
                     pacienteParams = [caminhoFoto, id_usuario];
                 } else {
                     // Inserir novo registro
-                    pacienteQuery = 'INSERT INTO paciente (id_usuario, foto_perfil) VALUES (?, ?)';
+                    pacienteQuery = 'INSERT INTO Paciente (id_usuario, foto_perfil) VALUES (?, ?)';
                     pacienteParams = [id_usuario, caminhoFoto];
                 }
                 
-                db.query(pacienteQuery, pacienteParams, (err, result) => {
+                connection.query(pacienteQuery, pacienteParams, (err, result) => {
                     if (err) {
-                        return db.rollback(() => {
+                        return connection.rollback(() => {
                             console.error('Erro ao salvar foto:', err);
                             res.status(500).json({ 
                                 success: false, 
@@ -226,9 +227,9 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
                     }
                     
                     // Commit da transação
-                    db.commit((err) => {
+                    connection.commit((err) => {
                         if (err) {
-                            return db.rollback(() => {
+                            return connection.rollback(() => {
                                 console.error('Erro ao fazer commit:', err);
                                 res.status(500).json({ 
                                     success: false, 
@@ -264,10 +265,11 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
 // Rota para servir arquivos de imagem
 router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-
-// Rota para buscar perfil do usuário
+// Rota para buscar perfil do usuário - CORRIGIDA
 router.post('/perfil', (req, res) => {
     const { email } = req.body;
+    
+    console.log('Buscando perfil para email:', email);
     
     if (!email) {
         return res.status(400).json({ 
@@ -276,16 +278,16 @@ router.post('/perfil', (req, res) => {
         });
     }
     
-    // Buscar dados do usuário na tabela 'usuario'
+    // Buscar dados do usuário - CORRIGIDO nomes das tabelas
     const query = `
         SELECT u.id_usuario, u.nome, u.email, u.senha, 
                p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
-        FROM usuario u
-        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
+        FROM Usuario u
+        LEFT JOIN Paciente p ON u.id_usuario = p.id_usuario
         WHERE u.email = ?
     `;
     
-    db.query(query, [email], (err, results) => {
+    connection.query(query, [email], (err, results) => {
         if (err) {
             console.error('Erro ao buscar usuário:', err);
             return res.status(500).json({ 
@@ -306,6 +308,8 @@ router.post('/perfil', (req, res) => {
         // Remover senha da resposta
         delete usuario.senha;
         
+        console.log('Dados do usuário encontrados:', usuario);
+        
         res.json({
             success: true,
             ...usuario
@@ -313,7 +317,7 @@ router.post('/perfil', (req, res) => {
     });
 });
 
-// Rota para atualizar perfil do usuário
+// Rota para atualizar perfil do usuário - CORRIGIDA
 router.put('/atualizar', (req, res) => {
     const { email, nome, telefone, endereco, data_nascimento } = req.body;
     
@@ -324,8 +328,8 @@ router.put('/atualizar', (req, res) => {
         });
     }
     
-    // Iniciar transação
-    db.beginTransaction((err) => {
+    // Usar connection em vez de db
+    connection.beginTransaction((err) => {
         if (err) {
             console.error('Erro ao iniciar transação:', err);
             return res.status(500).json({ 
@@ -334,12 +338,12 @@ router.put('/atualizar', (req, res) => {
             });
         }
         
-        // Atualizar nome na tabela usuario
-        const updateUsuarioQuery = 'UPDATE usuario SET nome = ? WHERE email = ?';
+        // Atualizar nome na tabela Usuario - CORRIGIDO nome da tabela
+        const updateUsuarioQuery = 'UPDATE Usuario SET nome = ? WHERE email = ?';
         
-        db.query(updateUsuarioQuery, [nome, email], (err, result) => {
+        connection.query(updateUsuarioQuery, [nome, email], (err, result) => {
             if (err) {
-                return db.rollback(() => {
+                return connection.rollback(() => {
                     console.error('Erro ao atualizar usuário:', err);
                     res.status(500).json({ 
                         success: false, 
@@ -348,12 +352,12 @@ router.put('/atualizar', (req, res) => {
                 });
             }
             
-            // Buscar id_usuario
-            const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+            // Buscar id_usuario - CORRIGIDO nome da tabela
+            const getUserIdQuery = 'SELECT id_usuario FROM Usuario WHERE email = ?';
             
-            db.query(getUserIdQuery, [email], (err, userResult) => {
+            connection.query(getUserIdQuery, [email], (err, userResult) => {
                 if (err || userResult.length === 0) {
-                    return db.rollback(() => {
+                    return connection.rollback(() => {
                         console.error('Erro ao buscar ID do usuário:', err);
                         res.status(500).json({ 
                             success: false, 
@@ -364,12 +368,12 @@ router.put('/atualizar', (req, res) => {
                 
                 const id_usuario = userResult[0].id_usuario;
                 
-                // Verificar se já existe registro na tabela paciente
-                const checkPacienteQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
+                // Verificar se já existe registro na tabela Paciente - CORRIGIDO nome da tabela
+                const checkPacienteQuery = 'SELECT id_paciente FROM Paciente WHERE id_usuario = ?';
                 
-                db.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
+                connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
                     if (err) {
-                        return db.rollback(() => {
+                        return connection.rollback(() => {
                             console.error('Erro ao verificar paciente:', err);
                             res.status(500).json({ 
                                 success: false, 
@@ -382,25 +386,25 @@ router.put('/atualizar', (req, res) => {
                     let pacienteParams;
                     
                     if (pacienteResult.length > 0) {
-                        // Atualizar registro existente
+                        // Atualizar registro existente - CORRIGIDO nome da tabela
                         pacienteQuery = `
-                            UPDATE paciente 
-                            SET nome = ?, telefone = ?, endereco = ?, data_nascimento = ?
+                            UPDATE Paciente 
+                            SET telefone = ?, endereco = ?, data_nascimento = ?
                             WHERE id_usuario = ?
                         `;
-                        pacienteParams = [nome, telefone, endereco, data_nascimento, id_usuario];
+                        pacienteParams = [telefone, endereco, data_nascimento, id_usuario];
                     } else {
-                        // Inserir novo registro
+                        // Inserir novo registro - CORRIGIDO nome da tabela
                         pacienteQuery = `
-                            INSERT INTO paciente (id_usuario, nome, telefone, endereco, data_nascimento)
-                            VALUES (?, ?, ?, ?, ?)
+                            INSERT INTO Paciente (id_usuario, telefone, endereco, data_nascimento)
+                            VALUES (?, ?, ?, ?)
                         `;
-                        pacienteParams = [id_usuario, nome, telefone, endereco, data_nascimento];
+                        pacienteParams = [id_usuario, telefone, endereco, data_nascimento];
                     }
                     
-                    db.query(pacienteQuery, pacienteParams, (err, result) => {
+                    connection.query(pacienteQuery, pacienteParams, (err, result) => {
                         if (err) {
-                            return db.rollback(() => {
+                            return connection.rollback(() => {
                                 console.error('Erro ao atualizar paciente:', err);
                                 res.status(500).json({ 
                                     success: false, 
@@ -410,9 +414,9 @@ router.put('/atualizar', (req, res) => {
                         }
                         
                         // Commit da transação
-                        db.commit((err) => {
+                        connection.commit((err) => {
                             if (err) {
-                                return db.rollback(() => {
+                                return connection.rollback(() => {
                                     console.error('Erro ao fazer commit:', err);
                                     res.status(500).json({ 
                                         success: false, 
@@ -433,16 +437,16 @@ router.put('/atualizar', (req, res) => {
     });
 });
 
-// Rota para buscar dicas (tabela 'dica')
+// Rota para buscar dicas - CORRIGIDA
 router.get('/dicas', (req, res) => {
     const query = `
         SELECT d.id, d.titulo, d.descricao, d.data_publicacao, a.nome as autor
-        FROM dica d
-        LEFT JOIN administrador a ON d.id_administrador = a.id_administrador
+        FROM Dica d
+        LEFT JOIN Administrador a ON d.id_administrador = a.id_administrador
         ORDER BY d.data_publicacao DESC
     `;
     
-    db.query(query, (err, results) => {
+    connection.query(query, (err, results) => {
         if (err) {
             console.error('Erro ao buscar dicas:', err);
             return res.status(500).json({ 
@@ -455,7 +459,7 @@ router.get('/dicas', (req, res) => {
     });
 });
 
-// Rota para agendar consulta
+// Rota para agendar consulta - CORRIGIDA
 router.post('/agendar', (req, res) => {
     const { email, tipo_atendimento, data_atendimento, motivo_consulta } = req.body;
     
@@ -466,10 +470,10 @@ router.post('/agendar', (req, res) => {
         });
     }
     
-    // Buscar id_usuario
-    const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+    // Buscar id_usuario - CORRIGIDO nome da tabela
+    const getUserIdQuery = 'SELECT id_usuario FROM Usuario WHERE email = ?';
     
-    db.query(getUserIdQuery, [email], (err, userResult) => {
+    connection.query(getUserIdQuery, [email], (err, userResult) => {
         if (err) {
             console.error('Erro ao buscar usuário:', err);
             return res.status(500).json({ 
@@ -487,10 +491,10 @@ router.post('/agendar', (req, res) => {
         
         const id_usuario = userResult[0].id_usuario;
         
-        // Buscar id_paciente
-        const getPacienteIdQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
+        // Buscar id_paciente - CORRIGIDO nome da tabela
+        const getPacienteIdQuery = 'SELECT id_paciente FROM Paciente WHERE id_usuario = ?';
         
-        db.query(getPacienteIdQuery, [id_usuario], (err, pacienteResult) => {
+        connection.query(getPacienteIdQuery, [id_usuario], (err, pacienteResult) => {
             if (err) {
                 console.error('Erro ao buscar paciente:', err);
                 return res.status(500).json({ 
@@ -508,13 +512,13 @@ router.post('/agendar', (req, res) => {
             
             const id_paciente = pacienteResult[0].id_paciente;
             
-            // Inserir agendamento na tabela fichapaciente
+            // Inserir agendamento - CORRIGIDO nome da tabela
             const insertQuery = `
-                INSERT INTO fichapaciente (id_paciente, tipo_atendimento, data_atendimento, motivo_consulta)
+                INSERT INTO FichaPaciente (id_paciente, tipo_atendimento, data_atendimento, motivo_consulta)
                 VALUES (?, ?, ?, ?)
             `;
             
-            db.query(insertQuery, [id_paciente, tipo_atendimento, data_atendimento, motivo_consulta], (err, result) => {
+            connection.query(insertQuery, [id_paciente, tipo_atendimento, data_atendimento, motivo_consulta], (err, result) => {
                 if (err) {
                     console.error('Erro ao agendar consulta:', err);
                     return res.status(500).json({ 
