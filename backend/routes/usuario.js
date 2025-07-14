@@ -6,15 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const connection = require('../db');
 
-// Configuração do banco de dados
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root',
-    database: 'cleo_nunes'
-});
-
-// Rota de login
+// Rota de login - CORRIGIDA
 router.post('/login', (req, res) => {
     const { email, senha } = req.body;
     
@@ -22,8 +14,9 @@ router.post('/login', (req, res) => {
         return res.status(400).json({ mensagem: 'Email e senha são obrigatórios.' });
     }
     
+    // CORRIGIDO: nome da tabela para minúsculo
     connection.query(
-        'SELECT * FROM Usuario WHERE email = ? AND senha = ?',
+        'SELECT * FROM usuario WHERE email = ? AND senha = ?',
         [email, senha],
         (err, results) => {
             if (err) {
@@ -48,7 +41,7 @@ router.post('/login', (req, res) => {
     );
 });
 
-// Rota de cadastro
+// Rota de cadastro - CORRIGIDA
 router.post('/cadastro', (req, res) => {
     const { nome, email, senha } = req.body;
     
@@ -56,9 +49,9 @@ router.post('/cadastro', (req, res) => {
         return res.status(400).json({ mensagem: 'Nome, email e senha são obrigatórios.' });
     }
     
-    // Verificar se o usuário já existe
+    // CORRIGIDO: nome da tabela para minúsculo
     connection.query(
-        'SELECT * FROM Usuario WHERE email = ?',
+        'SELECT * FROM usuario WHERE email = ?',
         [email],
         (err, results) => {
             if (err) {
@@ -70,9 +63,9 @@ router.post('/cadastro', (req, res) => {
                 return res.status(409).json({ mensagem: 'Usuário já existe.' });
             }
             
-            // Inserir novo usuário
+            // CORRIGIDO: nome da tabela para minúsculo
             connection.query(
-                'INSERT INTO Usuario (nome, email, senha) VALUES (?, ?, ?)',
+                'INSERT INTO usuario (nome, email, senha) VALUES (?, ?, ?)',
                 [nome, email, senha],
                 (err, result) => {
                     if (err) {
@@ -82,14 +75,13 @@ router.post('/cadastro', (req, res) => {
                     
                     const userId = result.insertId;
                     
-                    // Inserir na tabela Paciente (assumindo que todo cadastro é paciente)
+                    // CORRIGIDO: nome da tabela para minúsculo
                     connection.query(
-                        'INSERT INTO Paciente (id_usuario) VALUES (?)',
+                        'INSERT INTO paciente (id_usuario) VALUES (?)',
                         [userId],
                         (err, result) => {
                             if (err) {
                                 console.error('Erro ao criar paciente:', err);
-                                // Não retornar erro aqui, apenas log
                             }
                         }
                     );
@@ -106,7 +98,6 @@ const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = path.join(__dirname, '../uploads/fotos_perfil');
         
-        // Criar diretório se não existir
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -114,7 +105,6 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-        // Gerar nome único para o arquivo
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const extension = path.extname(file.originalname);
         cb(null, `foto_perfil_${uniqueSuffix}${extension}`);
@@ -127,7 +117,6 @@ const upload = multer({
         fileSize: 5 * 1024 * 1024 // 5MB
     },
     fileFilter: function (req, file, cb) {
-        // Verificar tipo de arquivo
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
@@ -160,7 +149,6 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
     
     const caminhoFoto = `/uploads/fotos_perfil/${req.file.filename}`;
     
-    // Usar connection em vez de db para consistência
     connection.beginTransaction((err) => {
         if (err) {
             console.error('Erro ao iniciar transação:', err);
@@ -170,8 +158,8 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
             });
         }
         
-        // Buscar id_usuario - CORRIGIDO nome da tabela
-        const getUserIdQuery = 'SELECT id_usuario FROM Usuario WHERE email = ?';
+        // CORRIGIDO: nome da tabela para minúsculo
+        const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
         
         connection.query(getUserIdQuery, [email], (err, userResult) => {
             if (err || userResult.length === 0) {
@@ -186,8 +174,8 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
             
             const id_usuario = userResult[0].id_usuario;
             
-            // Verificar se já existe registro na tabela paciente - CORRIGIDO nome da tabela
-            const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM Paciente WHERE id_usuario = ?';
+            // CORRIGIDO: nome da tabela para minúsculo
+            const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM paciente WHERE id_usuario = ?';
             
             connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
                 if (err) {
@@ -205,13 +193,11 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
                 let fotoAnterior = null;
                 
                 if (pacienteResult.length > 0) {
-                    // Atualizar registro existente
                     fotoAnterior = pacienteResult[0].foto_perfil;
-                    pacienteQuery = 'UPDATE Paciente SET foto_perfil = ? WHERE id_usuario = ?';
+                    pacienteQuery = 'UPDATE paciente SET foto_perfil = ? WHERE id_usuario = ?';
                     pacienteParams = [caminhoFoto, id_usuario];
                 } else {
-                    // Inserir novo registro
-                    pacienteQuery = 'INSERT INTO Paciente (id_usuario, foto_perfil) VALUES (?, ?)';
+                    pacienteQuery = 'INSERT INTO paciente (id_usuario, foto_perfil) VALUES (?, ?)';
                     pacienteParams = [id_usuario, caminhoFoto];
                 }
                 
@@ -226,7 +212,6 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
                         });
                     }
                     
-                    // Commit da transação
                     connection.commit((err) => {
                         if (err) {
                             return connection.rollback(() => {
@@ -238,7 +223,6 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
                             });
                         }
                         
-                        // Remover foto anterior se existir
                         if (fotoAnterior) {
                             const caminhoFotoAnterior = path.join(__dirname, '..', fotoAnterior);
                             if (fs.existsSync(caminhoFotoAnterior)) {
@@ -278,12 +262,12 @@ router.post('/perfil', (req, res) => {
         });
     }
     
-    // Buscar dados do usuário - CORRIGIDO nomes das tabelas
+    // CORRIGIDO: nome das tabelas para minúsculo
     const query = `
         SELECT u.id_usuario, u.nome, u.email, u.senha, 
                p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
-        FROM Usuario u
-        LEFT JOIN Paciente p ON u.id_usuario = p.id_usuario
+        FROM usuario u
+        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
         WHERE u.email = ?
     `;
     
@@ -328,7 +312,6 @@ router.put('/atualizar', (req, res) => {
         });
     }
     
-    // Usar connection em vez de db
     connection.beginTransaction((err) => {
         if (err) {
             console.error('Erro ao iniciar transação:', err);
@@ -338,8 +321,8 @@ router.put('/atualizar', (req, res) => {
             });
         }
         
-        // Atualizar nome na tabela Usuario - CORRIGIDO nome da tabela
-        const updateUsuarioQuery = 'UPDATE Usuario SET nome = ? WHERE email = ?';
+        // CORRIGIDO: nome da tabela para minúsculo
+        const updateUsuarioQuery = 'UPDATE usuario SET nome = ? WHERE email = ?';
         
         connection.query(updateUsuarioQuery, [nome, email], (err, result) => {
             if (err) {
@@ -352,8 +335,8 @@ router.put('/atualizar', (req, res) => {
                 });
             }
             
-            // Buscar id_usuario - CORRIGIDO nome da tabela
-            const getUserIdQuery = 'SELECT id_usuario FROM Usuario WHERE email = ?';
+            // CORRIGIDO: nome da tabela para minúsculo
+            const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
             
             connection.query(getUserIdQuery, [email], (err, userResult) => {
                 if (err || userResult.length === 0) {
@@ -368,8 +351,8 @@ router.put('/atualizar', (req, res) => {
                 
                 const id_usuario = userResult[0].id_usuario;
                 
-                // Verificar se já existe registro na tabela Paciente - CORRIGIDO nome da tabela
-                const checkPacienteQuery = 'SELECT id_paciente FROM Paciente WHERE id_usuario = ?';
+                // CORRIGIDO: nome da tabela para minúsculo
+                const checkPacienteQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
                 
                 connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
                     if (err) {
@@ -386,17 +369,17 @@ router.put('/atualizar', (req, res) => {
                     let pacienteParams;
                     
                     if (pacienteResult.length > 0) {
-                        // Atualizar registro existente - CORRIGIDO nome da tabela
+                        // CORRIGIDO: nome da tabela para minúsculo
                         pacienteQuery = `
-                            UPDATE Paciente 
+                            UPDATE paciente 
                             SET telefone = ?, endereco = ?, data_nascimento = ?
                             WHERE id_usuario = ?
                         `;
                         pacienteParams = [telefone, endereco, data_nascimento, id_usuario];
                     } else {
-                        // Inserir novo registro - CORRIGIDO nome da tabela
+                        // CORRIGIDO: nome da tabela para minúsculo
                         pacienteQuery = `
-                            INSERT INTO Paciente (id_usuario, telefone, endereco, data_nascimento)
+                            INSERT INTO paciente (id_usuario, telefone, endereco, data_nascimento)
                             VALUES (?, ?, ?, ?)
                         `;
                         pacienteParams = [id_usuario, telefone, endereco, data_nascimento];
@@ -413,7 +396,6 @@ router.put('/atualizar', (req, res) => {
                             });
                         }
                         
-                        // Commit da transação
                         connection.commit((err) => {
                             if (err) {
                                 return connection.rollback(() => {
@@ -441,8 +423,8 @@ router.put('/atualizar', (req, res) => {
 router.get('/dicas', (req, res) => {
     const query = `
         SELECT d.id, d.titulo, d.descricao, d.data_publicacao, a.nome as autor
-        FROM Dica d
-        LEFT JOIN Administrador a ON d.id_administrador = a.id_administrador
+        FROM dica d
+        LEFT JOIN administrador a ON d.id_administrador = a.id_administrador
         ORDER BY d.data_publicacao DESC
     `;
     
@@ -470,8 +452,8 @@ router.post('/agendar', (req, res) => {
         });
     }
     
-    // Buscar id_usuario - CORRIGIDO nome da tabela
-    const getUserIdQuery = 'SELECT id_usuario FROM Usuario WHERE email = ?';
+    // CORRIGIDO: nome da tabela para minúsculo
+    const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
     
     connection.query(getUserIdQuery, [email], (err, userResult) => {
         if (err) {
@@ -491,8 +473,8 @@ router.post('/agendar', (req, res) => {
         
         const id_usuario = userResult[0].id_usuario;
         
-        // Buscar id_paciente - CORRIGIDO nome da tabela
-        const getPacienteIdQuery = 'SELECT id_paciente FROM Paciente WHERE id_usuario = ?';
+        // CORRIGIDO: nome da tabela para minúsculo
+        const getPacienteIdQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
         
         connection.query(getPacienteIdQuery, [id_usuario], (err, pacienteResult) => {
             if (err) {
@@ -512,9 +494,9 @@ router.post('/agendar', (req, res) => {
             
             const id_paciente = pacienteResult[0].id_paciente;
             
-            // Inserir agendamento - CORRIGIDO nome da tabela
+            // CORRIGIDO: nome da tabela para minúsculo
             const insertQuery = `
-                INSERT INTO FichaPaciente (id_paciente, tipo_atendimento, data_atendimento, motivo_consulta)
+                INSERT INTO fichapaciente (id_paciente, tipo_atendimento, data_atendimento, motivo_consulta)
                 VALUES (?, ?, ?, ?)
             `;
             

@@ -4,7 +4,7 @@ let dadosOriginais = {};
 let imagemSelecionada = null;
 let cropper;
 let imagemOriginal;
-
+let emailUsuario = null; // Variável global para armazenar o email
 
 // Aguardar o DOM estar completamente carregado
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,28 +13,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Inicializar a página
 function inicializarPagina() {
+    // Primeiro verificar se o usuário está logado
+    if (!verificarAutenticacao()) {
+        return; // Se não estiver logado, a função já redirecionará
+    }
+    
     carregarDadosUsuario();
     carregarDicas();
     configurarEventListeners();
 }
 
+// Verificar se o usuário está autenticado
+function verificarAutenticacao() {
+    // Buscar email em todos os locais possíveis
+    emailUsuario = localStorage.getItem('emailUsuario') || 
+                   localStorage.getItem('email') || 
+                   sessionStorage.getItem('emailUsuario') ||
+                   sessionStorage.getItem('email');
+    
+    console.log('Verificando autenticação...');
+    console.log('Email encontrado:', emailUsuario);
+    debugStorage();
+    
+    if (!emailUsuario) {
+        console.error('Email não encontrado - redirecionando para login');
+        alert('Sessão expirada. Faça login novamente.');
+        window.location.href = 'inicio.html';
+        return false;
+    }
+    
+    return true;
+}
+
+// Salvar dados de autenticação de forma consistente
+function salvarDadosAutenticacao(email, dadosUsuario = {}) {
+    try {
+        // Salvar email em ambos os storages para garantir persistência
+        localStorage.setItem('emailUsuario', email);
+        localStorage.setItem('email', email);
+        sessionStorage.setItem('emailUsuario', email);
+        sessionStorage.setItem('email', email);
+        
+        // Salvar outros dados se fornecidos
+        if (dadosUsuario.nome) {
+            localStorage.setItem('nomeUsuario', dadosUsuario.nome);
+        }
+        if (dadosUsuario.telefone) {
+            localStorage.setItem('telefoneUsuario', dadosUsuario.telefone);
+        }
+        if (dadosUsuario.endereco) {
+            localStorage.setItem('enderecoUsuario', dadosUsuario.endereco);
+        }
+        if (dadosUsuario.data_nascimento) {
+            localStorage.setItem('dataNascimentoUsuario', dadosUsuario.data_nascimento);
+        }
+        
+        emailUsuario = email;
+        console.log('Dados de autenticação salvos:', email);
+        
+    } catch (error) {
+        console.error('Erro ao salvar dados de autenticação:', error);
+    }
+}
 
 // Carregar dados do usuário
 async function carregarDadosUsuario() {
     try {
-        const emailUsuario = localStorage.getItem('emailUsuario') || 
-                            localStorage.getItem('email') || 
-                            sessionStorage.getItem('emailUsuario') ||
-                            sessionStorage.getItem('email');
-        
         console.log('Carregando dados para:', emailUsuario);
-        
-        if (!emailUsuario) {
-            console.error('Email não encontrado');
-            alert('Sessão expirada. Faça login novamente.');
-            window.location.href = 'inicio.html';
-            return;
-        }
         
         const response = await fetch('/api/usuario/perfil', {
             method: 'POST',
@@ -50,14 +95,34 @@ async function carregarDadosUsuario() {
             const dados = await response.json();
             console.log('Dados recebidos:', dados);
             
+            // Garantir que o email está nos dados
             dados.email = emailUsuario;
+            
+            // Salvar dados atualizados no storage
+            salvarDadosAutenticacao(emailUsuario, dados);
+            
+            // Preencher interface
             preencherDadosUsuario(dados);
+            
+            // Salvar dados originais para cancelamento de edição
+            dadosOriginais = {
+                nome: dados.nome || '',
+                telefone: dados.telefone || '',
+                endereco: dados.endereco || '',
+                data_nascimento: dados.data_nascimento || ''
+            };
+            
         } else {
             const errorText = await response.text();
             console.error('Erro ao carregar dados do usuário:', errorText);
             
             if (response.status === 404) {
                 alert('Usuário não encontrado. Faça login novamente.');
+                limparDadosAutenticacao();
+                window.location.href = 'inicio.html';
+            } else if (response.status === 401) {
+                alert('Sessão expirada. Faça login novamente.');
+                limparDadosAutenticacao();
                 window.location.href = 'inicio.html';
             } else {
                 alert('Erro ao carregar dados do usuário. Tente novamente.');
@@ -65,8 +130,27 @@ async function carregarDadosUsuario() {
         }
     } catch (error) {
         console.error('Erro na requisição:', error);
-        alert('Erro ao carregar dados do usuário. Tente novamente.');
+        alert('Erro ao carregar dados do usuário. Verifique sua conexão.');
     }
+}
+
+// Limpar dados de autenticação
+function limparDadosAutenticacao() {
+    // Limpar localStorage
+    localStorage.removeItem('emailUsuario');
+    localStorage.removeItem('email');
+    localStorage.removeItem('nomeUsuario');
+    localStorage.removeItem('telefoneUsuario');
+    localStorage.removeItem('enderecoUsuario');
+    localStorage.removeItem('dataNascimentoUsuario');
+    
+    // Limpar sessionStorage
+    sessionStorage.clear();
+    
+    // Limpar variável global
+    emailUsuario = null;
+    
+    console.log('Dados de autenticação limpos');
 }
 
 // Preencher dados do usuário na interface
@@ -86,6 +170,11 @@ function preencherDadosUsuario(dados) {
     if (welcomeMessage) {
         welcomeMessage.textContent = `Bem-vindo, ${nomeUsuario}!`;
     }
+    
+    // Carregar foto de perfil se existir
+    if (dados.foto_perfil) {
+        atualizarPreviewFoto(dados.foto_perfil);
+    }
 }
 
 // Função para alterar foto de perfil
@@ -97,7 +186,7 @@ function alterarFoto() {
 }
 
 // Event listener para mudança de arquivo
-document.getElementById('input-foto').addEventListener('change', function(event) {
+document.getElementById('input-foto')?.addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (file) {
         // Validar tipo de arquivo
@@ -189,6 +278,12 @@ function fecharModalCrop() {
 // Salvar foto cropada
 async function salvarFotoCropada() {
     try {
+        if (!emailUsuario) {
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = 'inicio.html';
+            return;
+        }
+        
         let imagemFinal;
         
         if (cropper) {
@@ -243,7 +338,6 @@ function redimensionarImagem(imagemSrc, largura, altura) {
 // Upload da foto de perfil
 async function uploadFotoPerfil(imagemDataURL) {
     try {
-    
         // Converter data URL para Blob
         const response = await fetch(imagemDataURL);
         const blob = await response.blob();
@@ -323,7 +417,6 @@ document.addEventListener('click', function(event) {
     }
 });
 
-
 // Carregar dicas do administrador
 async function carregarDicas() {
     try {
@@ -388,7 +481,6 @@ function configurarEventListeners() {
             }
         });
     }
-    
     
     // Event listeners para botões de perfil
     const btnEditar = document.getElementById('btn-editar');
@@ -456,10 +548,11 @@ function cancelarEdicao() {
 // Salvar alterações do perfil
 async function salvarAlteracoes() {
     try {
-        const emailUsuario = localStorage.getItem('emailUsuario') || 
-                            localStorage.getItem('email') || 
-                            sessionStorage.getItem('emailUsuario') ||
-                            sessionStorage.getItem('email');
+        if (!emailUsuario) {
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = 'inicio.html';
+            return;
+        }
         
         const nomeField = document.getElementById('nome');
         const telefoneField = document.getElementById('telefone');
@@ -483,7 +576,16 @@ async function salvarAlteracoes() {
         });
         
         if (response.ok) {
-            dadosOriginais = { ...dadosAtualizados };
+            // Atualizar dados originais
+            dadosOriginais = {
+                nome: dadosAtualizados.nome,
+                telefone: dadosAtualizados.telefone,
+                endereco: dadosAtualizados.endereco,
+                data_nascimento: dadosAtualizados.data_nascimento
+            };
+            
+            // Salvar no storage
+            salvarDadosAutenticacao(emailUsuario, dadosAtualizados);
             
             const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
             campos.forEach(campo => {
@@ -520,22 +622,10 @@ async function salvarAlteracoes() {
     editandoPerfil = false;
 }
 
-
 // Função para logout
 function logout() {
     if (confirm('Tem certeza que deseja sair?')) {
-        // Limpar todos os dados do localStorage
-        localStorage.removeItem('emailUsuario');
-        localStorage.removeItem('email');
-        localStorage.removeItem('nomeUsuario');
-        localStorage.removeItem('telefoneUsuario');
-        localStorage.removeItem('enderecoUsuario');
-        localStorage.removeItem('dataNascimentoUsuario');
-        
-        // Limpar sessionStorage
-        sessionStorage.clear();
-        
-        // Redirecionar para página de login
+        limparDadosAutenticacao();
         window.location.href = 'inicio.html';
     }
 }
@@ -547,29 +637,56 @@ function debugStorage() {
     console.log('localStorage.email:', localStorage.getItem('email'));
     console.log('sessionStorage.emailUsuario:', sessionStorage.getItem('emailUsuario'));
     console.log('sessionStorage.email:', sessionStorage.getItem('email'));
+    console.log('emailUsuario (global):', emailUsuario);
     console.log('===================');
 }
 
 // Função para agendar consulta
 function agendarConsulta() {
-    // Implementar lógica de agendamento
+    if (!emailUsuario) {
+        alert('Sessão expirada. Faça login novamente.');
+        window.location.href = 'inicio.html';
+        return;
+    }
+    
     console.log('Agendando consulta...');
     
-    // Exemplo usando modal ou redirecionamento
     if (typeof Calendly !== 'undefined') {
         Calendly.initPopupWidget({
             url: 'https://calendly.com/seu-usuario/consulta'
         });
     } else {
-        // Implementar sistema próprio de agendamento
         alert('Sistema de agendamento em desenvolvimento');
     }
+}
+
+// Função para ser chamada após login bem-sucedido
+function iniciarSessao(email, dadosUsuario = {}) {
+    salvarDadosAutenticacao(email, dadosUsuario);
+    console.log('Sessão iniciada para:', email);
 }
 
 // Chamar debug no carregamento (apenas em desenvolvimento)
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     debugStorage();
 }
+
+// Verificar periodicamente se a sessão ainda é válida
+setInterval(function() {
+    if (emailUsuario && document.visibilityState === 'visible') {
+        // Verificar se os dados ainda estão no storage
+        const emailStorage = localStorage.getItem('emailUsuario') || 
+                           localStorage.getItem('email') || 
+                           sessionStorage.getItem('emailUsuario') ||
+                           sessionStorage.getItem('email');
+        
+        if (!emailStorage) {
+            console.log('Sessão perdida - redirecionando para login');
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = 'inicio.html';
+        }
+    }
+}, 30000); // Verificar a cada 30 segundos
 
 // Exportar funções para uso global
 window.toggleEdicao = toggleEdicao;
@@ -579,3 +696,5 @@ window.salvarFotoCropada = salvarFotoCropada;
 window.fecharModalCrop = fecharModalCrop;
 window.logout = logout;
 window.agendarConsulta = agendarConsulta;
+window.iniciarSessao = iniciarSessao;
+window.salvarDadosAutenticacao = salvarDadosAutenticacao;
