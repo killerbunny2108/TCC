@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
+const connection = require('../db');
 
 // Configuração do banco de dados
 const db = mysql.createConnection({
@@ -12,6 +12,93 @@ const db = mysql.createConnection({
     user: 'root',
     password: 'root',
     database: 'cleo_nunes'
+});
+
+// Rota de login
+router.post('/login', (req, res) => {
+    const { email, senha } = req.body;
+    
+    if (!email || !senha) {
+        return res.status(400).json({ mensagem: 'Email e senha são obrigatórios.' });
+    }
+    
+    connection.query(
+        'SELECT * FROM Usuario WHERE email = ? AND senha = ?',
+        [email, senha],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao fazer login:', err);
+                return res.status(500).json({ mensagem: 'Erro interno do servidor.' });
+            }
+            
+            if (results.length === 0) {
+                return res.status(401).json({ mensagem: 'Credenciais inválidas.' });
+            }
+            
+            const usuario = results[0];
+            // Remover senha antes de enviar
+            delete usuario.senha;
+            
+            res.json({ 
+                sucesso: true, 
+                usuario: usuario,
+                mensagem: 'Login realizado com sucesso!' 
+            });
+        }
+    );
+});
+
+// Rota de cadastro
+router.post('/cadastro', (req, res) => {
+    const { nome, email, senha } = req.body;
+    
+    if (!nome || !email || !senha) {
+        return res.status(400).json({ mensagem: 'Nome, email e senha são obrigatórios.' });
+    }
+    
+    // Verificar se o usuário já existe
+    connection.query(
+        'SELECT * FROM Usuario WHERE email = ?',
+        [email],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao verificar usuário:', err);
+                return res.status(500).json({ mensagem: 'Erro interno do servidor.' });
+            }
+            
+            if (results.length > 0) {
+                return res.status(409).json({ mensagem: 'Usuário já existe.' });
+            }
+            
+            // Inserir novo usuário
+            connection.query(
+                'INSERT INTO Usuario (nome, email, senha) VALUES (?, ?, ?)',
+                [nome, email, senha],
+                (err, result) => {
+                    if (err) {
+                        console.error('Erro ao cadastrar usuário:', err);
+                        return res.status(500).json({ mensagem: 'Erro ao cadastrar usuário.' });
+                    }
+                    
+                    const userId = result.insertId;
+                    
+                    // Inserir na tabela Paciente (assumindo que todo cadastro é paciente)
+                    connection.query(
+                        'INSERT INTO Paciente (id_usuario) VALUES (?)',
+                        [userId],
+                        (err, result) => {
+                            if (err) {
+                                console.error('Erro ao criar paciente:', err);
+                                // Não retornar erro aqui, apenas log
+                            }
+                        }
+                    );
+                    
+                    res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!' });
+                }
+            );
+        }
+    );
 });
 
 // Adicionar no arquivo backend/routes/usuario.js
