@@ -6,6 +6,12 @@ const path = require('path');
 const fs = require('fs');
 const connection = require('../db');
 
+// Middleware para logging de requisições
+router.use((req, res, next) => {
+    console.log(`${req.method} ${req.path} - Body:`, req.body);
+    next();
+});
+
 // Rota de login - CORRIGIDA
 router.post('/login', (req, res) => {
     const { email, senha } = req.body;
@@ -14,7 +20,6 @@ router.post('/login', (req, res) => {
         return res.status(400).json({ mensagem: 'Email e senha são obrigatórios.' });
     }
     
-    // CORRIGIDO: nome da tabela para minúsculo
     connection.query(
         'SELECT * FROM usuario WHERE email = ? AND senha = ?',
         [email, senha],
@@ -29,7 +34,6 @@ router.post('/login', (req, res) => {
             }
             
             const usuario = results[0];
-            // Remover senha antes de enviar
             delete usuario.senha;
             
             res.json({ 
@@ -49,7 +53,6 @@ router.post('/cadastro', (req, res) => {
         return res.status(400).json({ mensagem: 'Nome, email e senha são obrigatórios.' });
     }
     
-    // CORRIGIDO: nome da tabela para minúsculo
     connection.query(
         'SELECT * FROM usuario WHERE email = ?',
         [email],
@@ -63,7 +66,6 @@ router.post('/cadastro', (req, res) => {
                 return res.status(409).json({ mensagem: 'Usuário já existe.' });
             }
             
-            // CORRIGIDO: nome da tabela para minúsculo
             connection.query(
                 'INSERT INTO usuario (nome, email, senha) VALUES (?, ?, ?)',
                 [nome, email, senha],
@@ -75,7 +77,6 @@ router.post('/cadastro', (req, res) => {
                     
                     const userId = result.insertId;
                     
-                    // CORRIGIDO: nome da tabela para minúsculo
                     connection.query(
                         'INSERT INTO paciente (id_usuario) VALUES (?)',
                         [userId],
@@ -126,7 +127,7 @@ const upload = multer({
     }
 });
 
-// Rota para upload de foto de perfil - CORRIGIDA
+// Rota para upload de foto de perfil
 router.post('/upload-foto', upload.single('foto'), (req, res) => {
     const { email } = req.body;
     
@@ -158,7 +159,6 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
             });
         }
         
-        // CORRIGIDO: nome da tabela para minúsculo
         const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
         
         connection.query(getUserIdQuery, [email], (err, userResult) => {
@@ -174,7 +174,6 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
             
             const id_usuario = userResult[0].id_usuario;
             
-            // CORRIGIDO: nome da tabela para minúsculo
             const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM paciente WHERE id_usuario = ?';
             
             connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
@@ -249,10 +248,19 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
 // Rota para servir arquivos de imagem
 router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Rota para buscar perfil do usuário - CORRIGIDA
+// CORRIGIDO: Rota para buscar perfil do usuário - Agora aceita GET e POST
+router.get('/perfil/:email', (req, res) => {
+    const { email } = req.params;
+    buscarPerfilUsuario(email, res);
+});
+
 router.post('/perfil', (req, res) => {
     const { email } = req.body;
-    
+    buscarPerfilUsuario(email, res);
+});
+
+// Função auxiliar para buscar perfil
+function buscarPerfilUsuario(email, res) {
     console.log('Buscando perfil para email:', email);
     
     if (!email) {
@@ -262,7 +270,6 @@ router.post('/perfil', (req, res) => {
         });
     }
     
-    // CORRIGIDO: nome das tabelas para minúsculo
     const query = `
         SELECT u.id_usuario, u.nome, u.email, u.senha, 
                p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
@@ -288,8 +295,6 @@ router.post('/perfil', (req, res) => {
         }
         
         const usuario = results[0];
-        
-        // Remover senha da resposta
         delete usuario.senha;
         
         console.log('Dados do usuário encontrados:', usuario);
@@ -299,9 +304,9 @@ router.post('/perfil', (req, res) => {
             ...usuario
         });
     });
-});
+}
 
-// Rota para atualizar perfil do usuário - CORRIGIDA
+// Rota para atualizar perfil do usuário
 router.put('/atualizar', (req, res) => {
     const { email, nome, telefone, endereco, data_nascimento } = req.body;
     
@@ -321,7 +326,6 @@ router.put('/atualizar', (req, res) => {
             });
         }
         
-        // CORRIGIDO: nome da tabela para minúsculo
         const updateUsuarioQuery = 'UPDATE usuario SET nome = ? WHERE email = ?';
         
         connection.query(updateUsuarioQuery, [nome, email], (err, result) => {
@@ -335,7 +339,6 @@ router.put('/atualizar', (req, res) => {
                 });
             }
             
-            // CORRIGIDO: nome da tabela para minúsculo
             const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
             
             connection.query(getUserIdQuery, [email], (err, userResult) => {
@@ -351,7 +354,6 @@ router.put('/atualizar', (req, res) => {
                 
                 const id_usuario = userResult[0].id_usuario;
                 
-                // CORRIGIDO: nome da tabela para minúsculo
                 const checkPacienteQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
                 
                 connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
@@ -369,7 +371,6 @@ router.put('/atualizar', (req, res) => {
                     let pacienteParams;
                     
                     if (pacienteResult.length > 0) {
-                        // CORRIGIDO: nome da tabela para minúsculo
                         pacienteQuery = `
                             UPDATE paciente 
                             SET telefone = ?, endereco = ?, data_nascimento = ?
@@ -377,7 +378,6 @@ router.put('/atualizar', (req, res) => {
                         `;
                         pacienteParams = [telefone, endereco, data_nascimento, id_usuario];
                     } else {
-                        // CORRIGIDO: nome da tabela para minúsculo
                         pacienteQuery = `
                             INSERT INTO paciente (id_usuario, telefone, endereco, data_nascimento)
                             VALUES (?, ?, ?, ?)
@@ -419,7 +419,7 @@ router.put('/atualizar', (req, res) => {
     });
 });
 
-// Rota para buscar dicas - CORRIGIDA
+// Rota para buscar dicas
 router.get('/dicas', (req, res) => {
     const query = `
         SELECT d.id, d.titulo, d.descricao, d.data_publicacao, a.nome as autor
@@ -441,7 +441,7 @@ router.get('/dicas', (req, res) => {
     });
 });
 
-// Rota para agendar consulta - CORRIGIDA
+// Rota para agendar consulta
 router.post('/agendar', (req, res) => {
     const { email, tipo_atendimento, data_atendimento, motivo_consulta } = req.body;
     
@@ -452,7 +452,6 @@ router.post('/agendar', (req, res) => {
         });
     }
     
-    // CORRIGIDO: nome da tabela para minúsculo
     const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
     
     connection.query(getUserIdQuery, [email], (err, userResult) => {
@@ -473,7 +472,6 @@ router.post('/agendar', (req, res) => {
         
         const id_usuario = userResult[0].id_usuario;
         
-        // CORRIGIDO: nome da tabela para minúsculo
         const getPacienteIdQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
         
         connection.query(getPacienteIdQuery, [id_usuario], (err, pacienteResult) => {
@@ -494,7 +492,6 @@ router.post('/agendar', (req, res) => {
             
             const id_paciente = pacienteResult[0].id_paciente;
             
-            // CORRIGIDO: nome da tabela para minúsculo
             const insertQuery = `
                 INSERT INTO fichapaciente (id_paciente, tipo_atendimento, data_atendimento, motivo_consulta)
                 VALUES (?, ?, ?, ?)
@@ -516,6 +513,15 @@ router.post('/agendar', (req, res) => {
                 });
             });
         });
+    });
+});
+
+// Middleware para tratamento de erros
+router.use((err, req, res, next) => {
+    console.error('Erro na rota:', err);
+    res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
     });
 });
 
