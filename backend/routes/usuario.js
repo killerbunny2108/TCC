@@ -12,6 +12,19 @@ router.use((req, res, next) => {
     next();
 });
 
+// Middleware para CORS
+router.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+
 // Rota de login - CORRIGIDA
 router.post('/login', (req, res) => {
     const { email, senha } = req.body;
@@ -124,6 +137,35 @@ const upload = multer({
         } else {
             cb(new Error('Apenas arquivos de imagem são permitidos'));
         }
+    }
+});
+
+// Rota para servir arquivos de imagem - MOVIDA PARA CIMA
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Rota para servir imagem placeholder
+router.get('/images/user-placeholder.jpg', (req, res) => {
+    const placeholderPath = path.join(__dirname, '../public/images/user-placeholder.jpg');
+    
+    // Se não existir, cria uma imagem placeholder simples
+    if (!fs.existsSync(placeholderPath)) {
+        const dir = path.dirname(placeholderPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        
+        // Retorna uma resposta SVG simples como placeholder
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.send(`
+            <svg width="150" height="150" xmlns="http://www.w3.org/2000/svg">
+                <rect width="150" height="150" fill="#f0f0f0"/>
+                <circle cx="75" cy="60" r="25" fill="#ccc"/>
+                <path d="M30 120 Q30 100 75 100 Q120 100 120 120 L120 150 L30 150 Z" fill="#ccc"/>
+                <text x="75" y="140" text-anchor="middle" fill="#666" font-size="12">Usuário</text>
+            </svg>
+        `);
+    } else {
+        res.sendFile(placeholderPath);
     }
 });
 
@@ -245,10 +287,7 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
     });
 });
 
-// Rota para servir arquivos de imagem
-router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// CORRIGIDO: Rota para buscar perfil do usuário - Agora aceita GET e POST
+// CORRIGIDO: Rota para buscar perfil do usuário - Aceita GET e POST
 router.get('/perfil/:email', (req, res) => {
     const { email } = req.params;
     buscarPerfilUsuario(email, res);
@@ -256,6 +295,14 @@ router.get('/perfil/:email', (req, res) => {
 
 router.post('/perfil', (req, res) => {
     const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório no corpo da requisição' 
+        });
+    }
+    
     buscarPerfilUsuario(email, res);
 });
 
@@ -519,6 +566,25 @@ router.post('/agendar', (req, res) => {
 // Middleware para tratamento de erros
 router.use((err, req, res, next) => {
     console.error('Erro na rota:', err);
+    
+    // Tratamento específico para erros do multer
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Arquivo muito grande. Tamanho máximo: 5MB' 
+            });
+        }
+    }
+    
+    // Tratamento para erro de tipo de arquivo
+    if (err.message === 'Apenas arquivos de imagem são permitidos') {
+        return res.status(400).json({ 
+            success: false, 
+            message: err.message 
+        });
+    }
+    
     res.status(500).json({ 
         success: false, 
         message: 'Erro interno do servidor' 
