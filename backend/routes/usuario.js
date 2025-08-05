@@ -6,21 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const connection = require('../db');
 
-<<<<<<< HEAD
-// Configuração do banco de dados
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root',
-    database: 'cleo_nunes'
-});
-
-// ================================
-// ROTAS DE AUTENTICAÇÃO
-// ================================
-
-// Rota para login
-=======
 // Middleware para logging de requisições
 router.use((req, res, next) => {
     console.log(`${req.method} ${req.path} - Body:`, req.body);
@@ -40,13 +25,15 @@ router.use((req, res, next) => {
     }
 });
 
-// Rota de login - CORRIGIDA
->>>>>>> c1732a4f2711ac4775c21dc5f36b143c857ff992
+// ================================
+// ROTAS DE AUTENTICAÇÃO
+// ================================
+
+// Rota de login
 router.post('/login', (req, res) => {
     const { email, senha } = req.body;
     
     if (!email || !senha) {
-<<<<<<< HEAD
         return res.status(400).json({ 
             success: false, 
             message: 'Email e senha são obrigatórios' 
@@ -62,7 +49,7 @@ router.post('/login', (req, res) => {
         WHERE u.email = ?
     `;
     
-    db.query(query, [email], (err, results) => {
+    connection.query(query, [email], (err, results) => {
         if (err) {
             console.error('Erro ao buscar usuário:', err);
             return res.status(500).json({ 
@@ -105,7 +92,7 @@ router.post('/login', (req, res) => {
     });
 });
 
-// Rota para cadastro
+// Rota de cadastro
 router.post('/cadastro', (req, res) => {
     const { nome, email, senha, telefone, endereco, data_nascimento } = req.body;
     
@@ -119,7 +106,7 @@ router.post('/cadastro', (req, res) => {
     // Verificar se o email já existe
     const checkEmailQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
     
-    db.query(checkEmailQuery, [email], (err, results) => {
+    connection.query(checkEmailQuery, [email], (err, results) => {
         if (err) {
             console.error('Erro ao verificar email:', err);
             return res.status(500).json({ 
@@ -136,7 +123,7 @@ router.post('/cadastro', (req, res) => {
         }
         
         // Iniciar transação
-        db.beginTransaction((err) => {
+        connection.beginTransaction((err) => {
             if (err) {
                 console.error('Erro ao iniciar transação:', err);
                 return res.status(500).json({ 
@@ -151,9 +138,9 @@ router.post('/cadastro', (req, res) => {
                 VALUES (?, ?, ?)
             `;
             
-            db.query(insertUserQuery, [nome, email, senha], (err, result) => {
+            connection.query(insertUserQuery, [nome, email, senha], (err, result) => {
                 if (err) {
-                    return db.rollback(() => {
+                    return connection.rollback(() => {
                         console.error('Erro ao inserir usuário:', err);
                         res.status(500).json({ 
                             success: false, 
@@ -170,9 +157,9 @@ router.post('/cadastro', (req, res) => {
                     VALUES (?, ?, ?, ?, ?)
                 `;
                 
-                db.query(insertPacienteQuery, [id_usuario, nome, telefone, endereco, data_nascimento], (err, result) => {
+                connection.query(insertPacienteQuery, [id_usuario, nome, telefone, endereco, data_nascimento], (err, result) => {
                     if (err) {
-                        return db.rollback(() => {
+                        return connection.rollback(() => {
                             console.error('Erro ao inserir paciente:', err);
                             res.status(500).json({ 
                                 success: false, 
@@ -182,9 +169,9 @@ router.post('/cadastro', (req, res) => {
                     }
                     
                     // Commit da transação
-                    db.commit((err) => {
+                    connection.commit((err) => {
                         if (err) {
-                            return db.rollback(() => {
+                            return connection.rollback(() => {
                                 console.error('Erro ao fazer commit:', err);
                                 res.status(500).json({ 
                                     success: false, 
@@ -211,86 +198,8 @@ router.post('/cadastro', (req, res) => {
 });
 
 // ================================
-// ROTAS EXISTENTES (mantidas)
+// CONFIGURAÇÃO DE UPLOAD DE FOTOS
 // ================================
-=======
-        return res.status(400).json({ mensagem: 'Email e senha são obrigatórios.' });
-    }
-    
-    connection.query(
-        'SELECT * FROM usuario WHERE email = ? AND senha = ?',
-        [email, senha],
-        (err, results) => {
-            if (err) {
-                console.error('Erro ao fazer login:', err);
-                return res.status(500).json({ mensagem: 'Erro interno do servidor.' });
-            }
-            
-            if (results.length === 0) {
-                return res.status(401).json({ mensagem: 'Credenciais inválidas.' });
-            }
-            
-            const usuario = results[0];
-            delete usuario.senha;
-            
-            res.json({ 
-                sucesso: true, 
-                usuario: usuario,
-                mensagem: 'Login realizado com sucesso!' 
-            });
-        }
-    );
-});
-
-// Rota de cadastro - CORRIGIDA
-router.post('/cadastro', (req, res) => {
-    const { nome, email, senha } = req.body;
-    
-    if (!nome || !email || !senha) {
-        return res.status(400).json({ mensagem: 'Nome, email e senha são obrigatórios.' });
-    }
-    
-    connection.query(
-        'SELECT * FROM usuario WHERE email = ?',
-        [email],
-        (err, results) => {
-            if (err) {
-                console.error('Erro ao verificar usuário:', err);
-                return res.status(500).json({ mensagem: 'Erro interno do servidor.' });
-            }
-            
-            if (results.length > 0) {
-                return res.status(409).json({ mensagem: 'Usuário já existe.' });
-            }
-            
-            connection.query(
-                'INSERT INTO usuario (nome, email, senha) VALUES (?, ?, ?)',
-                [nome, email, senha],
-                (err, result) => {
-                    if (err) {
-                        console.error('Erro ao cadastrar usuário:', err);
-                        return res.status(500).json({ mensagem: 'Erro ao cadastrar usuário.' });
-                    }
-                    
-                    const userId = result.insertId;
-                    
-                    connection.query(
-                        'INSERT INTO paciente (id_usuario) VALUES (?)',
-                        [userId],
-                        (err, result) => {
-                            if (err) {
-                                console.error('Erro ao criar paciente:', err);
-                            }
-                        }
-                    );
-                    
-                    res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!' });
-                }
-            );
-        }
-    );
-});
->>>>>>> c1732a4f2711ac4775c21dc5f36b143c857ff992
 
 // Configuração do multer para upload de imagens
 const storage = multer.diskStorage({
@@ -325,21 +234,19 @@ const upload = multer({
     }
 });
 
-// Rota para servir arquivos de imagem - MOVIDA PARA CIMA
+// Rota para servir arquivos de imagem
 router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Rota para servir imagem placeholder
 router.get('/images/user-placeholder.jpg', (req, res) => {
     const placeholderPath = path.join(__dirname, '../public/images/user-placeholder.jpg');
     
-    // Se não existir, cria uma imagem placeholder simples
     if (!fs.existsSync(placeholderPath)) {
         const dir = path.dirname(placeholderPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
         
-        // Retorna uma resposta SVG simples como placeholder
         res.setHeader('Content-Type', 'image/svg+xml');
         res.send(`
             <svg width="150" height="150" xmlns="http://www.w3.org/2000/svg">
@@ -353,6 +260,198 @@ router.get('/images/user-placeholder.jpg', (req, res) => {
         res.sendFile(placeholderPath);
     }
 });
+
+// ================================
+// ROTAS DE PERFIL DO USUÁRIO
+// ================================
+
+// Função auxiliar para buscar perfil
+function buscarPerfilUsuario(email, res) {
+    console.log('Buscando perfil para email:', email);
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório' 
+        });
+    }
+    
+    const query = `
+        SELECT u.id_usuario, u.nome, u.email,
+               p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
+        FROM usuario u
+        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
+        WHERE u.email = ?
+    `;
+    
+    connection.query(query, [email], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Usuário não encontrado' 
+            });
+        }
+        
+        const usuario = results[0];
+        
+        console.log('Dados do usuário encontrados:', usuario);
+        
+        res.json({
+            success: true,
+            ...usuario
+        });
+    });
+}
+
+// Rota GET para buscar perfil do usuário
+router.get('/perfil/:email', (req, res) => {
+    const { email } = req.params;
+    buscarPerfilUsuario(email, res);
+});
+
+// Rota POST para buscar perfil do usuário
+router.post('/perfil', (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório no corpo da requisição' 
+        });
+    }
+    
+    buscarPerfilUsuario(email, res);
+});
+
+// Rota para atualizar perfil do usuário
+router.put('/atualizar', (req, res) => {
+    const { email, nome, telefone, endereco, data_nascimento } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório' 
+        });
+    }
+    
+    connection.beginTransaction((err) => {
+        if (err) {
+            console.error('Erro ao iniciar transação:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        // Atualizar usuário
+        const updateUsuarioQuery = 'UPDATE usuario SET nome = ? WHERE email = ?';
+        
+        connection.query(updateUsuarioQuery, [nome, email], (err, result) => {
+            if (err) {
+                return connection.rollback(() => {
+                    console.error('Erro ao atualizar usuário:', err);
+                    res.status(500).json({ 
+                        success: false, 
+                        message: 'Erro ao atualizar usuário' 
+                    });
+                });
+            }
+            
+            // Buscar ID do usuário
+            const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+            
+            connection.query(getUserIdQuery, [email], (err, userResult) => {
+                if (err || userResult.length === 0) {
+                    return connection.rollback(() => {
+                        console.error('Erro ao buscar ID do usuário:', err);
+                        res.status(500).json({ 
+                            success: false, 
+                            message: 'Erro ao buscar usuário' 
+                        });
+                    });
+                }
+                
+                const id_usuario = userResult[0].id_usuario;
+                
+                // Verificar se paciente existe
+                const checkPacienteQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
+                
+                connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            console.error('Erro ao verificar paciente:', err);
+                            res.status(500).json({ 
+                                success: false, 
+                                message: 'Erro ao verificar paciente' 
+                            });
+                        });
+                    }
+                    
+                    let pacienteQuery;
+                    let pacienteParams;
+                    
+                    if (pacienteResult.length > 0) {
+                        // Atualizar paciente existente
+                        pacienteQuery = `
+                            UPDATE paciente 
+                            SET nome = ?, telefone = ?, endereco = ?, data_nascimento = ?
+                            WHERE id_usuario = ?
+                        `;
+                        pacienteParams = [nome, telefone, endereco, data_nascimento, id_usuario];
+                    } else {
+                        // Inserir novo paciente
+                        pacienteQuery = `
+                            INSERT INTO paciente (id_usuario, nome, telefone, endereco, data_nascimento)
+                            VALUES (?, ?, ?, ?, ?)
+                        `;
+                        pacienteParams = [id_usuario, nome, telefone, endereco, data_nascimento];
+                    }
+                    
+                    connection.query(pacienteQuery, pacienteParams, (err, result) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                console.error('Erro ao atualizar paciente:', err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    message: 'Erro ao atualizar dados do paciente' 
+                                });
+                            });
+                        }
+                        
+                        connection.commit((err) => {
+                            if (err) {
+                                return connection.rollback(() => {
+                                    console.error('Erro ao fazer commit:', err);
+                                    res.status(500).json({ 
+                                        success: false, 
+                                        message: 'Erro ao salvar alterações' 
+                                    });
+                                });
+                            }
+                            
+                            res.json({
+                                success: true,
+                                message: 'Perfil atualizado com sucesso'
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// ================================
+// ROTAS DE UPLOAD DE FOTO
+// ================================
 
 // Rota para upload de foto de perfil
 router.post('/upload-foto', upload.single('foto'), (req, res) => {
@@ -449,6 +548,7 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
                             });
                         }
                         
+                        // Remover foto anterior se existir
                         if (fotoAnterior) {
                             const caminhoFotoAnterior = path.join(__dirname, '..', fotoAnterior);
                             if (fs.existsSync(caminhoFotoAnterior)) {
@@ -472,188 +572,9 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
     });
 });
 
-// CORRIGIDO: Rota para buscar perfil do usuário - Aceita GET e POST
-router.get('/perfil/:email', (req, res) => {
-    const { email } = req.params;
-    buscarPerfilUsuario(email, res);
-});
-
-<<<<<<< HEAD
-// Rota para buscar perfil do usuário
-=======
->>>>>>> c1732a4f2711ac4775c21dc5f36b143c857ff992
-router.post('/perfil', (req, res) => {
-    const { email } = req.body;
-    
-    if (!email) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Email é obrigatório no corpo da requisição' 
-        });
-    }
-    
-    buscarPerfilUsuario(email, res);
-});
-
-// Função auxiliar para buscar perfil
-function buscarPerfilUsuario(email, res) {
-    console.log('Buscando perfil para email:', email);
-    
-    if (!email) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Email é obrigatório' 
-        });
-    }
-    
-    const query = `
-        SELECT u.id_usuario, u.nome, u.email, u.senha, 
-               p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
-        FROM usuario u
-        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
-        WHERE u.email = ?
-    `;
-    
-    connection.query(query, [email], (err, results) => {
-        if (err) {
-            console.error('Erro ao buscar usuário:', err);
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Erro interno do servidor' 
-            });
-        }
-        
-        if (results.length === 0) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Usuário não encontrado' 
-            });
-        }
-        
-        const usuario = results[0];
-        delete usuario.senha;
-        
-        console.log('Dados do usuário encontrados:', usuario);
-        
-        res.json({
-            success: true,
-            ...usuario
-        });
-    });
-}
-
-// Rota para atualizar perfil do usuário
-router.put('/atualizar', (req, res) => {
-    const { email, nome, telefone, endereco, data_nascimento } = req.body;
-    
-    if (!email) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Email é obrigatório' 
-        });
-    }
-    
-    connection.beginTransaction((err) => {
-        if (err) {
-            console.error('Erro ao iniciar transação:', err);
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Erro interno do servidor' 
-            });
-        }
-        
-        const updateUsuarioQuery = 'UPDATE usuario SET nome = ? WHERE email = ?';
-        
-        connection.query(updateUsuarioQuery, [nome, email], (err, result) => {
-            if (err) {
-                return connection.rollback(() => {
-                    console.error('Erro ao atualizar usuário:', err);
-                    res.status(500).json({ 
-                        success: false, 
-                        message: 'Erro ao atualizar usuário' 
-                    });
-                });
-            }
-            
-            const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
-            
-            connection.query(getUserIdQuery, [email], (err, userResult) => {
-                if (err || userResult.length === 0) {
-                    return connection.rollback(() => {
-                        console.error('Erro ao buscar ID do usuário:', err);
-                        res.status(500).json({ 
-                            success: false, 
-                            message: 'Erro ao buscar usuário' 
-                        });
-                    });
-                }
-                
-                const id_usuario = userResult[0].id_usuario;
-                
-                const checkPacienteQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
-                
-                connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
-                    if (err) {
-                        return connection.rollback(() => {
-                            console.error('Erro ao verificar paciente:', err);
-                            res.status(500).json({ 
-                                success: false, 
-                                message: 'Erro ao verificar paciente' 
-                            });
-                        });
-                    }
-                    
-                    let pacienteQuery;
-                    let pacienteParams;
-                    
-                    if (pacienteResult.length > 0) {
-                        pacienteQuery = `
-                            UPDATE paciente 
-                            SET telefone = ?, endereco = ?, data_nascimento = ?
-                            WHERE id_usuario = ?
-                        `;
-                        pacienteParams = [telefone, endereco, data_nascimento, id_usuario];
-                    } else {
-                        pacienteQuery = `
-                            INSERT INTO paciente (id_usuario, telefone, endereco, data_nascimento)
-                            VALUES (?, ?, ?, ?)
-                        `;
-                        pacienteParams = [id_usuario, telefone, endereco, data_nascimento];
-                    }
-                    
-                    connection.query(pacienteQuery, pacienteParams, (err, result) => {
-                        if (err) {
-                            return connection.rollback(() => {
-                                console.error('Erro ao atualizar paciente:', err);
-                                res.status(500).json({ 
-                                    success: false, 
-                                    message: 'Erro ao atualizar dados do paciente' 
-                                });
-                            });
-                        }
-                        
-                        connection.commit((err) => {
-                            if (err) {
-                                return connection.rollback(() => {
-                                    console.error('Erro ao fazer commit:', err);
-                                    res.status(500).json({ 
-                                        success: false, 
-                                        message: 'Erro ao salvar alterações' 
-                                    });
-                                });
-                            }
-                            
-                            res.json({
-                                success: true,
-                                message: 'Perfil atualizado com sucesso'
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
+// ================================
+// OUTRAS ROTAS
+// ================================
 
 // Rota para buscar dicas
 router.get('/dicas', (req, res) => {
@@ -752,11 +673,13 @@ router.post('/agendar', (req, res) => {
     });
 });
 
-// Middleware para tratamento de erros
+// ================================
+// MIDDLEWARE DE TRATAMENTO DE ERROS
+// ================================
+
 router.use((err, req, res, next) => {
     console.error('Erro na rota:', err);
     
-    // Tratamento específico para erros do multer
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({ 
@@ -766,7 +689,6 @@ router.use((err, req, res, next) => {
         }
     }
     
-    // Tratamento para erro de tipo de arquivo
     if (err.message === 'Apenas arquivos de imagem são permitidos') {
         return res.status(400).json({ 
             success: false, 
