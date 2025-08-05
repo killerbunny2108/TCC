@@ -17,29 +17,29 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, senha })
         })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-        })
-        .then(data => {
-            if (data.usuario || data.sucesso) {
-                localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-
-                if (email === "nunescleusa1974@gmail.com") {
-                    window.location.href = "admin.html";
-                } else {
-                    window.location.href = "usuario.html";
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
                 }
-            } else {
-                alert(data.mensagem || "Falha no login");
-            }
-        })
-        .catch(err => {
-            console.error("Erro completo:", err);
-            alert("Erro ao conectar com o servidor");
-        });
+                return res.json();
+            })
+            .then(data => {
+                if (data.user || data.success) {
+                    localStorage.setItem("usuarioLogado", JSON.stringify(data.user));
+
+                    if (data.user.email === "nunescleusa1974@gmail.com") {
+                        window.location.href = "admin.html";
+                    } else {
+                        window.location.href = "usuario.html";
+                    }
+                } else {
+                    alert(data.message || "Falha no login");
+                }
+            })
+            .catch(err => {
+                console.error("Erro completo:", err);
+                alert("Erro ao conectar com o servidor");
+            });
     });
 
     // Botão de cadastro
@@ -60,19 +60,19 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nome, email, senha })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.mensagem?.includes("sucesso")) {
-                alert("Cadastro realizado com sucesso!");
-                window.location.href = "login.html";
-            } else {
-                alert(data.mensagem || "Erro ao cadastrar");
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Erro ao conectar com o servidor");
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.mensagem?.includes("sucesso")) {
+                    alert("Cadastro realizado com sucesso!");
+                    window.location.href = "login.html";
+                } else {
+                    alert(data.mensagem || "Erro ao cadastrar");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao conectar com o servidor");
+            });
     });
 
     // Botão voltar
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const result = await response.json();
-            
+
             if (response.ok) {
                 alert("Ficha salva com sucesso!");
                 // Redirecionar para a página do administrador após salvar com sucesso
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Carregar pacientes na combo box - MODIFICADO PARA USAR O ID CORRETO
     function carregarPacientes() {
         const comboBox = document.getElementById('id_paciente');
-        
+
         if (comboBox) {
             console.log("Carregando pacientes...");
             fetch("http://localhost:3000/api/pacientes")
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Prevenir rolagem da página quando a tecla espaço é pressionada
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.code === 'Space' && e.target === document.body) {
             e.preventDefault();
         }
@@ -195,7 +195,7 @@ function buscarDicas() {
             .then(response => response.json())
             .then(dicas => {
                 listaDicas.innerHTML = ''; // Limpar qualquer conteúdo anterior
-        
+
                 // Adicionar cada dica na lista
                 dicas.forEach(dica => {
                     const li = document.createElement('li');
@@ -213,7 +213,7 @@ function buscarDicas() {
 }
 
 // Chamar a função para buscar as dicas apenas se estiver em uma página que usa dicas
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('dicas-list')) {
         buscarDicas();
     }

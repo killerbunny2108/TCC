@@ -9,6 +9,7 @@ let dadosUsuarioLogado = null;
 
 // Aguardar o DOM estar completamente carregado
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado, inicializando página...');
     inicializarPagina();
 });
 
@@ -21,9 +22,17 @@ function inicializarPagina() {
         return;
     }
     
-    carregarDadosUsuario();
-    carregarDicas();
-    configurarEventListeners();
+    // Carregar dados em paralelo
+    Promise.all([
+        carregarDadosUsuario(),
+        carregarDicas()
+    ]).then(() => {
+        console.log('Dados carregados com sucesso');
+        configurarEventListeners();
+    }).catch(error => {
+        console.error('Erro ao carregar dados:', error);
+        configurarEventListeners(); // Configurar listeners mesmo se houver erro
+    });
 }
 
 // Verificar se o usuário está autenticado - VERSÃO CORRIGIDA
@@ -35,50 +44,44 @@ function verificarAutenticacao() {
         localStorage.getItem('emailUsuario'),
         localStorage.getItem('email'),
         sessionStorage.getItem('emailUsuario'),
-        sessionStorage.getItem('email'),
-        localStorage.getItem('usuarioLogado'), // Caso esteja como JSON
-        sessionStorage.getItem('usuarioLogado')
+        sessionStorage.getItem('email')
+    ];
+    
+    // Tentar recuperar dados JSON
+    const possiveisDadosJson = [
+        localStorage.getItem('usuarioLogado'),
+        sessionStorage.getItem('usuarioLogado'),
+        localStorage.getItem('dadosUsuario'),
+        sessionStorage.getItem('dadosUsuario')
     ];
     
     console.log('Possíveis emails encontrados:', possiveisEmails);
+    console.log('Possíveis dados JSON encontrados:', possiveisDadosJson);
     
     // Procurar primeiro email válido
     for (let email of possiveisEmails) {
         if (email && email.trim() !== '' && email !== 'null' && email !== 'undefined') {
-            // Se for um objeto JSON, tentar extrair o email
-            if (email.startsWith('{')) {
+            emailUsuario = email.trim();
+            console.log('Email encontrado diretamente:', emailUsuario);
+            break;
+        }
+    }
+    
+    // Se não encontrou email direto, tentar extrair dos dados JSON
+    if (!emailUsuario) {
+        for (let dadosJson of possiveisDadosJson) {
+            if (dadosJson && dadosJson.trim() !== '' && dadosJson !== 'null') {
                 try {
-                    const dadosJson = JSON.parse(email);
-                    if (dadosJson.email) {
-                        emailUsuario = dadosJson.email;
-                        dadosUsuarioLogado = dadosJson;
+                    const dados = JSON.parse(dadosJson);
+                    if (dados.email && dados.email.trim() !== '') {
+                        emailUsuario = dados.email.trim();
+                        dadosUsuarioLogado = dados;
                         console.log('Email encontrado no JSON:', emailUsuario);
                         break;
                     }
                 } catch (e) {
                     console.log('Erro ao parse JSON:', e);
                 }
-            } else {
-                emailUsuario = email;
-                console.log('Email encontrado diretamente:', emailUsuario);
-                break;
-            }
-        }
-    }
-    
-    // Se ainda não encontrou, tentar recuperar dados do usuário completos
-    if (!emailUsuario) {
-        const dadosCompletos = localStorage.getItem('dadosUsuario') || sessionStorage.getItem('dadosUsuario');
-        if (dadosCompletos) {
-            try {
-                const dados = JSON.parse(dadosCompletos);
-                if (dados.email) {
-                    emailUsuario = dados.email;
-                    dadosUsuarioLogado = dados;
-                    console.log('Email recuperado dos dados completos:', emailUsuario);
-                }
-            } catch (e) {
-                console.log('Erro ao recuperar dados completos:', e);
             }
         }
     }
@@ -156,12 +159,6 @@ function salvarDadosAutenticacao(email, dadosUsuario = {}) {
         sessionStorage.setItem('email', email);
         sessionStorage.setItem('dadosUsuario', JSON.stringify(dadosParaSalvar));
         
-        // Salvar dados individuais para compatibilidade
-        if (dadosUsuario.nome) localStorage.setItem('nomeUsuario', dadosUsuario.nome);
-        if (dadosUsuario.telefone) localStorage.setItem('telefoneUsuario', dadosUsuario.telefone);
-        if (dadosUsuario.endereco) localStorage.setItem('enderecoUsuario', dadosUsuario.endereco);
-        if (dadosUsuario.data_nascimento) localStorage.setItem('dataNascimentoUsuario', dadosUsuario.data_nascimento);
-        
         // Atualizar variáveis globais
         emailUsuario = email;
         dadosUsuarioLogado = dadosParaSalvar;
@@ -189,39 +186,49 @@ async function carregarDadosUsuario() {
         // Mostrar loading
         mostrarLoading(true);
         
-        const response = await fetch('/api/usuario/perfil', {
-            method: 'POST',
+        // Fazer requisição para buscar dados do usuário
+        // Usar a rota GET que existe no backend
+        const response = await fetch(`/api/usuario/perfil/${encodeURIComponent(emailUsuario)}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: emailUsuario })
+            }
         });
 
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
 
         if (response.ok) {
             const dados = await response.json();
             console.log('Dados recebidos do servidor:', dados);
             
-            // Garantir que o email está nos dados
-            dados.email = emailUsuario;
-            
-            // Salvar dados atualizados
-            salvarDadosAutenticacao(emailUsuario, dados);
-            
-            // Preencher interface
-            preencherDadosUsuario(dados);
-            
-            // Salvar dados originais para cancelamento de edição
-            dadosOriginais = {
-                nome: dados.nome || '',
-                telefone: dados.telefone || '',
-                endereco: dados.endereco || '',
-                data_nascimento: dados.data_nascimento || ''
-            };
-            
-            console.log('Dados carregados com sucesso');
+            // Verificar se recebeu dados válidos
+            if (!dados.success === false) {
+                // Backend retorna dados diretamente quando success não está presente
+                // ou success = true
+                
+                // Garantir que o email está nos dados
+                dados.email = emailUsuario;
+                
+                // Salvar dados atualizados
+                salvarDadosAutenticacao(emailUsuario, dados);
+                
+                // Preencher interface
+                preencherDadosUsuario(dados);
+                
+                // Salvar dados originais para cancelamento de edição
+                dadosOriginais = {
+                    nome: dados.nome || '',
+                    telefone: dados.telefone || '',
+                    endereco: dados.endereco || '',
+                    data_nascimento: dados.data_nascimento || ''
+                };
+                
+                console.log('Dados do usuário carregados com sucesso');
+            } else {
+                // Caso success = false
+                console.error('Erro retornado pelo servidor:', dados.message);
+                alert(dados.message || 'Erro ao carregar dados do usuário');
+            }
             
         } else {
             // Tentar ler resposta de erro
@@ -247,7 +254,6 @@ async function carregarDadosUsuario() {
                 mostrarErroAutenticacao();
             } else {
                 alert('Erro ao carregar dados do usuário. Tente novamente.');
-                // Não redirecionar para permitir retry
             }
         }
     } catch (error) {
@@ -262,6 +268,75 @@ async function carregarDadosUsuario() {
     } finally {
         mostrarLoading(false);
     }
+}
+
+// Carregar dicas do administrador
+async function carregarDicas() {
+    try {
+        console.log('Carregando dicas...');
+        
+        // Usar a rota que existe no backend
+        const response = await fetch('/api/usuario/dicas', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        console.log('Response dicas status:', response.status);
+        
+        if (response.ok) {
+            const dicas = await response.json();
+            console.log('Dicas recebidas:', dicas);
+            exibirDicas(dicas);
+        } else {
+            console.error('Erro ao carregar dicas:', response.status);
+            const container = document.getElementById('dicas-container');
+            if (container) {
+                container.innerHTML = '<p>Dicas não disponíveis no momento.</p>';
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dicas:', error);
+        const container = document.getElementById('dicas-container');
+        if (container) {
+            container.innerHTML = '<p>Erro ao carregar dicas.</p>';
+        }
+    }
+}
+
+// Exibir dicas na interface
+function exibirDicas(dicas) {
+    const container = document.getElementById('dicas-container');
+    
+    if (!container) {
+        console.log('Container de dicas não encontrado');
+        return;
+    }
+    
+    if (!dicas || dicas.length === 0) {
+        container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
+        return;
+    }
+    
+    let html = '';
+    dicas.forEach(dica => {
+        const dataPublicacao = new Date(dica.data_publicacao).toLocaleDateString('pt-BR');
+        const autor = dica.autor || 'Administrador';
+        html += `
+            <div class="dica-card">
+                <h3>${dica.titulo}</h3>
+                <p>${dica.descricao}</p>
+                <div class="dica-info">
+                    <span class="autor">Por: ${autor}</span>
+                    <span class="data-publicacao">Em: ${dataPublicacao}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    console.log('Dicas exibidas com sucesso');
 }
 
 // Mostrar/esconder loading
@@ -314,6 +389,9 @@ function preencherDadosUsuario(dados) {
         const element = document.getElementById(campo);
         if (element) {
             element.value = campos[campo];
+            console.log(`Campo ${campo} preenchido com:`, campos[campo]);
+        } else {
+            console.log(`Elemento ${campo} não encontrado no DOM`);
         }
     });
     
@@ -334,6 +412,58 @@ function preencherDadosUsuario(dados) {
     if (dados.foto_perfil) {
         atualizarPreviewFoto(dados.foto_perfil);
     }
+    
+    console.log('Interface preenchida com sucesso');
+}
+
+// Configurar event listeners
+function configurarEventListeners() {
+    console.log('Configurando event listeners...');
+    
+    // Botão de logout
+    const logoutBtn = document.getElementById('logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+        console.log('Event listener do logout configurado');
+    }
+    
+    // Botão de editar perfil
+    const btnEditar = document.getElementById('btn-editar');
+    if (btnEditar) {
+        btnEditar.addEventListener('click', toggleEdicao);
+        console.log('Event listener de editar configurado');
+    }
+    
+    // Botão de cancelar edição
+    const btnCancelar = document.getElementById('btn-cancelar');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', cancelarEdicao);
+        console.log('Event listener de cancelar configurado');
+    }
+    
+    // Botão de agendar consulta
+    const agendarBtn = document.getElementById('agendar');
+    if (agendarBtn) {
+        agendarBtn.addEventListener('click', agendarConsulta);
+        console.log('Event listener de agendar configurado');
+    }
+    
+    // Input de foto
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) {
+        inputFoto.addEventListener('change', handleFileChange);
+        console.log('Event listener de foto configurado');
+    }
+    
+    // Event listener para fechar modal clicando fora
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('modal-crop');
+        if (event.target === modal) {
+            fecharModalCrop();
+        }
+    });
+    
+    console.log('Event listeners configurados com sucesso');
 }
 
 // Verificar autenticação periodicamente
@@ -399,98 +529,10 @@ function debugStorage() {
     console.log('===================');
 }
 
-// Carregar dicas do administrador
-async function carregarDicas() {
-    try {
-        const response = await fetch('/api/usuario/dicas');
-        
-        if (response.ok) {
-            const dicas = await response.json();
-            exibirDicas(dicas);
-        } else {
-            console.error('Erro ao carregar dicas:', response.status);
-            const loadingElement = document.getElementById('loading-dicas');
-            if (loadingElement) {
-                loadingElement.textContent = 'Erro ao carregar dicas';
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao carregar dicas:', error);
-        const loadingElement = document.getElementById('loading-dicas');
-        if (loadingElement) {
-            loadingElement.textContent = 'Erro ao carregar dicas';
-        }
-    }
-}
+// ================================
+// FUNÇÕES DE FOTO DE PERFIL
+// ================================
 
-// Exibir dicas na interface
-function exibirDicas(dicas) {
-    const container = document.getElementById('dicas-container');
-    
-    if (!container) return;
-    
-    if (dicas.length === 0) {
-        container.innerHTML = '<p>Nenhuma dica disponível no momento.</p>';
-        return;
-    }
-    
-    let html = '';
-    dicas.forEach(dica => {
-        const dataPublicacao = new Date(dica.data_publicacao).toLocaleDateString('pt-BR');
-        html += `
-            <div class="dica-card">
-                <h3>${dica.titulo}</h3>
-                <p>${dica.descricao}</p>
-                <span class="data-publicacao">Publicado em: ${dataPublicacao}</span>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-// Configurar event listeners
-function configurarEventListeners() {
-    // Botão de logout
-    const logoutBtn = document.getElementById('logout');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
-    }
-    
-    // Botão de editar perfil
-    const btnEditar = document.getElementById('btn-editar');
-    if (btnEditar) {
-        btnEditar.addEventListener('click', toggleEdicao);
-    }
-    
-    // Botão de cancelar edição
-    const btnCancelar = document.getElementById('btn-cancelar');
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', cancelarEdicao);
-    }
-    
-    // Botão de agendar consulta
-    const agendarBtn = document.getElementById('agendar');
-    if (agendarBtn) {
-        agendarBtn.addEventListener('click', agendarConsulta);
-    }
-    
-    // Input de foto
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.addEventListener('change', handleFileChange);
-    }
-    
-    // Event listener para fechar modal clicando fora
-    document.addEventListener('click', function(event) {
-        const modal = document.getElementById('modal-crop');
-        if (event.target === modal) {
-            fecharModalCrop();
-        }
-    });
-}
-
-// Resto das funções (foto, edição, etc.) mantidas igual...
 function alterarFoto() {
     const inputFoto = document.getElementById('input-foto');
     if (inputFoto) {
@@ -532,15 +574,26 @@ function abrirModalCrop() {
     
     if (modal) {
         modal.style.display = 'block';
-        cropLoading.style.display = 'block';
-        cropImage.style.display = 'none';
+        
+        if (cropLoading) {
+            cropLoading.style.display = 'block';
+        }
+        
+        if (cropImage) {
+            cropImage.style.display = 'none';
+        }
         
         setTimeout(() => {
-            cropImage.src = imagemOriginal;
-            cropImage.style.display = 'block';
-            cropLoading.style.display = 'none';
+            if (cropImage) {
+                cropImage.src = imagemOriginal;
+                cropImage.style.display = 'block';
+            }
             
-            if (typeof Cropper !== 'undefined') {
+            if (cropLoading) {
+                cropLoading.style.display = 'none';
+            }
+            
+            if (typeof Cropper !== 'undefined' && cropImage) {
                 if (cropper) {
                     cropper.destroy();
                 }
@@ -675,6 +728,10 @@ function atualizarPreviewFoto(imagemSrc) {
     }
 }
 
+// ================================
+// FUNÇÕES DE EDIÇÃO DE PERFIL
+// ================================
+
 function toggleEdicao() {
     editandoPerfil = !editandoPerfil;
     
@@ -794,14 +851,13 @@ function agendarConsulta() {
     
     console.log('Agendando consulta...');
     
-    if (typeof Calendly !== 'undefined') {
-        Calendly.initPopupWidget({
-            url: 'https://calendly.com/seu-usuario/consulta'
-        });
-    } else {
-        alert('Sistema de agendamento em desenvolvimento');
-    }
+    // Por enquanto, apenas um alert
+    alert('Sistema de agendamento em desenvolvimento. Em breve você poderá agendar sua consulta online!');
 }
+
+// ================================
+// FUNÇÕES AUXILIARES
+// ================================
 
 function carregarCropperJS() {
     if (typeof Cropper === 'undefined') {
@@ -816,7 +872,31 @@ function carregarCropperJS() {
     }
 }
 
-// Inicializar quando o DOM carregar
+// Função para verificar se a sessão ainda é válida
+function verificarSessaoValida() {
+    const email = localStorage.getItem('emailUsuario') || localStorage.getItem('email');
+    const timestamp = localStorage.getItem('timestampLogin');
+    
+    if (!email || !isValidEmail(email)) {
+        return false;
+    }
+    
+    // Verificar se a sessão não expirou (24 horas)
+    if (timestamp) {
+        const agora = new Date().getTime();
+        const timestampLogin = new Date(timestamp).getTime();
+        const diferencaHoras = (agora - timestampLogin) / (1000 * 60 * 60);
+        
+        if (diferencaHoras > 24) {
+            console.log('Sessão expirada por tempo');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Inicializar verificação periódica quando o DOM carregar
 document.addEventListener('DOMContentLoaded', function() {
     carregarCropperJS();
     iniciarVerificacaoPeriodicaAutenticacao();
@@ -825,9 +905,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // Debug em desenvolvimento
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     window.debugStorage = debugStorage;
-    debugStorage();
+    // Executar debug automaticamente apenas em desenvolvimento
+    setTimeout(() => {
+        debugStorage();
+    }, 1000);
 }
-
 
 // Exportar funções para uso global
 window.toggleEdicao = toggleEdicao;
