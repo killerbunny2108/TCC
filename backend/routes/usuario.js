@@ -5,7 +5,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-
 // Configuração do banco de dados
 const db = mysql.createConnection({
     host: 'localhost',
@@ -14,7 +13,181 @@ const db = mysql.createConnection({
     database: 'cleo_nunes'
 });
 
-// Adicionar no arquivo backend/routes/usuario.js
+// ================================
+// ROTAS DE AUTENTICAÇÃO
+// ================================
+
+// Rota para login
+router.post('/login', (req, res) => {
+    const { email, senha } = req.body;
+    
+    if (!email || !senha) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email e senha são obrigatórios' 
+        });
+    }
+    
+    // Buscar usuário no banco
+    const query = `
+        SELECT u.id_usuario, u.nome, u.email, u.senha,
+               p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
+        FROM usuario u
+        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
+        WHERE u.email = ?
+    `;
+    
+    db.query(query, [email], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        if (results.length === 0) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Credenciais inválidas' 
+            });
+        }
+        
+        const usuario = results[0];
+        
+        // Verificar senha (em produção, use bcrypt)
+        if (usuario.senha !== senha) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Credenciais inválidas' 
+            });
+        }
+        
+        // Verificar se é administrador
+        const isAdmin = email === 'nunescleusa1974@gmail.com';
+        
+        // Remover senha da resposta
+        delete usuario.senha;
+        
+        res.json({
+            success: true,
+            message: 'Login realizado com sucesso',
+            user: {
+                ...usuario,
+                is_admin: isAdmin
+            }
+        });
+    });
+});
+
+// Rota para cadastro
+router.post('/cadastro', (req, res) => {
+    const { nome, email, senha, telefone, endereco, data_nascimento } = req.body;
+    
+    if (!nome || !email || !senha) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Nome, email e senha são obrigatórios' 
+        });
+    }
+    
+    // Verificar se o email já existe
+    const checkEmailQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+    
+    db.query(checkEmailQuery, [email], (err, results) => {
+        if (err) {
+            console.error('Erro ao verificar email:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        if (results.length > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Este email já está cadastrado' 
+            });
+        }
+        
+        // Iniciar transação
+        db.beginTransaction((err) => {
+            if (err) {
+                console.error('Erro ao iniciar transação:', err);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Erro interno do servidor' 
+                });
+            }
+            
+            // Inserir usuário
+            const insertUserQuery = `
+                INSERT INTO usuario (nome, email, senha) 
+                VALUES (?, ?, ?)
+            `;
+            
+            db.query(insertUserQuery, [nome, email, senha], (err, result) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.error('Erro ao inserir usuário:', err);
+                        res.status(500).json({ 
+                            success: false, 
+                            message: 'Erro ao criar usuário' 
+                        });
+                    });
+                }
+                
+                const id_usuario = result.insertId;
+                
+                // Inserir paciente
+                const insertPacienteQuery = `
+                    INSERT INTO paciente (id_usuario, nome, telefone, endereco, data_nascimento)
+                    VALUES (?, ?, ?, ?, ?)
+                `;
+                
+                db.query(insertPacienteQuery, [id_usuario, nome, telefone, endereco, data_nascimento], (err, result) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error('Erro ao inserir paciente:', err);
+                            res.status(500).json({ 
+                                success: false, 
+                                message: 'Erro ao criar perfil do paciente' 
+                            });
+                        });
+                    }
+                    
+                    // Commit da transação
+                    db.commit((err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                console.error('Erro ao fazer commit:', err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    message: 'Erro ao salvar cadastro' 
+                                });
+                            });
+                        }
+                        
+                        res.status(201).json({
+                            success: true,
+                            message: 'Cadastro realizado com sucesso',
+                            user: {
+                                id_usuario: id_usuario,
+                                nome: nome,
+                                email: email,
+                                is_admin: false
+                            }
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// ================================
+// ROTAS EXISTENTES (mantidas)
+// ================================
 
 // Configuração do multer para upload de imagens
 const storage = multer.diskStorage({
@@ -176,7 +349,6 @@ router.post('/upload-foto', upload.single('foto'), (req, res) => {
 
 // Rota para servir arquivos de imagem
 router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
 
 // Rota para buscar perfil do usuário
 router.post('/perfil', (req, res) => {
