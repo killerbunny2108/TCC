@@ -154,7 +154,6 @@ header nav ul li a {
     background-position: center;
     background-repeat: no-repeat;
     /*impede repetição*/
-    filter: brightness(80%);
 }
 
 .div_toda {
