@@ -911,6 +911,7 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     }, 1000);
 }
 
+
 // Exportar funções para uso global
 window.toggleEdicao = toggleEdicao;
 window.cancelarEdicao = cancelarEdicao;
