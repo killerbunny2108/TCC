@@ -263,7 +263,7 @@ async function carregarDadosUsuario() {
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             alert('Erro de conexão. Verifique sua internet e tente novamente.');
         } else {
-            alert('Erro inesperado ao carregar dados. Tente novamente.');
+            console.log('Erro inesperado ao carregar dados. Tente novamente.');
         }
     } finally {
         mostrarLoading(false);
@@ -293,7 +293,7 @@ async function carregarDicas() {
             console.error('Erro ao carregar dicas:', response.status);
             const container = document.getElementById('dicas-container');
             if (container) {
-                container.innerHTML = '<p>Dicas não disponíveis no momento.</p>';
+                container.innerHTML = '<p>Ande descalço na grama</p>';
             }
         }
     } catch (error) {

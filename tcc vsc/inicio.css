@@ -12,6 +12,14 @@
     font-weight: normal;
     font-style: normal;
 }
+html {
+    scroll-behavior: smooth;
+}
+
+/* Ajuste para compensar o header fixo */
+section {
+    scroll-margin-top: 80px;
+}
 
 /* Reset básico e altura cheia */
 * {
@@ -193,6 +201,10 @@ header nav ul li a {
 .div-texto p {
     font-size: 1rem;
     line-height: 1.6;
+}
+
+.hero, .sobre, .terapias {
+    transition: all 0.5s ease-in-out;
 }
 
 /* Container principal das terapias */
@@ -719,4 +731,19 @@ footer {
     height: 0.06em;
     background: rgba(255, 255, 255, 0.3);
     margin: 1em;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sobre, .terapias {
+    animation: fadeInUp 0.8s ease-out;
 }
