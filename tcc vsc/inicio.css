@@ -53,6 +53,8 @@ body {
     --button-hover: #512DA8;
     /* Roxo ainda mais escuro */
     --terceira-cor:#743fd1;
+    /*cor da imagem do inicio*/
+    --cor-atras-da-imagem:#FAF2FF;
 }
 
 
@@ -93,7 +95,6 @@ header nav ul li a {
     position: relative;
     height: 100vh;
     z-index: 1;
-    padding: 0 100px;
     margin: 2;
     background-color: var(--background-color);
     /* Cor roxa para a seção hero */
@@ -321,7 +322,7 @@ button:hover {
     justify-content: center;
     align-items: center;
     background-color: var(--background-color);
-    padding: 2rem 2rem;
+    padding-bottom: 2rem;
     max-width: 100em;
     margin: 0;
 }
