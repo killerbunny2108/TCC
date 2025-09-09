@@ -10,7 +10,7 @@
         git clone [URL_DO_REPOSITORIO]
         cd "tcc vsc"
 
-# Ou extraia os arquivos para uma pasta chamada "tcc vsc"
+#Ou extraia os arquivos para uma pasta chamada "tcc vsc"
     1.2. Instale as dependências do Node.js
         bashnpm init -y
         npm install express mysql2 cors body-parser bcrypt multer path fs
