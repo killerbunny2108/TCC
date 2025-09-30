@@ -17,34 +17,46 @@
 2. Configuração do Banco de Dados
     2.1. Acesse o MySQL
         bashmysql -u root -p
-    2.2. Crie o banco de dados
-        sqlCREATE DATABASE cleo_nunes;
-        USE cleo_nunes;
-    2.3. Crie as tabelas necessárias sql
+    2.2. Crie o banco de dados e as tabelas necessárias
+CREATE DATABASE cleo_nunes;
+USE cleo_nunes;
 
-CREATE TABLE Usuario (
-    id_usuario SERIAL PRIMARY KEY,
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100),
-    email VARCHAR(100) ,
+    email VARCHAR(100),
     senha VARCHAR(100)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE Paciente (
-    id_paciente SERIAL PRIMARY KEY,
+CREATE TABLE administrador (
+    id_administrador INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT,
     nome VARCHAR(255),
-    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
-);
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE Administrador (
-    id_administrador SERIAL PRIMARY KEY,
-    is_usuario INT,
+CREATE TABLE paciente (
+    id_paciente INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT,
     nome VARCHAR(255),
-    FOREIGN KEY (is_usuario) REFERENCES Usuario(id_usuario)
-);
+    telefone VARCHAR(20),
+    endereco TEXT,
+    data_nascimento DATE,
+    foto_perfil VARCHAR(255),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE FichaPaciente (
-    id SERIAL PRIMARY KEY,
+CREATE TABLE ficha (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_administrador INT,
+    titulo VARCHAR(255),
+    descricao TEXT,
+    data_publicacao TIMESTAMP,
+    FOREIGN KEY (id_administrador) REFERENCES administrador(id_administrador)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE fichapaciente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     id_administrador INT,
     id_paciente INT,
     tipo_atendimento TEXT,
@@ -56,29 +68,20 @@ CREATE TABLE FichaPaciente (
     estado_civil TEXT,
     filhos INT,
     profissao TEXT,
-    fumante BOOLEAN,
-    consome_alcool BOOLEAN,
+    fumante TINYINT(1),
+    consome_alcool TINYINT(1),
     acompanhamento_medico TEXT,
     doencas TEXT,
     medicacoes TEXT,
     cirurgias TEXT,
     observacoes TEXT,
     data_criacao TIMESTAMP,
-    FOREIGN KEY (id_administrador) REFERENCES Administrador(id_administrador),
-    FOREIGN KEY (id_paciente) REFERENCES Paciente(id_paciente)
-);
+    FOREIGN KEY (id_administrador) REFERENCES administrador(id_administrador),
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE Dica (
-    id SERIAL PRIMARY KEY,
-    id_administrador INT,
-    titulo VARCHAR(255),
-    descricao TEXT,
-    data_publicacao TIMESTAMP,
-    FOREIGN KEY (id_administrador) REFERENCES Administrador(id_administrador)
-);
-
-    2.4. Insira o usuário administrador
-        sqlINSERT INTO usuario (nome, email, senha) 
+    2.3. Insira o usuário administrador
+        INSERT INTO usuario (nome, email, senha) 
         VALUES ('Cléo Nunes', 'nunescleusa1974@gmail.com', '1234');
 
 3. Configuração do Servidor Backend
