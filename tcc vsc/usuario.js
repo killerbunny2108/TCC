@@ -10,6 +10,9 @@ let dadosUsuarioLogado = null;
 // Configuração da API
 const API_BASE_URL = 'http://localhost:3000'; // AJUSTE PARA SEU SERVIDOR
 
+// URL do Calendly (substitua pela sua URL)
+const CALENDLY_URL = 'https://calendly.com/julianunesteixeira4/reflexoterapia'; // COLOQUE SUA URL AQUI
+
 // Aguardar o DOM estar completamente carregado
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado, inicializando página...');
@@ -743,13 +746,25 @@ async function uploadFotoPerfil(imagemDataURL) {
     }
 }
 
+// ================================
+// FUNÇÃO DE AGENDAMENTO - USA O WIDGET POPUP DO CALENDLY
+// ================================
+
 function agendarConsulta() {
-    if (!emailUsuario) {
-        mostrarErroAutenticacao();
-        return;
-    }
+    console.log('Abrindo widget Calendly...');
     
-    alert('Sistema de agendamento em desenvolvimento. Em breve você poderá agendar sua consulta online!');
+    // Verificar se o script do Calendly foi carregado
+    if (typeof Calendly !== 'undefined') {
+        // Abre o widget popup do Calendly
+        Calendly.initPopupWidget({
+            url: CALENDLY_URL
+        });
+        return false; // Previne comportamento padrão
+    } else {
+        console.warn('Script do Calendly não carregado, abrindo em nova aba');
+        // Fallback: abre em nova aba se o script não carregou
+        window.open(CALENDLY_URL, '_blank');
+    }
 }
 
 // ================================
