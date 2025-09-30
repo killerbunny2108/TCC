@@ -18,8 +18,8 @@
     2.1. Acesse o MySQL
         bashmysql -u root -p
     2.2. Crie o banco de dados
-        sqlCREATE DATABASE sistema_terapeutico;
-        USE sistema_terapeutico;
+        sqlCREATE DATABASE cleo_nunes;
+        USE cleo_nunes;
     2.3. Crie as tabelas necessárias sql
 
 CREATE TABLE Usuario (
@@ -28,6 +28,7 @@ CREATE TABLE Usuario (
     email VARCHAR(100) ,
     senha VARCHAR(100)
 );
+
 CREATE TABLE Paciente (
     id_paciente SERIAL PRIMARY KEY,
     id_usuario INT,
@@ -78,7 +79,7 @@ CREATE TABLE Dica (
 
     2.4. Insira o usuário administrador
         sqlINSERT INTO usuario (nome, email, senha) 
-        VALUES ('Cléo Nunes', 'nunescleusa1974@gmail.com', 'admin123');
+        VALUES ('Cléo Nunes', 'nunescleusa1974@gmail.com', '1234');
 
 3. Configuração do Servidor Backend
 3.1. Crie o arquivo server.js na raiz do projeto com o seguinte conteúdo:server.jsCódigo const express = require('express');
