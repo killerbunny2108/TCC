@@ -92,9 +92,9 @@ header nav ul li {
     margin: 0 20px;
 }
 
-header nav ul li a {
+header nav ul li a {                                                
     text-decoration: none;
-    color: var(--button-hover);
+    color: white;
     font-size: 18px;
 }
 
@@ -122,10 +122,11 @@ header nav ul li a {
     left: 20em;
     transform: translate(-50%, -50%);
     max-width: 90%;
+    animation: slideInLeft 1s ease-out;
 }
 
 /* Aplicando fonte Tan Pearl para o título da página inicial */
-.hero-content h1 {
+.hero-content h1  {
     font-family: "Tan Pearl", Arial, sans-serif;
     font-size: 2.5em;
     /* Tamanho da fonte ajustado */
@@ -151,20 +152,6 @@ header nav ul li a {
     margin-bottom: 1rem;
 }
 
-.imagem-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: auto;
-    background-image: url(imagens/);
-    background-size: cover;
-    /*faz a imagem preencher tudo*/
-    background-position: center;
-    background-repeat: no-repeat;
-    /*impede repetição*/
-}
-
 .div_toda {
     padding: 10px;
     display: flex;
@@ -174,18 +161,10 @@ header nav ul li a {
     align-items: stretch;
 }
 
-.photo img {
-    width: 100%;
-    height: 320px;
-    object-fit: cover;
-    /*preenche o espaço sem distorcer*/
-    border-radius: 12px;
-}
-
 .div-texto {
     flex: 2 1 400px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    background: linear-gradient(135deg, #ede4f3, #f8f4fc);
     border-radius: 15px;
     border: 1px solid #d1bae9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -223,7 +202,7 @@ header nav ul li a {
     height: 100vh;
     z-index: 1;
     padding: 0 45px;
-    background-color: var(--button-hover);
+    background-color: var(--background-color);
     /* Cor roxa para a seção hero */
     color: white;
     display: flex;
@@ -258,6 +237,7 @@ header nav ul li a {
     padding: 2em;
     margin-top: 6em;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInLeft 0.8s ease-out;
 }
 
 .terapias-list h3 {
@@ -346,39 +326,6 @@ button:hover {
     padding: 0 20px;
 }
 
-.titulo_sobre {
-    font-size: 2rem;
-    background: linear-gradient(135deg, #ede4f3, #f8f4fc);
-    border-radius: 15px;
-    padding: 2rem 2rem;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    color: #4a2b63;
-    border: 2px solid #cfaee4;
-    box-shadow: 0 6px 20px rgba(174, 137, 250, 0.15);
-    margin-bottom: 2rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.titulo_sobre:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(174, 137, 250, 0.25);
-}
-
-.icon {
-    font-size: 1.8rem;
-    background: var(--primary-color);
-    color: white;
-    padding: 8px;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .foto {
     background-image: url(imagens/fotoCleo1.jpg);
     width: 350px;
@@ -388,7 +335,7 @@ button:hover {
     background-size: cover;
     background-position: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
     flex-shrink: 0;
     flex: 1 1 250px;
 }
@@ -406,7 +353,7 @@ button:hover {
     border-radius: 20px;
     border: 2px solid #d1bae9;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
 }
 
 .texto:hover {
@@ -458,9 +405,13 @@ button:hover {
     overflow: hidden;
     backdrop-filter: blur(10px);
     height: 38em;
+    transition: transform 0.3s ease;
 }
 
-/* Slides do Carousel */
+.carousel-container:hover {
+    transform: translateY(-5px);
+}
+
 .carousel-slide {
     display: none;
     width: 100%;
@@ -472,11 +423,12 @@ button:hover {
     justify-content: center;
     align-items: center;
     background: #cfaee4;
-    /* COR DA DIV QUE TEM ATRÁS DO CARROSSEL*/
+    transition: opacity 0.5s ease-in-out;
 }
 
 .carousel-slide.active {
     display: flex;
+    opacity: 1;
 }
 
 .carousel-slide img {
@@ -554,6 +506,13 @@ button:hover {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.terapia-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateX(10px);
 }
 
 .terapia-icon {
@@ -650,7 +609,6 @@ button:hover {
     margin-bottom: 0;
     text-align: center;
     /*MUDAR AQUI*/
-    background: linear-gradient(var(--button-hover),var(--primary-color));
     width: auto;
     height: auto;
 }
@@ -690,7 +648,14 @@ button:hover {
     border-radius: 20px;
     padding: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.depoimento-card.animated {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .depoimento-card:hover {
@@ -714,7 +679,7 @@ button:hover {
 
 /* Footer simples */
 footer {
-    background: var(--terceira-cor); /*trocar dps por conta do body*/
+    background: var(--secondary-color); /*trocar dps por conta do body*/
     color: white;
     padding: 1em;
     text-align: center;
@@ -731,6 +696,50 @@ footer {
     height: 0.06em;
     background: rgba(255, 255, 255, 0.3);
     margin: 1em;
+}
+
+/* Animações suaves de entrada */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Classes para animações ao scroll */
+.animate-on-scroll {
+    opacity: 0;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.animate-on-scroll.animated {
+    opacity: 1;
 }
 
 @keyframes fadeInUp {

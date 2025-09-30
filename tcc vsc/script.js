@@ -246,3 +246,77 @@ if (slides.length > 0 && prevBtn && nextBtn) {
     // Mostrar o primeiro slide ao carregar
     showSlide(slideIndex);
 }
+
+// Animações ao scroll
+function animateOnScroll() {
+    const elements = document.querySelectorAll('.animate-on-scroll');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    elements.forEach(element => {
+        observer.observe(element);
+    });
+}
+
+// Animar cards de depoimentos ao scroll
+function animateDepoimentos() {
+    const cards = document.querySelectorAll('.depoimento-card');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('animated');
+                }, index * 150); // Delay escalonado
+            }
+        });
+    }, {
+        threshold: 0.2
+    });
+
+    cards.forEach(card => {
+        observer.observe(card);
+    });
+}
+
+// Smooth scroll para links de navegação
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Inicializar animações quando o DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+    animateOnScroll();
+    animateDepoimentos();
+    
+    // Adicionar classe aos elementos que devem animar
+    const elementsToAnimate = [
+        
+        '.texto',
+        '.terapias-main'
+    ];
+    
+    elementsToAnimate.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => el.classList.add('animate-on-scroll'));
+    });
+});
+
