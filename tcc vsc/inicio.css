@@ -182,10 +182,6 @@ header nav ul li a {
     line-height: 1.6;
 }
 
-.hero, .sobre, .terapias {
-    transition: all 0.5s ease-in-out;
-}
-
 /* Container principal das terapias */
 .terapias-main {
     display: grid;
@@ -413,7 +409,6 @@ button:hover {
 }
 
 .carousel-slide {
-    display: none;
     width: 100%;
     height: 100%;
     padding-top: 30px;
@@ -490,14 +485,6 @@ button:hover {
     right: 1em;
 }
 
-/* Indicadores do Carousel */
-.carousel-indicators {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-}
-
 .terapia-item {
     display: flex;
     align-items: center;
@@ -564,37 +551,6 @@ button:hover {
     line-height: 1.6;
     max-width: 1350px;
     margin: 0 auto 10px;
-}
-
-.slide-benefits {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.benefit-tag {
-    background: linear-gradient(45deg, var(--primary-color), var(--button-hover));
-    color: white;
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.slide-cta {
-    background: linear-gradient(45deg, var(--primary-color), var(--button-hover));
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 25px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
 .slide-cta:hover {
@@ -698,39 +654,6 @@ footer {
     margin: 1em;
 }
 
-/* Animações suaves de entrada */
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
 
 /* Classes para animações ao scroll */
 .animate-on-scroll {
@@ -751,8 +674,4 @@ footer {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.sobre, .terapias {
-    animation: fadeInUp 0.8s ease-out;
 }

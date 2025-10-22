@@ -319,4 +319,3 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.forEach(el => el.classList.add('animate-on-scroll'));
     });
 });
-
