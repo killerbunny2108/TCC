@@ -8,27 +8,26 @@ let emailUsuario = null;
 let dadosUsuarioLogado = null;
 
 // Configuração da API
-const API_BASE_URL = 'http://localhost:3000'; // AJUSTE PARA SEU SERVIDOR
+const API_BASE_URL = 'http://localhost:3000';
 
-// URL do Calendly (substitua pela sua URL)
-const CALENDLY_URL = 'https://calendly.com/julianunesteixeira4/reflexoterapia'; // COLOQUE SUA URL AQUI
+// URL do Calendly
+const CALENDLY_URL = 'https://calendly.com/julianunesteixeira4/reflexoterapia';
 
 // Aguardar o DOM estar completamente carregado
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado, inicializando página...');
     inicializarPagina();
+    carregarCropperJS();
 });
 
 // Inicializar a página
 function inicializarPagina() {
     console.log('Inicializando página...');
     
-    // Primeiro verificar se o usuário está logado
     if (!verificarAutenticacao()) {
         return;
     }
     
-    // Carregar dados em paralelo
     Promise.all([
         carregarDadosUsuario(),
         carregarDicas()
@@ -37,7 +36,7 @@ function inicializarPagina() {
         configurarEventListeners();
     }).catch(error => {
         console.error('Erro ao carregar dados:', error);
-        configurarEventListeners(); // Configurar listeners mesmo se houver erro
+        configurarEventListeners();
     });
 }
 
@@ -45,7 +44,6 @@ function inicializarPagina() {
 function verificarAutenticacao() {
     console.log('=== VERIFICAÇÃO DE AUTENTICAÇÃO ===');
     
-    // Tentar recuperar email de várias fontes
     const possiveisEmails = [
         localStorage.getItem('emailUsuario'),
         localStorage.getItem('email'),
@@ -53,7 +51,6 @@ function verificarAutenticacao() {
         sessionStorage.getItem('email')
     ];
     
-    // Tentar recuperar dados JSON
     const possiveisDadosJson = [
         localStorage.getItem('usuarioLogado'),
         sessionStorage.getItem('usuarioLogado'),
@@ -63,7 +60,6 @@ function verificarAutenticacao() {
     
     console.log('Possíveis emails encontrados:', possiveisEmails);
     
-    // Procurar primeiro email válido
     for (let email of possiveisEmails) {
         if (email && email.trim() !== '' && email !== 'null' && email !== 'undefined') {
             emailUsuario = email.trim();
@@ -72,7 +68,6 @@ function verificarAutenticacao() {
         }
     }
     
-    // Se não encontrou email direto, tentar extrair dos dados JSON
     if (!emailUsuario) {
         for (let dadosJson of possiveisDadosJson) {
             if (dadosJson && dadosJson.trim() !== '' && dadosJson !== 'null') {
@@ -93,14 +88,12 @@ function verificarAutenticacao() {
     
     console.log('Email final encontrado:', emailUsuario);
     
-    // Verificar se é um email válido
     if (!emailUsuario || !isValidEmail(emailUsuario)) {
         console.error('Email inválido ou não encontrado');
         mostrarErroAutenticacao();
         return false;
     }
     
-    // Garantir que o email está salvo corretamente
     salvarDadosAutenticacao(emailUsuario, dadosUsuarioLogado || {});
     
     console.log('Autenticação válida para:', emailUsuario);
@@ -116,17 +109,10 @@ function isValidEmail(email) {
 // Mostrar erro de autenticação
 function mostrarErroAutenticacao() {
     console.log('Erro de autenticação detectado');
-    
-    // Limpar dados inválidos
     limparDadosAutenticacao();
-    
-    // Mostrar mensagem e redirecionar
-    alert('Sessão expirada ou inválida. Faça login novamente.');
-    
-    // Aguardar um pouco antes de redirecionar
     setTimeout(() => {
         window.location.href = 'inicio.html';
-    }, 1000);
+    }, 100);
 }
 
 // Salvar dados de autenticação
@@ -134,13 +120,11 @@ function salvarDadosAutenticacao(email, dadosUsuario = {}) {
     try {
         console.log('Salvando dados de autenticação:', email);
         
-        // Validar email antes de salvar
         if (!email || !isValidEmail(email)) {
             console.error('Tentativa de salvar email inválido:', email);
             return false;
         }
         
-        // Salvar email em múltiplos formatos para compatibilidade
         const dadosParaSalvar = {
             email: email,
             nome: dadosUsuario.nome || '',
@@ -152,17 +136,14 @@ function salvarDadosAutenticacao(email, dadosUsuario = {}) {
             timestampLogin: new Date().toISOString()
         };
         
-        // Salvar em localStorage
         localStorage.setItem('emailUsuario', email);
         localStorage.setItem('email', email);
         localStorage.setItem('dadosUsuario', JSON.stringify(dadosParaSalvar));
         localStorage.setItem('usuarioLogado', JSON.stringify(dadosParaSalvar));
         
-        // Salvar em sessionStorage como backup
         sessionStorage.setItem('emailUsuario', email);
         sessionStorage.setItem('email', email);
         
-        // Atualizar variáveis globais
         emailUsuario = email;
         dadosUsuarioLogado = dadosParaSalvar;
         
@@ -175,7 +156,36 @@ function salvarDadosAutenticacao(email, dadosUsuario = {}) {
     }
 }
 
-// Carregar dados do usuário - VERSÃO CORRIGIDA
+// Função auxiliar para formatar data do MySQL para input date
+function formatarDataParaInput(dataMySQL) {
+    if (!dataMySQL) return '';
+    
+    try {
+        // Se já estiver no formato YYYY-MM-DD, retornar direto
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dataMySQL)) {
+            return dataMySQL;
+        }
+        
+        // Se for um timestamp ou string de data completa
+        const data = new Date(dataMySQL);
+        if (isNaN(data.getTime())) {
+            console.warn('Data inválida:', dataMySQL);
+            return '';
+        }
+        
+        // Converter para formato YYYY-MM-DD
+        const ano = data.getFullYear();
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const dia = String(data.getDate()).padStart(2, '0');
+        
+        return `${ano}-${mes}-${dia}`;
+    } catch (error) {
+        console.error('Erro ao formatar data:', error);
+        return '';
+    }
+}
+
+// Carregar dados do usuário
 async function carregarDadosUsuario() {
     try {
         console.log('=== CARREGANDO DADOS DO USUÁRIO ===');
@@ -187,7 +197,6 @@ async function carregarDadosUsuario() {
             return;
         }
         
-        // Construir URL corretamente
         const url = `${API_BASE_URL}/api/usuario/perfil/${encodeURIComponent(emailUsuario)}`;
         console.log('URL da requisição:', url);
         
@@ -207,29 +216,25 @@ async function carregarDadosUsuario() {
         const dados = await response.json();
         console.log('Dados recebidos do servidor:', dados);
         
-        // Verificar se a resposta foi bem-sucedida
-        // O backend retorna { success: true, ...dados } ou apenas os dados diretamente
         if (dados.success === false) {
             console.error('Erro retornado pelo servidor:', dados.message);
-            alert(dados.message || 'Erro ao carregar dados do usuário');
             return;
         }
         
-        // Extrair os dados (podem estar em dados.user ou diretamente em dados)
         const dadosUsuario = dados.user || dados;
-        
-        // Garantir que o email está nos dados
         dadosUsuario.email = emailUsuario;
+        
+        // Formatar data de nascimento
+        if (dadosUsuario.data_nascimento) {
+            dadosUsuario.data_nascimento = formatarDataParaInput(dadosUsuario.data_nascimento);
+            console.log('Data formatada:', dadosUsuario.data_nascimento);
+        }
         
         console.log('Dados processados:', dadosUsuario);
         
-        // Salvar dados atualizados
         salvarDadosAutenticacao(emailUsuario, dadosUsuario);
-        
-        // Preencher interface
         preencherDadosUsuario(dadosUsuario);
         
-        // Salvar dados originais para cancelamento de edição
         dadosOriginais = {
             nome: dadosUsuario.nome || '',
             telefone: dadosUsuario.telefone || '',
@@ -237,27 +242,25 @@ async function carregarDadosUsuario() {
             data_nascimento: dadosUsuario.data_nascimento || ''
         };
         
+        console.log('Dados originais salvos:', dadosOriginais);
         console.log('Dados do usuário carregados e preenchidos com sucesso');
         
     } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);
         
-        // Verificar tipo de erro
         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            alert('Erro de conexão com o servidor. Verifique se o backend está rodando em ' + API_BASE_URL);
+            console.error('Erro de conexão com o servidor');
         } else if (error.message.includes('404')) {
-            alert('Usuário não encontrado no sistema.');
+            console.error('Usuário não encontrado');
             mostrarErroAutenticacao();
         } else if (error.message.includes('401')) {
-            alert('Sessão expirada. Faça login novamente.');
+            console.error('Sessão expirada');
             mostrarErroAutenticacao();
-        } else {
-            alert('Erro ao carregar dados do usuário: ' + error.message);
         }
     }
 }
 
-// Carregar dicas do administrador - VERSÃO CORRIGIDA
+// Carregar dicas do administrador
 async function carregarDicas() {
     try {
         console.log('=== CARREGANDO DICAS ===');
@@ -301,7 +304,6 @@ function exibirDicas(dicas) {
         return;
     }
     
-    // Remover loading
     const loadingElement = document.getElementById('loading-dicas');
     if (loadingElement) {
         loadingElement.remove();
@@ -314,7 +316,6 @@ function exibirDicas(dicas) {
     
     let html = '';
     dicas.forEach(dica => {
-        // Formatar data
         let dataPublicacao = 'Data não disponível';
         if (dica.data_publicacao) {
             try {
@@ -371,7 +372,6 @@ function preencherDadosUsuario(dados) {
     console.log('=== PREENCHENDO INTERFACE ===');
     console.log('Dados recebidos:', dados);
     
-    // Preencher campos do formulário
     const campos = {
         'nome': dados.nome || '',
         'telefone': dados.telefone || '',
@@ -389,7 +389,6 @@ function preencherDadosUsuario(dados) {
         }
     });
     
-    // Atualizar mensagem de boas-vindas
     const nomeUsuario = dados.nome || 'Cliente';
     const welcomeMessage = document.getElementById('welcome-message');
     if (welcomeMessage) {
@@ -399,7 +398,6 @@ function preencherDadosUsuario(dados) {
         console.warn('✗ Elemento welcome-message não encontrado');
     }
     
-    // Carregar foto de perfil
     if (dados.foto_perfil) {
         const fotoUrl = dados.foto_perfil.startsWith('http') 
             ? dados.foto_perfil 
@@ -440,18 +438,6 @@ function configurarEventListeners() {
         });
     }
     
-    // Botão de editar perfil
-    const btnEditar = document.getElementById('btn-editar');
-    if (btnEditar) {
-        btnEditar.addEventListener('click', toggleEdicao);
-    }
-    
-    // Botão de cancelar edição
-    const btnCancelar = document.getElementById('btn-cancelar');
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', cancelarEdicao);
-    }
-    
     // Botão de agendar consulta
     const agendarBtn = document.getElementById('agendar');
     if (agendarBtn) {
@@ -475,13 +461,11 @@ function configurarEventListeners() {
     console.log('Event listeners configurados');
 }
 
-// Função para logout
+// Função para logout - SEM CONFIRMAÇÃO
 function logout() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        console.log('Fazendo logout...');
-        limparDadosAutenticacao();
-        window.location.href = 'inicio.html';
-    }
+    console.log('Fazendo logout...');
+    limparDadosAutenticacao();
+    window.location.href = 'inicio.html';
 }
 
 // ================================
@@ -489,13 +473,16 @@ function logout() {
 // ================================
 
 function toggleEdicao() {
-    editandoPerfil = !editandoPerfil;
+    console.log('toggleEdicao chamada. Estado atual:', editandoPerfil);
     
     const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
     const btnEditar = document.getElementById('btn-editar');
     const btnCancelar = document.getElementById('btn-cancelar');
     
-    if (editandoPerfil) {
+    if (!editandoPerfil) {
+        // MODO EDIÇÃO
+        editandoPerfil = true;
+        
         campos.forEach(campo => {
             const element = document.getElementById(campo);
             if (element) {
@@ -506,12 +493,16 @@ function toggleEdicao() {
         
         if (btnEditar) btnEditar.textContent = 'Salvar Alterações';
         if (btnCancelar) btnCancelar.style.display = 'inline-block';
+        
+        console.log('Modo edição ativado');
     } else {
+        // SALVAR ALTERAÇÕES
         salvarAlteracoes();
     }
 }
 
 function cancelarEdicao() {
+    console.log('Cancelando edição');
     editandoPerfil = false;
     
     const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
@@ -533,6 +524,8 @@ function cancelarEdicao() {
 
 async function salvarAlteracoes() {
     try {
+        console.log('Salvando alterações...');
+        
         if (!emailUsuario) {
             mostrarErroAutenticacao();
             return;
@@ -546,7 +539,7 @@ async function salvarAlteracoes() {
             data_nascimento: document.getElementById('data_nascimento')?.value || ''
         };
         
-        console.log('Salvando alterações:', dadosAtualizados);
+        console.log('Dados para atualizar:', dadosAtualizados);
         
         const response = await fetch(`${API_BASE_URL}/api/usuario/atualizar`, {
             method: 'PUT',
@@ -556,6 +549,8 @@ async function salvarAlteracoes() {
             body: JSON.stringify(dadosAtualizados)
         });
         
+        console.log('Status da resposta:', response.status);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -564,6 +559,7 @@ async function salvarAlteracoes() {
         console.log('Resultado da atualização:', resultado);
         
         if (resultado.success) {
+            // Atualizar dados originais
             dadosOriginais = {
                 nome: dadosAtualizados.nome,
                 telefone: dadosAtualizados.telefone,
@@ -571,7 +567,11 @@ async function salvarAlteracoes() {
                 data_nascimento: dadosAtualizados.data_nascimento
             };
             
+            // Salvar no localStorage
             salvarDadosAutenticacao(emailUsuario, dadosAtualizados);
+            
+            // Desabilitar edição
+            editandoPerfil = false;
             
             const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
             campos.forEach(campo => {
@@ -588,23 +588,25 @@ async function salvarAlteracoes() {
             if (btnEditar) btnEditar.textContent = 'Editar Perfil';
             if (btnCancelar) btnCancelar.style.display = 'none';
             
+            // Atualizar mensagem de boas-vindas
             const nomeUsuario = dadosAtualizados.nome || 'Cliente';
             const welcomeMessage = document.getElementById('welcome-message');
             if (welcomeMessage) {
                 welcomeMessage.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
             }
             
-            alert('Perfil atualizado com sucesso!');
+            console.log('Perfil atualizado com sucesso');
+            // SEM ALERT - Atualização silenciosa
         } else {
             throw new Error(resultado.message || 'Erro ao atualizar perfil');
         }
         
     } catch (error) {
         console.error('Erro ao salvar alterações:', error);
-        alert('Erro ao atualizar perfil: ' + error.message);
+        // Apenas mostrar erro se realmente houver um problema
+        console.error('Erro ao atualizar perfil:', error.message);
+        editandoPerfil = false;
     }
-    
-    editandoPerfil = false;
 }
 
 // ================================
@@ -623,12 +625,12 @@ function handleFileChange(event) {
     if (file) {
         const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
         if (!tiposPermitidos.includes(file.type)) {
-            alert('Apenas arquivos de imagem são permitidos (JPEG, PNG, GIF)');
+            console.error('Tipo de arquivo não permitido');
             return;
         }
         
         if (file.size > 5 * 1024 * 1024) {
-            alert('O arquivo deve ter no máximo 5MB');
+            console.error('Arquivo muito grande');
             return;
         }
         
@@ -712,7 +714,6 @@ async function salvarFotoCropada() {
         
     } catch (error) {
         console.error('Erro ao salvar foto:', error);
-        alert('Erro ao salvar foto de perfil. Tente novamente.');
     }
 }
 
@@ -735,34 +736,31 @@ async function uploadFotoPerfil(imagemDataURL) {
             console.log('Upload realizado:', resultado);
             atualizarPreviewFoto(imagemDataURL);
             fecharModalCrop();
-            alert('Foto de perfil atualizada com sucesso!');
+            console.log('Foto de perfil atualizada');
+            // SEM ALERT - Atualização silenciosa
         } else {
             throw new Error('Erro no upload da foto');
         }
         
     } catch (error) {
         console.error('Erro no upload da foto:', error);
-        alert('Erro ao fazer upload da foto. Tente novamente.');
     }
 }
 
 // ================================
-// FUNÇÃO DE AGENDAMENTO - USA O WIDGET POPUP DO CALENDLY
+// FUNÇÃO DE AGENDAMENTO
 // ================================
 
 function agendarConsulta() {
     console.log('Abrindo widget Calendly...');
     
-    // Verificar se o script do Calendly foi carregado
     if (typeof Calendly !== 'undefined') {
-        // Abre o widget popup do Calendly
         Calendly.initPopupWidget({
             url: CALENDLY_URL
         });
-        return false; // Previne comportamento padrão
+        return false;
     } else {
         console.warn('Script do Calendly não carregado, abrindo em nova aba');
-        // Fallback: abre em nova aba se o script não carregou
         window.open(CALENDLY_URL, '_blank');
     }
 }
@@ -792,15 +790,11 @@ function debugStorage() {
     console.log('localStorage.dadosUsuario:', localStorage.getItem('dadosUsuario'));
     console.log('emailUsuario (global):', emailUsuario);
     console.log('dadosUsuarioLogado (global):', dadosUsuarioLogado);
+    console.log('dadosOriginais:', dadosOriginais);
     console.log('===================');
 }
 
-// Inicializar
-document.addEventListener('DOMContentLoaded', function() {
-    carregarCropperJS();
-});
-
-// Exportar funções
+// Exportar funções para uso no HTML
 window.toggleEdicao = toggleEdicao;
 window.cancelarEdicao = cancelarEdicao;
 window.alterarFoto = alterarFoto;
