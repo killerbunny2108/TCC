@@ -1,779 +1,705 @@
-// Variáveis globais
-let editandoPerfil = false;
-let dadosOriginais = {};
-let imagemSelecionada = null;
-let cropper;
-let imagemOriginal;
-let emailUsuario = null;
-let dadosUsuarioLogado = null;
+const express = require('express');
+const router = express.Router();
+const mysql = require('mysql2');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const connection = require('../db');
 
-// Configuração da API
-const API_BASE_URL = 'http://localhost:3000';
-
-// URL do Calendly
-const CALENDLY_URL = 'https://calendly.com/julianunesteixeira4/reflexoterapia';
-
-// Aguardar o DOM estar completamente carregado
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM carregado, inicializando página...');
-    inicializarPagina();
-    carregarCropperJS();
+// Middleware para logging de requisições
+router.use((req, res, next) => {
+    console.log(`${req.method} ${req.path} - Body:`, req.body);
+    next();
 });
 
-// Inicializar a página
-function inicializarPagina() {
-    console.log('Inicializando página...');
+// Middleware para CORS
+router.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     
-    if (!verificarAutenticacao()) {
-        return;
-    }
-    
-    Promise.all([
-        carregarDadosUsuario(),
-        carregarDicas()
-    ]).then(() => {
-        console.log('Dados carregados com sucesso');
-        configurarEventListeners();
-    }).catch(error => {
-        console.error('Erro ao carregar dados:', error);
-        configurarEventListeners();
-    });
-}
-
-// Verificar se o usuário está autenticado
-function verificarAutenticacao() {
-    console.log('=== VERIFICAÇÃO DE AUTENTICAÇÃO ===');
-    
-    const possiveisEmails = [
-        localStorage.getItem('emailUsuario'),
-        localStorage.getItem('email'),
-        sessionStorage.getItem('emailUsuario'),
-        sessionStorage.getItem('email')
-    ];
-    
-    const possiveisDadosJson = [
-        localStorage.getItem('usuarioLogado'),
-        sessionStorage.getItem('usuarioLogado'),
-        localStorage.getItem('dadosUsuario'),
-        sessionStorage.getItem('dadosUsuario')
-    ];
-    
-    console.log('Possíveis emails encontrados:', possiveisEmails);
-    
-    for (let email of possiveisEmails) {
-        if (email && email.trim() !== '' && email !== 'null' && email !== 'undefined') {
-            emailUsuario = email.trim();
-            console.log('Email encontrado diretamente:', emailUsuario);
-            break;
-        }
-    }
-    
-    if (!emailUsuario) {
-        for (let dadosJson of possiveisDadosJson) {
-            if (dadosJson && dadosJson.trim() !== '' && dadosJson !== 'null') {
-                try {
-                    const dados = JSON.parse(dadosJson);
-                    if (dados.email && dados.email.trim() !== '') {
-                        emailUsuario = dados.email.trim();
-                        dadosUsuarioLogado = dados;
-                        console.log('Email encontrado no JSON:', emailUsuario);
-                        break;
-                    }
-                } catch (e) {
-                    console.log('Erro ao parse JSON:', e);
-                }
-            }
-        }
-    }
-    
-    console.log('Email final encontrado:', emailUsuario);
-    
-    if (!emailUsuario || !isValidEmail(emailUsuario)) {
-        console.error('Email inválido ou não encontrado');
-        mostrarErroAutenticacao();
-        return false;
-    }
-    
-    salvarDadosAutenticacao(emailUsuario, dadosUsuarioLogado || {});
-    
-    console.log('Autenticação válida para:', emailUsuario);
-    return true;
-}
-
-// Validar formato de email
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// Mostrar erro de autenticação
-function mostrarErroAutenticacao() {
-    console.log('Erro de autenticação detectado');
-    limparDadosAutenticacao();
-    alert('Sessão expirada ou inválida. Faça login novamente.');
-    setTimeout(() => {
-        window.location.href = 'inicio.html';
-    }, 1000);
-}
-
-// Salvar dados de autenticação
-function salvarDadosAutenticacao(email, dadosUsuario = {}) {
-    try {
-        console.log('Salvando dados de autenticação:', email);
-        
-        if (!email || !isValidEmail(email)) {
-            console.error('Tentativa de salvar email inválido:', email);
-            return false;
-        }
-        
-        const dadosParaSalvar = {
-            email: email,
-            nome: dadosUsuario.nome || '',
-            telefone: dadosUsuario.telefone || '',
-            endereco: dadosUsuario.endereco || '',
-            data_nascimento: dadosUsuario.data_nascimento || '',
-            foto_perfil: dadosUsuario.foto_perfil || '',
-            id_usuario: dadosUsuario.id_usuario || '',
-            timestampLogin: new Date().toISOString()
-        };
-        
-        localStorage.setItem('emailUsuario', email);
-        localStorage.setItem('email', email);
-        localStorage.setItem('dadosUsuario', JSON.stringify(dadosParaSalvar));
-        localStorage.setItem('usuarioLogado', JSON.stringify(dadosParaSalvar));
-        
-        sessionStorage.setItem('emailUsuario', email);
-        sessionStorage.setItem('email', email);
-        
-        emailUsuario = email;
-        dadosUsuarioLogado = dadosParaSalvar;
-        
-        console.log('Dados salvos com sucesso');
-        return true;
-        
-    } catch (error) {
-        console.error('Erro ao salvar dados de autenticação:', error);
-        return false;
-    }
-}
-
-// Carregar dados do usuário
-async function carregarDadosUsuario() {
-    try {
-        console.log('=== CARREGANDO DADOS DO USUÁRIO ===');
-        console.log('Email do usuário:', emailUsuario);
-        
-        if (!emailUsuario) {
-            console.error('Email não disponível para carregar dados');
-            mostrarErroAutenticacao();
-            return;
-        }
-        
-        const url = `${API_BASE_URL}/api/usuario/perfil/${encodeURIComponent(emailUsuario)}`;
-        console.log('URL da requisição:', url);
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        console.log('Status da resposta:', response.status);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const dados = await response.json();
-        console.log('Dados recebidos do servidor:', dados);
-        
-        if (dados.success === false) {
-            console.error('Erro retornado pelo servidor:', dados.message);
-            alert(dados.message || 'Erro ao carregar dados do usuário');
-            return;
-        }
-        
-        const dadosUsuario = dados.user || dados;
-        dadosUsuario.email = emailUsuario;
-        
-        console.log('Dados processados:', dadosUsuario);
-        
-        salvarDadosAutenticacao(emailUsuario, dadosUsuario);
-        preencherDadosUsuario(dadosUsuario);
-        
-        dadosOriginais = {
-            nome: dadosUsuario.nome || '',
-            telefone: dadosUsuario.telefone || '',
-            endereco: dadosUsuario.endereco || '',
-            data_nascimento: dadosUsuario.data_nascimento || ''
-        };
-        
-        console.log('Dados do usuário carregados e preenchidos com sucesso');
-        
-    } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
-        
-        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            alert('Erro de conexão com o servidor. Verifique se o backend está rodando em ' + API_BASE_URL);
-        } else if (error.message.includes('404')) {
-            alert('Usuário não encontrado no sistema.');
-            mostrarErroAutenticacao();
-        } else if (error.message.includes('401')) {
-            alert('Sessão expirada. Faça login novamente.');
-            mostrarErroAutenticacao();
-        } else {
-            alert('Erro ao carregar dados do usuário: ' + error.message);
-        }
-    }
-}
-
-// Carregar dicas do administrador
-async function carregarDicas() {
-    try {
-        console.log('=== CARREGANDO DICAS ===');
-        
-        const url = `${API_BASE_URL}/api/usuario/dicas`;
-        console.log('URL da requisição:', url);
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        console.log('Status da resposta dicas:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const dicas = await response.json();
-        console.log('Dicas recebidas:', dicas);
-        
-        exibirDicas(dicas);
-        
-    } catch (error) {
-        console.error('Erro ao carregar dicas:', error);
-        const container = document.getElementById('dicas-container');
-        if (container) {
-            container.innerHTML = '<p class="erro-dicas">Erro ao carregar dicas. Tente recarregar a página.</p>';
-        }
-    }
-}
-
-// Exibir dicas na interface
-function exibirDicas(dicas) {
-    const container = document.getElementById('dicas-container');
-    
-    if (!container) {
-        console.log('Container de dicas não encontrado');
-        return;
-    }
-    
-    const loadingElement = document.getElementById('loading-dicas');
-    if (loadingElement) {
-        loadingElement.remove();
-    }
-    
-    if (!dicas || dicas.length === 0) {
-        container.innerHTML = '<p class="sem-dicas">Nenhuma dica disponível no momento.</p>';
-        return;
-    }
-    
-    let html = '';
-    dicas.forEach(dica => {
-        let dataPublicacao = 'Data não disponível';
-        if (dica.data_publicacao) {
-            try {
-                dataPublicacao = new Date(dica.data_publicacao).toLocaleDateString('pt-BR');
-            } catch (e) {
-                console.error('Erro ao formatar data:', e);
-            }
-        }
-        
-        const autor = dica.autor || 'Administrador';
-        const titulo = dica.titulo || 'Sem título';
-        const descricao = dica.descricao || '';
-        
-        html += `
-            <div class="dica-card">
-                <h3>${titulo}</h3>
-                <p>${descricao}</p>
-                <div class="dica-info">
-                    <span class="autor">Por: ${autor}</span>
-                    <span class="data-publicacao">${dataPublicacao}</span>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-    console.log(`${dicas.length} dicas exibidas com sucesso`);
-}
-
-// Limpar dados de autenticação
-function limparDadosAutenticacao() {
-    console.log('Limpando dados de autenticação...');
-    
-    const chaves = [
-        'emailUsuario', 'email', 'dadosUsuario', 'usuarioLogado',
-        'nomeUsuario', 'telefoneUsuario', 'enderecoUsuario', 'dataNascimentoUsuario'
-    ];
-    
-    chaves.forEach(chave => {
-        localStorage.removeItem(chave);
-    });
-    
-    sessionStorage.clear();
-    
-    emailUsuario = null;
-    dadosUsuarioLogado = null;
-    dadosOriginais = {};
-    
-    console.log('Dados de autenticação limpos');
-}
-
-// Preencher dados do usuário na interface
-function preencherDadosUsuario(dados) {
-    console.log('=== PREENCHENDO INTERFACE ===');
-    console.log('Dados recebidos:', dados);
-    
-    const campos = {
-        'nome': dados.nome || '',
-        'telefone': dados.telefone || '',
-        'endereco': dados.endereco || '',
-        'data_nascimento': dados.data_nascimento || ''
-    };
-    
-    Object.keys(campos).forEach(campo => {
-        const element = document.getElementById(campo);
-        if (element) {
-            element.value = campos[campo];
-            console.log(`✓ Campo ${campo} preenchido:`, campos[campo]);
-        } else {
-            console.warn(`✗ Elemento ${campo} não encontrado no DOM`);
-        }
-    });
-    
-    const nomeUsuario = dados.nome || 'Cliente';
-    const welcomeMessage = document.getElementById('welcome-message');
-    if (welcomeMessage) {
-        welcomeMessage.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
-        console.log('✓ Mensagem de boas-vindas atualizada');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
     } else {
-        console.warn('✗ Elemento welcome-message não encontrado');
+        next();
     }
-    
-    if (dados.foto_perfil) {
-        const fotoUrl = dados.foto_perfil.startsWith('http') 
-            ? dados.foto_perfil 
-            : `${API_BASE_URL}${dados.foto_perfil}`;
-        atualizarPreviewFoto(fotoUrl);
-        console.log('✓ Foto de perfil carregada:', fotoUrl);
-    } else {
-        console.log('Sem foto de perfil definida');
-    }
-    
-    console.log('=== INTERFACE PREENCHIDA COM SUCESSO ===');
-}
-
-// Atualizar preview da foto
-function atualizarPreviewFoto(imagemSrc) {
-    const fotoPreview = document.getElementById('foto-preview');
-    const headerFoto = document.getElementById('header-foto');
-    
-    if (fotoPreview) {
-        fotoPreview.innerHTML = `<img src="${imagemSrc}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-    }
-    
-    if (headerFoto) {
-        headerFoto.src = imagemSrc;
-    }
-}
-
-// Configurar event listeners - CORRIGIDO
-function configurarEventListeners() {
-    console.log('Configurando event listeners...');
-    
-    // Botão de logout
-    const logoutLink = document.querySelector('.logout-link');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
-    }
-    
-    // REMOVIDO: event listener duplicado para btn-editar
-    // O botão já tem onclick no HTML, não precisa de addEventListener
-    
-    // REMOVIDO: event listener duplicado para btn-cancelar
-    // O botão já tem onclick no HTML
-    
-    // Botão de agendar consulta
-    const agendarBtn = document.getElementById('agendar');
-    if (agendarBtn) {
-        agendarBtn.addEventListener('click', agendarConsulta);
-    }
-    
-    // Input de foto
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.addEventListener('change', handleFileChange);
-    }
-    
-    // Fechar modal clicando fora
-    document.addEventListener('click', function(event) {
-        const modal = document.getElementById('modal-crop');
-        if (event.target === modal) {
-            fecharModalCrop();
-        }
-    });
-    
-    console.log('Event listeners configurados');
-}
-
-// Função para logout
-function logout() {
-    console.log('Fazendo logout...');
-    limparDadosAutenticacao();
-    window.location.href = 'inicio.html';
-}
+});
 
 // ================================
-// FUNÇÕES DE EDIÇÃO DE PERFIL - CORRIGIDAS
+// ROTAS DE AUTENTICAÇÃO
 // ================================
 
-function toggleEdicao() {
-    console.log('toggleEdicao chamada. Estado atual:', editandoPerfil);
+// Rota de login
+router.post('/login', (req, res) => {
+    const { email, senha } = req.body;
     
-    const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
-    const btnEditar = document.getElementById('btn-editar');
-    const btnCancelar = document.getElementById('btn-cancelar');
-    
-    if (!editandoPerfil) {
-        // MODO EDIÇÃO
-        editandoPerfil = true;
-        
-        campos.forEach(campo => {
-            const element = document.getElementById(campo);
-            if (element) {
-                element.readOnly = false;
-                element.classList.add('editando');
-            }
+    if (!email || !senha) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email e senha são obrigatórios' 
         });
-        
-        if (btnEditar) btnEditar.textContent = 'Salvar Alterações';
-        if (btnCancelar) btnCancelar.style.display = 'inline-block';
-        
-        console.log('Modo edição ativado');
-    } else {
-        // SALVAR ALTERAÇÕES
-        salvarAlteracoes();
     }
-}
-
-function cancelarEdicao() {
-    console.log('Cancelando edição');
-    editandoPerfil = false;
     
-    const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
-    const btnEditar = document.getElementById('btn-editar');
-    const btnCancelar = document.getElementById('btn-cancelar');
+    // Buscar usuário no banco
+    const query = `
+        SELECT u.id_usuario, u.nome, u.email, u.senha,
+               p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
+        FROM usuario u
+        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
+        WHERE u.email = ?
+    `;
     
-    campos.forEach(campo => {
-        const element = document.getElementById(campo);
-        if (element) {
-            element.value = dadosOriginais[campo] || '';
-            element.readOnly = true;
-            element.classList.remove('editando');
-        }
-    });
-    
-    if (btnEditar) btnEditar.textContent = 'Editar Perfil';
-    if (btnCancelar) btnCancelar.style.display = 'none';
-}
-
-async function salvarAlteracoes() {
-    try {
-        console.log('Salvando alterações...');
-        
-        if (!emailUsuario) {
-            mostrarErroAutenticacao();
-            return;
-        }
-        
-        const dadosAtualizados = {
-            email: emailUsuario,
-            nome: document.getElementById('nome')?.value || '',
-            telefone: document.getElementById('telefone')?.value || '',
-            endereco: document.getElementById('endereco')?.value || '',
-            data_nascimento: document.getElementById('data_nascimento')?.value || ''
-        };
-        
-        console.log('Dados para atualizar:', dadosAtualizados);
-        
-        const response = await fetch(`${API_BASE_URL}/api/usuario/atualizar`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dadosAtualizados)
-        });
-        
-        console.log('Status da resposta:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const resultado = await response.json();
-        console.log('Resultado da atualização:', resultado);
-        
-        if (resultado.success) {
-            // Atualizar dados originais
-            dadosOriginais = {
-                nome: dadosAtualizados.nome,
-                telefone: dadosAtualizados.telefone,
-                endereco: dadosAtualizados.endereco,
-                data_nascimento: dadosAtualizados.data_nascimento
-            };
-            
-            // Salvar no localStorage
-            salvarDadosAutenticacao(emailUsuario, dadosAtualizados);
-            
-            // Desabilitar edição
-            editandoPerfil = false;
-            
-            const campos = ['nome', 'telefone', 'endereco', 'data_nascimento'];
-            campos.forEach(campo => {
-                const element = document.getElementById(campo);
-                if (element) {
-                    element.readOnly = true;
-                    element.classList.remove('editando');
-                }
+    connection.query(query, [email], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
             });
-            
-            const btnEditar = document.getElementById('btn-editar');
-            const btnCancelar = document.getElementById('btn-cancelar');
-            
-            if (btnEditar) btnEditar.textContent = 'Editar Perfil';
-            if (btnCancelar) btnCancelar.style.display = 'none';
-            
-            // Atualizar mensagem de boas-vindas
-            const nomeUsuario = dadosAtualizados.nome || 'Cliente';
-            const welcomeMessage = document.getElementById('welcome-message');
-            if (welcomeMessage) {
-                welcomeMessage.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
+        }
+        
+        if (results.length === 0) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Credenciais inválidas' 
+            });
+        }
+        
+        const usuario = results[0];
+        
+        // Verificar senha (em produção, use bcrypt)
+        if (usuario.senha !== senha) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Credenciais inválidas' 
+            });
+        }
+        
+        // Verificar se é administrador
+        const isAdmin = email === 'nunescleusa1974@gmail.com';
+        
+        // Remover senha da resposta
+        delete usuario.senha;
+        
+        res.json({
+            success: true,
+            message: 'Login realizado com sucesso',
+            user: {
+                ...usuario,
+                is_admin: isAdmin
             }
-            
-            alert('Perfil atualizado com sucesso!');
-            console.log('Perfil atualizado com sucesso');
-        } else {
-            throw new Error(resultado.message || 'Erro ao atualizar perfil');
-        }
-        
-    } catch (error) {
-        console.error('Erro ao salvar alterações:', error);
-        alert('Erro ao atualizar perfil: ' + error.message);
-        editandoPerfil = false;
-    }
-}
+        });
+    });
+});
 
-// ================================
-// FUNÇÕES DE FOTO DE PERFIL
-// ================================
-
-function alterarFoto() {
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.click();
-    }
-}
-
-function handleFileChange(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        if (!tiposPermitidos.includes(file.type)) {
-            alert('Apenas arquivos de imagem são permitidos (JPEG, PNG, GIF)');
-            return;
-        }
-        
-        if (file.size > 5 * 1024 * 1024) {
-            alert('O arquivo deve ter no máximo 5MB');
-            return;
-        }
-        
-        mostrarPreviewImagem(file);
-    }
-}
-
-function mostrarPreviewImagem(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        imagemOriginal = e.target.result;
-        abrirModalCrop();
-    };
-    reader.readAsDataURL(file);
-}
-
-function abrirModalCrop() {
-    const modal = document.getElementById('modal-crop');
-    const cropImage = document.getElementById('crop-image');
+// Rota de cadastro
+router.post('/cadastro', (req, res) => {
+    const { nome, email, senha, telefone, endereco, data_nascimento } = req.body;
     
-    if (modal) {
-        modal.style.display = 'block';
+    if (!nome || !email || !senha) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Nome, email e senha são obrigatórios' 
+        });
+    }
+    
+    // Verificar se o email já existe
+    const checkEmailQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+    
+    connection.query(checkEmailQuery, [email], (err, results) => {
+        if (err) {
+            console.error('Erro ao verificar email:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
         
-        setTimeout(() => {
-            if (cropImage) {
-                cropImage.src = imagemOriginal;
-                cropImage.style.display = 'block';
-            }
-            
-            if (typeof Cropper !== 'undefined' && cropImage) {
-                if (cropper) {
-                    cropper.destroy();
-                }
-                cropper = new Cropper(cropImage, {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    autoCropArea: 0.8
+        if (results.length > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Este email já está cadastrado' 
+            });
+        }
+        
+        // Iniciar transação
+        connection.beginTransaction((err) => {
+            if (err) {
+                console.error('Erro ao iniciar transação:', err);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Erro interno do servidor' 
                 });
             }
-        }, 100);
-    }
-}
-
-function fecharModalCrop() {
-    const modal = document.getElementById('modal-crop');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
-    }
-    
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.value = '';
-    }
-}
-
-async function salvarFotoCropada() {
-    try {
-        if (!emailUsuario) {
-            mostrarErroAutenticacao();
-            return;
-        }
-        
-        let imagemFinal;
-        
-        if (cropper) {
-            const canvas = cropper.getCroppedCanvas({
-                width: 200,
-                height: 200
+            
+            // Inserir usuário
+            const insertUserQuery = `
+                INSERT INTO usuario (nome, email, senha) 
+                VALUES (?, ?, ?)
+            `;
+            
+            connection.query(insertUserQuery, [nome, email, senha], (err, result) => {
+                if (err) {
+                    return connection.rollback(() => {
+                        console.error('Erro ao inserir usuário:', err);
+                        res.status(500).json({ 
+                            success: false, 
+                            message: 'Erro ao criar usuário' 
+                        });
+                    });
+                }
+                
+                const id_usuario = result.insertId;
+                
+                // Inserir paciente
+                const insertPacienteQuery = `
+                    INSERT INTO paciente (id_usuario, nome, telefone, endereco, data_nascimento)
+                    VALUES (?, ?, ?, ?, ?)
+                `;
+                
+                connection.query(insertPacienteQuery, [id_usuario, nome, telefone, endereco, data_nascimento], (err, result) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            console.error('Erro ao inserir paciente:', err);
+                            res.status(500).json({ 
+                                success: false, 
+                                message: 'Erro ao criar perfil do paciente' 
+                            });
+                        });
+                    }
+                    
+                    // Commit da transação
+                    connection.commit((err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                console.error('Erro ao fazer commit:', err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    message: 'Erro ao salvar cadastro' 
+                                });
+                            });
+                        }
+                        
+                        res.status(201).json({
+                            success: true,
+                            message: 'Cadastro realizado com sucesso',
+                            user: {
+                                id_usuario: id_usuario,
+                                nome: nome,
+                                email: email,
+                                is_admin: false
+                            }
+                        });
+                    });
+                });
             });
-            imagemFinal = canvas.toDataURL('image/jpeg', 0.8);
-        } else {
-            imagemFinal = imagemOriginal;
-        }
-        
-        await uploadFotoPerfil(imagemFinal);
-        
-    } catch (error) {
-        console.error('Erro ao salvar foto:', error);
-        alert('Erro ao salvar foto de perfil. Tente novamente.');
-    }
-}
-
-async function uploadFotoPerfil(imagemDataURL) {
-    try {
-        const response = await fetch(imagemDataURL);
-        const blob = await response.blob();
-        
-        const formData = new FormData();
-        formData.append('foto', blob, 'foto_perfil.jpg');
-        formData.append('email', emailUsuario);
-        
-        const uploadResponse = await fetch(`${API_BASE_URL}/api/usuario/upload-foto`, {
-            method: 'POST',
-            body: formData
         });
+    });
+});
+
+// ================================
+// CONFIGURAÇÃO DE UPLOAD DE FOTOS
+// ================================
+
+// Configuração do multer para upload de imagens
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '../uploads/fotos_perfil');
         
-        if (uploadResponse.ok) {
-            const resultado = await uploadResponse.json();
-            console.log('Upload realizado:', resultado);
-            atualizarPreviewFoto(imagemDataURL);
-            fecharModalCrop();
-            alert('Foto de perfil atualizada com sucesso!');
-        } else {
-            throw new Error('Erro no upload da foto');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
         }
         
-    } catch (error) {
-        console.error('Erro no upload da foto:', error);
-        alert('Erro ao fazer upload da foto. Tente novamente.');
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const extension = path.extname(file.originalname);
+        cb(null, `foto_perfil_${uniqueSuffix}${extension}`);
     }
-}
+});
 
-// ================================
-// FUNÇÃO DE AGENDAMENTO
-// ================================
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+    },
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas arquivos de imagem são permitidos'));
+        }
+    }
+});
 
-function agendarConsulta() {
-    console.log('Abrindo widget Calendly...');
+// Rota para servir arquivos de imagem
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Rota para servir imagem placeholder
+router.get('/images/user-placeholder.jpg', (req, res) => {
+    const placeholderPath = path.join(__dirname, '../public/images/user-placeholder.jpg');
     
-    if (typeof Calendly !== 'undefined') {
-        Calendly.initPopupWidget({
-            url: CALENDLY_URL
-        });
-        return false;
-    } else {
-        console.warn('Script do Calendly não carregado, abrindo em nova aba');
-        window.open(CALENDLY_URL, '_blank');
-    }
-}
-
-// ================================
-// FUNÇÕES AUXILIARES
-// ================================
-
-function carregarCropperJS() {
-    if (typeof Cropper === 'undefined') {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css';
-        document.head.appendChild(link);
+    if (!fs.existsSync(placeholderPath)) {
+        const dir = path.dirname(placeholderPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
         
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js';
-        document.head.appendChild(script);
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.send(`
+            <svg width="150" height="150" xmlns="http://www.w3.org/2000/svg">
+                <rect width="150" height="150" fill="#f0f0f0"/>
+                <circle cx="75" cy="60" r="25" fill="#ccc"/>
+                <path d="M30 120 Q30 100 75 100 Q120 100 120 120 L120 150 L30 150 Z" fill="#ccc"/>
+                <text x="75" y="140" text-anchor="middle" fill="#666" font-size="12">Usuário</text>
+            </svg>
+        `);
+    } else {
+        res.sendFile(placeholderPath);
     }
+});
+
+// ================================
+// ROTAS DE PERFIL DO USUÁRIO
+// ================================
+
+// Função auxiliar para buscar perfil
+function buscarPerfilUsuario(email, res) {
+    console.log('Buscando perfil para email:', email);
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório' 
+        });
+    }
+    
+    const query = `
+        SELECT u.id_usuario, u.nome, u.email,
+               p.telefone, p.endereco, p.data_nascimento, p.foto_perfil
+        FROM usuario u
+        LEFT JOIN paciente p ON u.id_usuario = p.id_usuario
+        WHERE u.email = ?
+    `;
+    
+    connection.query(query, [email], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Usuário não encontrado' 
+            });
+        }
+        
+        const usuario = results[0];
+        
+        console.log('Dados do usuário encontrados:', usuario);
+        
+        res.json({
+            success: true,
+            ...usuario
+        });
+    });
 }
 
-// Debug
-function debugStorage() {
-    console.log('=== DEBUG STORAGE ===');
-    console.log('localStorage.emailUsuario:', localStorage.getItem('emailUsuario'));
-    console.log('localStorage.email:', localStorage.getItem('email'));
-    console.log('localStorage.dadosUsuario:', localStorage.getItem('dadosUsuario'));
-    console.log('emailUsuario (global):', emailUsuario);
-    console.log('dadosUsuarioLogado (global):', dadosUsuarioLogado);
-    console.log('===================');
-}
+// Rota GET para buscar perfil do usuário
+router.get('/perfil/:email', (req, res) => {
+    const { email } = req.params;
+    buscarPerfilUsuario(email, res);
+});
 
-// Exportar funções para uso no HTML
-window.toggleEdicao = toggleEdicao;
-window.cancelarEdicao = cancelarEdicao;
-window.alterarFoto = alterarFoto;
-window.salvarFotoCropada = salvarFotoCropada;
-window.fecharModalCrop = fecharModalCrop;
-window.logout = logout;
-window.agendarConsulta = agendarConsulta;
-window.salvarDadosAutenticacao = salvarDadosAutenticacao;
-window.debugStorage = debugStorage;
+// Rota POST para buscar perfil do usuário
+router.post('/perfil', (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório no corpo da requisição' 
+        });
+    }
+    
+    buscarPerfilUsuario(email, res);
+});
+
+// Rota para atualizar perfil do usuário
+router.put('/atualizar', (req, res) => {
+    const { email, nome, telefone, endereco, data_nascimento } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório' 
+        });
+    }
+    
+    connection.beginTransaction((err) => {
+        if (err) {
+            console.error('Erro ao iniciar transação:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        // Atualizar usuário
+        const updateUsuarioQuery = 'UPDATE usuario SET nome = ? WHERE email = ?';
+        
+        connection.query(updateUsuarioQuery, [nome, email], (err, result) => {
+            if (err) {
+                return connection.rollback(() => {
+                    console.error('Erro ao atualizar usuário:', err);
+                    res.status(500).json({ 
+                        success: false, 
+                        message: 'Erro ao atualizar usuário' 
+                    });
+                });
+            }
+            
+            // Buscar ID do usuário
+            const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+            
+            connection.query(getUserIdQuery, [email], (err, userResult) => {
+                if (err || userResult.length === 0) {
+                    return connection.rollback(() => {
+                        console.error('Erro ao buscar ID do usuário:', err);
+                        res.status(500).json({ 
+                            success: false, 
+                            message: 'Erro ao buscar usuário' 
+                        });
+                    });
+                }
+                
+                const id_usuario = userResult[0].id_usuario;
+                
+                // Verificar se paciente existe
+                const checkPacienteQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
+                
+                connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            console.error('Erro ao verificar paciente:', err);
+                            res.status(500).json({ 
+                                success: false, 
+                                message: 'Erro ao verificar paciente' 
+                            });
+                        });
+                    }
+                    
+                    let pacienteQuery;
+                    let pacienteParams;
+                    
+                    if (pacienteResult.length > 0) {
+                        // Atualizar paciente existente
+                        pacienteQuery = `
+                            UPDATE paciente 
+                            SET nome = ?, telefone = ?, endereco = ?, data_nascimento = ?
+                            WHERE id_usuario = ?
+                        `;
+                        pacienteParams = [nome, telefone, endereco, data_nascimento, id_usuario];
+                    } else {
+                        // Inserir novo paciente
+                        pacienteQuery = `
+                            INSERT INTO paciente (id_usuario, nome, telefone, endereco, data_nascimento)
+                            VALUES (?, ?, ?, ?, ?)
+                        `;
+                        pacienteParams = [id_usuario, nome, telefone, endereco, data_nascimento];
+                    }
+                    
+                    connection.query(pacienteQuery, pacienteParams, (err, result) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                console.error('Erro ao atualizar paciente:', err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    message: 'Erro ao atualizar dados do paciente' 
+                                });
+                            });
+                        }
+                        
+                        connection.commit((err) => {
+                            if (err) {
+                                return connection.rollback(() => {
+                                    console.error('Erro ao fazer commit:', err);
+                                    res.status(500).json({ 
+                                        success: false, 
+                                        message: 'Erro ao salvar alterações' 
+                                    });
+                                });
+                            }
+                            
+                            res.json({
+                                success: true,
+                                message: 'Perfil atualizado com sucesso'
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// ================================
+// ROTAS DE UPLOAD DE FOTO
+// ================================
+
+// Rota para upload de foto de perfil
+router.post('/upload-foto', upload.single('foto'), (req, res) => {
+    const { email } = req.body;
+    
+    console.log('Upload foto - Email:', email);
+    console.log('Upload foto - File:', req.file);
+    
+    if (!email) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email é obrigatório' 
+        });
+    }
+    
+    if (!req.file) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Nenhuma imagem foi enviada' 
+        });
+    }
+    
+    const caminhoFoto = `/uploads/fotos_perfil/${req.file.filename}`;
+    
+    connection.beginTransaction((err) => {
+        if (err) {
+            console.error('Erro ao iniciar transação:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+        
+        connection.query(getUserIdQuery, [email], (err, userResult) => {
+            if (err || userResult.length === 0) {
+                return connection.rollback(() => {
+                    console.error('Erro ao buscar usuário:', err);
+                    res.status(404).json({ 
+                        success: false, 
+                        message: 'Usuário não encontrado' 
+                    });
+                });
+            }
+            
+            const id_usuario = userResult[0].id_usuario;
+            
+            const checkPacienteQuery = 'SELECT id_paciente, foto_perfil FROM paciente WHERE id_usuario = ?';
+            
+            connection.query(checkPacienteQuery, [id_usuario], (err, pacienteResult) => {
+                if (err) {
+                    return connection.rollback(() => {
+                        console.error('Erro ao verificar paciente:', err);
+                        res.status(500).json({ 
+                            success: false, 
+                            message: 'Erro ao verificar paciente' 
+                        });
+                    });
+                }
+                
+                let pacienteQuery;
+                let pacienteParams;
+                let fotoAnterior = null;
+                
+                if (pacienteResult.length > 0) {
+                    fotoAnterior = pacienteResult[0].foto_perfil;
+                    pacienteQuery = 'UPDATE paciente SET foto_perfil = ? WHERE id_usuario = ?';
+                    pacienteParams = [caminhoFoto, id_usuario];
+                } else {
+                    pacienteQuery = 'INSERT INTO paciente (id_usuario, foto_perfil) VALUES (?, ?)';
+                    pacienteParams = [id_usuario, caminhoFoto];
+                }
+                
+                connection.query(pacienteQuery, pacienteParams, (err, result) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            console.error('Erro ao salvar foto:', err);
+                            res.status(500).json({ 
+                                success: false, 
+                                message: 'Erro ao salvar foto de perfil' 
+                            });
+                        });
+                    }
+                    
+                    connection.commit((err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                console.error('Erro ao fazer commit:', err);
+                                res.status(500).json({ 
+                                    success: false, 
+                                    message: 'Erro ao salvar alterações' 
+                                });
+                            });
+                        }
+                        
+                        // Remover foto anterior se existir
+                        if (fotoAnterior) {
+                            const caminhoFotoAnterior = path.join(__dirname, '..', fotoAnterior);
+                            if (fs.existsSync(caminhoFotoAnterior)) {
+                                fs.unlink(caminhoFotoAnterior, (err) => {
+                                    if (err) {
+                                        console.error('Erro ao remover foto anterior:', err);
+                                    }
+                                });
+                            }
+                        }
+                        
+                        res.json({
+                            success: true,
+                            message: 'Foto de perfil atualizada com sucesso',
+                            foto_perfil: caminhoFoto
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+// ================================
+// OUTRAS ROTAS
+// ================================
+
+// Rota para buscar dicas
+router.get('/dicas', (req, res) => {
+    const query = `
+        SELECT d.id, d.titulo, d.descricao, d.data_publicacao, a.nome as autor
+        FROM dica d
+        LEFT JOIN administrador a ON d.id_administrador = a.id_administrador
+        ORDER BY d.data_publicacao DESC
+    `;
+    
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar dicas:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro ao buscar dicas' 
+            });
+        }
+        
+        res.json(results);
+    });
+});
+
+// Rota para agendar consulta
+router.post('/agendar', (req, res) => {
+    const { email, tipo_atendimento, data_atendimento, motivo_consulta } = req.body;
+    
+    if (!email || !tipo_atendimento || !data_atendimento) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Campos obrigatórios não preenchidos' 
+        });
+    }
+    
+    const getUserIdQuery = 'SELECT id_usuario FROM usuario WHERE email = ?';
+    
+    connection.query(getUserIdQuery, [email], (err, userResult) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Erro interno do servidor' 
+            });
+        }
+        
+        if (userResult.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Usuário não encontrado' 
+            });
+        }
+        
+        const id_usuario = userResult[0].id_usuario;
+        
+        const getPacienteIdQuery = 'SELECT id_paciente FROM paciente WHERE id_usuario = ?';
+        
+        connection.query(getPacienteIdQuery, [id_usuario], (err, pacienteResult) => {
+            if (err) {
+                console.error('Erro ao buscar paciente:', err);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Erro ao buscar paciente' 
+                });
+            }
+            
+            if (pacienteResult.length === 0) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Paciente não encontrado' 
+                });
+            }
+            
+            const id_paciente = pacienteResult[0].id_paciente;
+            
+            const insertQuery = `
+                INSERT INTO fichapaciente (id_paciente, tipo_atendimento, data_atendimento, motivo_consulta)
+                VALUES (?, ?, ?, ?)
+            `;
+            
+            connection.query(insertQuery, [id_paciente, tipo_atendimento, data_atendimento, motivo_consulta], (err, result) => {
+                if (err) {
+                    console.error('Erro ao agendar consulta:', err);
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: 'Erro ao agendar consulta' 
+                    });
+                }
+                
+                res.json({
+                    success: true,
+                    message: 'Consulta agendada com sucesso',
+                    id_agendamento: result.insertId
+                });
+            });
+        });
+    });
+});
+
+// ================================
+// MIDDLEWARE DE TRATAMENTO DE ERROS
+// ================================
+
+router.use((err, req, res, next) => {
+    console.error('Erro na rota:', err);
+    
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Arquivo muito grande. Tamanho máximo: 5MB' 
+            });
+        }
+    }
+    
+    if (err.message === 'Apenas arquivos de imagem são permitidos') {
+        return res.status(400).json({ 
+            success: false, 
+            message: err.message 
+        });
+    }
+    
+    res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+    });
+});
+
+module.exports = router;
