@@ -1,14 +1,16 @@
 /* ===== FOOTER ===== */
-/* Rodapé melhorado */
 footer {
-  
+  margin-top: auto; /* Empurra o footer para o final */
   padding: 10px 0;
   background-color: white;
   color: var(--text-color);
   text-align: center;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   position: relative;
-  
+  width: 100%;
+  margin-left: -20px; /* Compensa o padding do body */
+  margin-right: -20px;
+  width: calc(100% + 40px); /* Compensa os paddings laterais */
 }
 
 footer .footer-content {
@@ -17,11 +19,12 @@ footer .footer-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 20px;
 }
 
 footer p {
   margin: 5px 0;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 footer .copyright {
@@ -37,13 +40,30 @@ footer .social-links {
 footer .social-links a {
   margin: 0;
   color: var(--primary-color);
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, transform 0.3s ease;
   font-size: 22px;
 }
 
 footer .social-links a:hover {
   color: var(--button-hover);
   transform: scale(1.1);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  body {
+    padding: 10px 10px 0 10px;
+  }
+  
+  footer {
+    margin-left: -10px;
+    margin-right: -10px;
+    width: calc(100% + 20px);
+  }
+  
+  footer .footer-content {
+    padding: 0 10px;
+  }
 }
 
 /* ===== ESTADOS DE LOADING ===== */
