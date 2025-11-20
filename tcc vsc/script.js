@@ -42,39 +42,78 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
-    // Botão de cadastro
+  // Botão de cadastro - CORRIGIDO
     document.getElementById("cadastroBtn")?.addEventListener("click", function (event) {
-        event.preventDefault();
+    event.preventDefault();
 
-        const nome = document.getElementById("nome")?.value || "Usuário";
-        const email = document.getElementById("email").value.trim().toLowerCase();
-        const senha = document.getElementById("senha").value;
+    const nome = document.getElementById("nome")?.value?.trim() || "";
+    const email = document.getElementById("email")?.value?.trim().toLowerCase() || "";
+    const senha = document.getElementById("senha")?.value || "";
+    const dataNascimento = document.getElementById("dataNascimento")?.value || "";
 
-        if (!email || !senha) {
-            alert("Preencha todos os campos.");
-            return;
-        }
+    // Validação dos campos obrigatórios
+    if (!nome || !email || !senha) {
+        alert("Por favor, preencha todos os campos obrigatórios (Nome, Email e Senha).");
+        return;
+    }
 
-        fetch(`${API_URL}/cadastro`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nome, email, senha })
+    // Validação do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        console.log("Por favor, insira um email válido.");
+        return;
+    }
+
+    // Validação da senha
+    if (senha.length < 6) {
+        alert("A senha deve ter pelo menos 6 caracteres.");
+        return;
+    }
+
+    // Preparar dados para envio
+    const dadosCadastro = {
+        nome: nome,
+        email: email,
+        senha: senha,
+        telefone: "", // Opcional - pode ser preenchido depois no perfil
+        endereco: "", // Opcional - pode ser preenchido depois no perfil
+        data_nascimento: dataNascimento || null
+    };
+
+    console.log("Enviando dados de cadastro:", dadosCadastro);
+
+    // Enviar requisição
+    fetch(`${API_URL}/cadastro`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dadosCadastro)
+    })
+        .then(res => {
+            console.log("Status da resposta:", res.status);
+            if (!res.ok) {
+                // Tentar ler a mensagem de erro
+                return res.json().then(data => {
+                    throw new Error(data.message || `Erro HTTP: ${res.status}`);
+                });
+            }
+            return res.json();
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.mensagem?.includes("sucesso")) {
-                    alert("Cadastro realizado com sucesso!");
-                    window.location.href = "login.html";
-                } else {
-                    alert(data.mensagem || "Erro ao cadastrar");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Erro ao conectar com o servidor");
-            });
-    });
-
+        .then(data => {
+            console.log("Resposta do servidor:", data);
+            
+            // Verificar sucesso - CORRIGIDO para usar 'message' e 'success'
+            if (data.success || data.message?.toLowerCase().includes("sucesso")) {
+                alert("Cadastro realizado com sucesso! Você será redirecionado para o login.");
+                window.location.href = "login.html";
+            } else {
+                alert(data.message || "Erro ao cadastrar. Tente novamente.");
+            }
+        })
+        .catch(err => {
+            console.error("Erro completo:", err);
+            alert(err.message || "Erro ao conectar com o servidor. Verifique se o backend está rodando.");
+        });
+});
     // Botão voltar
     document.getElementById("voltarBtn")?.addEventListener("click", function () {
         window.history.back();
