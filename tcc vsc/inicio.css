@@ -41,7 +41,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--button-hover);
-    background: linear-gradient(135deg, var(--primary-color), var(--button-hover));
+    background: linear-gradient(135deg, var(--button-hover), var(--button-hover));
     /* Fundo principal em cinza claro */
     color: var(--text-color);
     min-height: 100%;
@@ -164,7 +164,7 @@ header nav ul li a {
 .div-texto {
     flex: 2 1 400px;
     padding: 30px;
-    background: linear-gradient(135deg, #ede4f3, #f8f4fc);
+    background: #cfaee4;
     border-radius: 15px;
     border: 1px solid #d1bae9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -180,6 +180,7 @@ header nav ul li a {
 .div-texto p {
     font-size: 1rem;
     line-height: 1.6;
+    color:#4a2b63;
 }
 
 /* Container principal das terapias */
@@ -309,7 +310,8 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--background-color);
+    background: linear-gradient(var(--cor-atras-da-imagem),var(--primary-color));
+    color: #cfaee4;
     padding-bottom: 2rem;
     max-width: 100em;
     margin: 0;
@@ -396,7 +398,8 @@ button:hover {
     margin-right: 3em;
     margin-left: 1em;
     padding-block-end: 5em;
-    background: #cfaee4;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     overflow: hidden;
     backdrop-filter: blur(10px);
@@ -417,7 +420,6 @@ button:hover {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: #cfaee4;
     transition: opacity 0.5s ease-in-out;
 }
 
@@ -442,9 +444,9 @@ button:hover {
 
 .carousel-slide p {
     margin-top: 25px;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    color: var(--button-hover);
+    color: rgba(74, 43, 99, 0.9);
     text-align: center;
     font-family: "Lovelace", Arial, sans-serif;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
@@ -540,7 +542,7 @@ button:hover {
 .slide-title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--button-hover);
+    color: rgba(74, 43, 99, 0.9);
     margin-bottom: 15px;
     font-family: "Lovelace", Arial, sans-serif;
 }
@@ -635,7 +637,7 @@ button:hover {
 
 /* Footer simples */
 footer {
-    background: var(--secondary-color); /*trocar dps por conta do body*/
+    background: linear-gradient(135deg, var(--button-hover), var(--button-hover));
     color: white;
     padding: 1em;
     text-align: center;
@@ -650,7 +652,7 @@ footer {
 
 .footer-divider {
     height: 0.06em;
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--primary-color);
     margin: 1em;
 }
 
