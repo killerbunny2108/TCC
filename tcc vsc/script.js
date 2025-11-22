@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
             
             // Verificar sucesso - CORRIGIDO para usar 'message' e 'success'
             if (data.success || data.message?.toLowerCase().includes("sucesso")) {
-                alert("Cadastro realizado com sucesso! Você será redirecionado para o login.");
+                console.log("Cadastro realizado com sucesso! Você será redirecionado para o login.");
                 window.location.href = "login.html";
             } else {
                 alert(data.message || "Erro ao cadastrar. Tente novamente.");
